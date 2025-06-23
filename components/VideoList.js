@@ -1,5 +1,4 @@
 export default function VideoList() {
-  // Replace with backend data when ready
   const mockVideos = [
     { id: 1, status: "processing", name: "MyImage1.jpg" },
     { id: 2, status: "done", name: "Sunset.png", url: "https://sample-videos.com/video123.mp4" }
