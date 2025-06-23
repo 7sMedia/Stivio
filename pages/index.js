@@ -13,7 +13,7 @@ export default function Home() {
           <h1 className="text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-600 mb-2 animate-fadein">
             Stivio
           </h1>
-          <p className="text-lg text-white/90 mb-4 font-semibold">Turn your photos into animated videos with AI, in seconds.</p>
+          <p className="text-lg text-white/90 mb-4 font-semibold">Making things happen...</p>
           <a
             href="#upload"
             className="mt-2 inline-block bg-gradient-to-r from-indigo-600 to-pink-500 text-white font-bold py-3 px-6 rounded-xl shadow-md hover:scale-105 hover:shadow-xl transition transform duration-300"
