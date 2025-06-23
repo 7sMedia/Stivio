@@ -6,7 +6,6 @@ export default function UploadForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    // TODO: Replace with backend integration
     alert('Image and prompt submitted!')
   }
 
