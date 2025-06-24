@@ -1,14 +1,12 @@
-// app/page.tsx (or pages/index.tsx if using old Next.js)
-// Requires: tailwindcss, shadcn/ui, lucide-react, framer-motion
-
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "../components/ui/button";
 import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { motion } from "framer-motion";
 import { User, Lock, UploadCloud, Image, LogOut } from 'lucide-react';
+import { supabase } from "../lib/supabaseClient";
 
 function GradientBackground({children}: {children: React.ReactNode}) {
   return (
@@ -26,47 +24,84 @@ function GradientBackground({children}: {children: React.ReactNode}) {
   );
 }
 
-const mockUserDB = [
-  {username:'demo', password:'password123'}
-];
-
 export default function HomePage() {
   const [page, setPage] = useState<'landing'|'signup'|'login'|'dashboard'>('landing');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [user, setUser] = useState<string|null>(null);
+  const [user, setUser] = useState<any>(null);
   const [error, setError] = useState('');
   const [images, setImages] = useState<File[]>([]);
   const [previewURLs, setPreviewURLs] = useState<string[]>([]);
   const [videoUrl, setVideoUrl] = useState<string|null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Simulated authentication
-  const handleLogin = () => {
-    if (mockUserDB.find(u=>u.username===username && u.password===password)) {
-      setUser(username);
-      setPage('dashboard');
-      setError('');
-    } else {
-      setError('Invalid credentials');
-    }
-  };
+  // Check Supabase session on load and on auth state change
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUser(data.session.user);
+        setPage('dashboard');
+      }
+    };
+    getSession();
 
-  const handleSignup = () => {
-    if (username.length < 3 || password.length < 6) {
-      setError('Username must be at least 3 characters, password at least 6.');
-      return;
-    }
-    if (mockUserDB.find(u=>u.username===username)) {
-      setError('Username already exists.');
-      return;
-    }
-    mockUserDB.push({username, password});
-    setUser(username);
-    setPage('dashboard');
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        setPage('dashboard');
+      } else {
+        setPage('landing');
+      }
+    });
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  // Signup with Supabase
+  const handleSignup = async () => {
+    setLoading(true);
     setError('');
+    const { error } = await supabase.auth.signUp({
+      email: username,
+      password: password,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setPage('dashboard');
+    }
   };
 
+  // Login with Supabase
+  const handleLogin = async () => {
+    setLoading(true);
+    setError('');
+    const { error } = await supabase.auth.signInWithPassword({
+      email: username,
+      password: password,
+    });
+    setLoading(false);
+    if (error) {
+      setError(error.message);
+    } else {
+      setPage('dashboard');
+    }
+  };
+
+  // Logout with Supabase
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setImages([]);
+    setPreviewURLs([]);
+    setPage('landing');
+  };
+
+  // Handle image file input
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
     const filesArray = Array.from(e.target.files);
@@ -74,23 +109,19 @@ export default function HomePage() {
     setPreviewURLs(filesArray.map(f=>URL.createObjectURL(f)));
   };
 
-  const handleLogout = () => {
-    setUser(null);
-    setImages([]);
-    setPreviewURLs([]);
-    setPage('landing');
-  };
-
+  // Placeholder for video generation (replace with real API later)
   const handleGenerateVideo = async () => {
     setLoading(true);
     setTimeout(()=>{
       setLoading(false);
       setVideoUrl('https://samplelib.com/mp4/sample-5s.mp4'); // Mock video
-    }, 2200); // Simulated delay
-    // Replace with real API call!
+    }, 2200);
+    // TODO: Integrate with your real API!
   };
 
-  // UI Components
+  // === UI Rendering ===
+
+  // Landing Page
   if (page === 'landing') {
     return (
       <GradientBackground>
@@ -105,7 +136,7 @@ export default function HomePage() {
               Turn <span className="bg-gradient-to-r from-pink-500 to-indigo-400 bg-clip-text text-transparent">Your Photos</span> Into <span className="bg-gradient-to-r from-blue-400 to-violet-300 bg-clip-text text-transparent">Stunning AI Videos</span>
             </motion.h1>
             <p className="mt-6 text-lg text-indigo-200 text-center max-w-xl">
-              Experience next-gen video magic powered by AI. Upload, click, and wow your friends—no editing skills needed.
+              Experience next-gen video magic with <b>Beta7</b>. Upload, click, and wow your friends—no editing skills needed.
             </p>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1}} className="mt-8 flex gap-4">
               <Button size="lg" className="text-lg px-8 py-4 font-semibold" onClick={()=>setPage('signup')}>
@@ -132,6 +163,7 @@ export default function HomePage() {
     );
   }
 
+  // Signup/Login Page
   if (page === 'signup' || page === 'login') {
     return (
       <GradientBackground>
@@ -148,7 +180,7 @@ export default function HomePage() {
                 <div className="w-full flex flex-col gap-4">
                   <div className="flex items-center gap-2 bg-indigo-800/60 px-4 rounded-xl">
                     <User size={20} className="text-indigo-300"/>
-                    <Input placeholder="Username" className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
+                    <Input placeholder="Email" className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
                       value={username}
                       onChange={e=>setUsername(e.target.value)}
                     />
@@ -164,8 +196,9 @@ export default function HomePage() {
                 {error && <div className="text-pink-300 text-sm mt-2">{error}</div>}
                 <Button className="w-full mt-4 text-lg"
                   onClick={page==='signup'?handleSignup:handleLogin}
+                  disabled={loading}
                 >
-                  {page==='signup' ? 'Create Account' : 'Login'}
+                  {loading ? "Loading..." : (page==='signup' ? 'Create Account' : 'Login')}
                 </Button>
                 <Button
                   variant="ghost"
@@ -187,7 +220,7 @@ export default function HomePage() {
     );
   }
 
-  // Dashboard page
+  // Dashboard Page
   if (page === 'dashboard' && user) {
     return (
       <GradientBackground>
@@ -200,7 +233,7 @@ export default function HomePage() {
             <CardContent>
               <div className="flex items-center justify-between mb-6">
                 <div>
-                  <h2 className="text-2xl text-white font-bold">Welcome, {user}!</h2>
+                  <h2 className="text-2xl text-white font-bold">Welcome, {user.email}!</h2>
                   <p className="text-indigo-300 text-sm mt-1">Turn your photos into cinematic AI videos below.</p>
                 </div>
                 <Button variant="ghost" className="text-indigo-300" onClick={handleLogout}>
