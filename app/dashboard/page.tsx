@@ -75,7 +75,16 @@ export default function DashboardPage() {
             <div className="text-indigo-200 text-xl font-semibold mb-2">
               Your Latest Videos
             </div>
-            {/* Placeholder thumbnails, can replace with actual history */}
+            <button
+  className="mt-4 px-6 py-2 rounded-lg bg-indigo-800 text-indigo-200 font-semibold shadow hover:bg-pink-500 hover:text-white transition"
+  onClick={async () => {
+    await supabase.auth.signOut();
+    router.push("/"); // Go to landing after logout
+  }}
+>
+  Log Out
+</button>
+ {/* Placeholder thumbnails, can replace with actual history */}
             <div className="grid grid-cols-2 gap-4">
               <div className="rounded-xl bg-indigo-800/60 aspect-video flex items-center justify-center text-indigo-300 font-bold text-xl shadow-inner">
                 Video 1
