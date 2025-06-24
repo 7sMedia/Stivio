@@ -6,7 +6,7 @@ import PromptInput from "./components/PromptInput";
 import VideoResult from "./components/VideoResult";
 import NavBar from "../../components/NavBar";
 import ProgressBar from "../../components/ProgressBar";
-import { supabase } from "../../lib/supabaseClient";
+import { supabase } from "lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const ENGINES = [
