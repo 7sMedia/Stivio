@@ -1,0 +1,79 @@
+"use client";
+import React, { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
+import { User } from "lucide-react";
+
+export default function DashboardPage() {
+  // Placeholder: Replace with actual user info
+  const user = { email: "your@email.com" }; // Replace with Supabase auth user!
+  const router = useRouter();
+
+  // If not logged in, redirect to landing (pseudo)
+  // useEffect(() => { if (!user) router.push("/"); }, [user]);
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black px-4">
+      {/* Glowing animated hero */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 1.1, ease: "easeOut" }}
+        className="w-full max-w-2xl bg-indigo-900/90 rounded-3xl shadow-2xl border border-indigo-700/40 p-10 flex flex-col items-center relative"
+      >
+        <motion.div
+          animate={{ opacity: [0.6, 1, 0.6], scale: [1, 1.08, 1] }}
+          transition={{ repeat: Infinity, duration: 18, ease: "linear" }}
+          className="absolute -top-20 left-1/2 -translate-x-1/2 z-0"
+          style={{ width: 350, height: 180 }}
+        >
+          <svg width="350" height="180" viewBox="0 0 350 180" fill="none">
+            <defs>
+              <radialGradient id="g2" cx="50%" cy="50%" r="80%">
+                <stop stopColor="#818cf8" stopOpacity="0.65" />
+                <stop offset="0.7" stopColor="#f472b6" stopOpacity="0.29" />
+                <stop offset="1" stopColor="#0ea5e9" stopOpacity="0.14" />
+              </radialGradient>
+            </defs>
+            <ellipse cx="175" cy="90" rx="160" ry="70" fill="url(#g2)" />
+          </svg>
+        </motion.div>
+        <div className="relative z-10 flex flex-col items-center">
+          <User size={42} className="text-indigo-100 mb-2 drop-shadow-xl" />
+          <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-xl mb-2 font-display">
+            Welcome back!
+          </h1>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="text-indigo-300 text-lg mb-6 font-semibold"
+          >
+            {user.email}
+          </motion.div>
+          <button
+            className="px-8 py-4 rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 text-white font-semibold shadow-lg text-xl hover:from-sky-400 hover:to-fuchsia-500 transition mb-6"
+            onClick={() => router.push("/ai-tool")}
+          >
+            🚀 Start New AI Video
+          </button>
+          <div className="w-full mt-3">
+            <div className="text-indigo-200 text-xl font-semibold mb-2">
+              Your Latest Videos
+            </div>
+            {/* Placeholder thumbnails, can replace with actual history */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-xl bg-indigo-800/60 aspect-video flex items-center justify-center text-indigo-300 font-bold text-xl shadow-inner">
+                Video 1
+              </div>
+              <div className="rounded-xl bg-indigo-800/60 aspect-video flex items-center justify-center text-indigo-300 font-bold text-xl shadow-inner">
+                Video 2
+              </div>
+            </div>
+            {/* End placeholder */}
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
