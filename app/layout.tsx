@@ -4,7 +4,9 @@ import '../styles/globals.css';
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-white antialiased">{children}</body>
+      <body className="min-h-screen bg-gradient-to-br from-indigo-900 via-violet-900 to-black antialiased">
+        {children}
+      </body>
     </html>
   );
 }
