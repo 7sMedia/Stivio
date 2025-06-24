@@ -98,7 +98,7 @@ export default function HomePage() {
           <div className="flex flex-col items-center mb-12 mt-20">
             <div className="flex items-center gap-2">
               <Image size={38} className="text-indigo-200"/>
-              <span className="text-4xl font-extrabold text-white tracking-wide">Seedance Studio</span>
+              <span className="text-4xl font-extrabold text-white tracking-wide">Beta7</span>
             </div>
             <motion.h1 className="text-5xl font-bold mt-8 text-white text-center leading-tight"
               initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} transition={{delay:0.5}}>
