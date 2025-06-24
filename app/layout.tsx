@@ -1,11 +1,10 @@
 // /app/layout.tsx
-import '../styles/globals.css'; // adjust if your global CSS file is elsewhere
-import type { ReactNode } from 'react';
+import '../styles/globals.css';
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body className="min-h-screen bg-white antialiased">{children}</body>
     </html>
   );
 }
