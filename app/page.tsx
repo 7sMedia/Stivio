@@ -6,7 +6,7 @@ import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { motion } from "framer-motion";
 import { User, Lock, UploadCloud, Image, LogOut } from 'lucide-react';
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
