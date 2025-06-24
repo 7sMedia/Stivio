@@ -4,7 +4,7 @@ import { generateSeedanceVideo } from "./actions/seedance";
 import ImageUpload from "./components/ImageUpload";
 import PromptInput from "./components/PromptInput";
 import VideoResult from "./components/VideoResult";
-import NavBar from "../../components/ui/NavBar";
+import NavBar from "../../components/ui/Navbar";
 import ProgressBar from "../../components/ProgressBar";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
