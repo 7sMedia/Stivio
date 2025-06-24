@@ -1,20 +1,34 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "../../lib/supabaseClient"; // Adjust path if needed
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { User as UserIcon } from "lucide-react";
 
 export default function DashboardPage() {
-  // Placeholder: Replace with actual user info
-  const user = { email: "your@email.com" }; // Replace with Supabase auth user!
+  const [user, setUser] = useState<any>(null);
   const router = useRouter();
 
-  // If not logged in, redirect to landing (pseudo)
-  // useEffect(() => { if (!user) router.push("/"); }, [user]);
+  // Fetch user info on mount, redirect if not logged in
+  useEffect(() => {
+    const getUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUser(data.user);
+      } else {
+        router.push("/"); // Not logged in, go to landing
+      }
+    };
+    getUser();
+  }, [router]);
+
+  if (!user) {
+    // Optionally show a loading spinner or blank until user is fetched/redirected
+    return <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">Loading...</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black px-4">
-      {/* Glowing animated hero */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9, y: 30 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -39,7 +53,7 @@ export default function DashboardPage() {
           </svg>
         </motion.div>
         <div className="relative z-10 flex flex-col items-center">
-          <User size={42} className="text-indigo-100 mb-2 drop-shadow-xl" />
+          <UserIcon size={42} className="text-indigo-100 mb-2 drop-shadow-xl" />
           <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-xl mb-2 font-display">
             Welcome back!
           </h1>
