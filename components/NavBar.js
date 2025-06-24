@@ -36,3 +36,4 @@ export default function NavBar({ user }: { user?: any }) {
     </nav>
   );
 }
+ 
