@@ -114,7 +114,7 @@ export default function HomePage() {
     setLoading(true);
     setTimeout(()=>{
       setLoading(false);
-      setVideoUrl('public/hero-demo.mp4'); // Mock video
+      setVideoUrl('https://stivio.vercel.app/hero-demo.mp4'); // Mock video
     }, 2200);
     // TODO: Integrate with your real API!
   };
@@ -186,7 +186,7 @@ export default function HomePage() {
             className="mt-14 flex justify-center"
           >
             <div className="rounded-2xl shadow-2xl bg-black/40 border-4 border-indigo-600/40 p-2">
-              <video className="rounded-xl w-[350px] md:w-[560px] max-w-full" src="public/hero-demo.mp4" autoPlay loop muted playsInline/>
+              <video className="rounded-xl w-[350px] md:w-[560px] max-w-full" src="https://stivio.vercel.app/hero-demo.mp4" autoPlay loop muted playsInline/>
             </div>
           </motion.div>
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
