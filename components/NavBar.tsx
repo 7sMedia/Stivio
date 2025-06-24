@@ -1,9 +1,12 @@
 "use client";
 import React from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "../../lib/supabaseClient"; // <-- HERE
 
 export default function NavBar({ user }: { user?: any }) {
   const router = useRouter();
+  // ...rest of code
+}
 
   return (
     <nav className="w-full flex items-center justify-between px-6 py-4 bg-gradient-to-r from-indigo-950 to-violet-900 shadow-lg mb-6">
