@@ -105,7 +105,7 @@ export default function HomePage() {
               Turn <span className="bg-gradient-to-r from-pink-500 to-indigo-400 bg-clip-text text-transparent">Your Photos</span> Into <span className="bg-gradient-to-r from-blue-400 to-violet-300 bg-clip-text text-transparent">Stunning AI Videos</span>
             </motion.h1>
             <p className="mt-6 text-lg text-indigo-200 text-center max-w-xl">
-              Experience next-gen video magic powered by ByteDance Seedance AI. Upload, click, and wow your friends—no editing skills needed.
+              Experience next-gen video magic powered by AI. Upload, click, and wow your friends—no editing skills needed.
             </p>
             <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1}} className="mt-8 flex gap-4">
               <Button size="lg" className="text-lg px-8 py-4 font-semibold" onClick={()=>setPage('signup')}>
