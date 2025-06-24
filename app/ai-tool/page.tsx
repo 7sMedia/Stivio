@@ -5,12 +5,13 @@ import ImageUpload from "./components/ImageUpload";
 import PromptInput from "./components/PromptInput";
 import VideoResult from "./components/VideoResult";
 import NavBar from "../../components/NavBar";
+import ProgressBar from "../../components/ProgressBar";
 import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const ENGINES = [
   { label: "Seedance", value: "seedance" },
-  // { label: "SkyReels", value: "skyreels" }, // Example for future expansion
+  // { label: "SkyReels", value: "skyreels" }, // Example for future
 ];
 
 export default function AiToolPage() {
@@ -22,9 +23,10 @@ export default function AiToolPage() {
   const [error, setError] = useState<string | null>(null);
   const [videoLength, setVideoLength] = useState(5);
   const [user, setUser] = useState<any>(null);
+  const [progress, setProgress] = useState(0);
   const router = useRouter();
 
-  // Fetch user info, redirect if not logged in
+  // Auth guard: check if user logged in
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -37,10 +39,12 @@ export default function AiToolPage() {
     getUser();
   }, [router]);
 
+  // Simulated Progress Bar Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setVideoUrl(null);
+    setProgress(0);
 
     if (!image || !prompt) {
       setError("Image and prompt are required.");
@@ -48,18 +52,35 @@ export default function AiToolPage() {
     }
 
     setLoading(true);
+
+    // Simulate smooth progress bar
+    let current = 0;
+    setProgress(0);
+    const fakeProgress = setInterval(() => {
+      current += Math.random() * 6 + 4; // Increment 4–10% per tick
+      if (current < 92) {
+        setProgress(Math.floor(current));
+      }
+    }, 300);
+
     const formData = new FormData();
     formData.append("prompt", prompt);
     formData.append("image", image);
     formData.append("video_length", videoLength.toString());
 
     const res = await generateSeedanceVideo(formData);
+
+    clearInterval(fakeProgress);
+    setProgress(100);
+
     if (res.status === "success" && res.video_url) {
       setVideoUrl(res.video_url);
     } else {
       setError(res.error || "Something went wrong.");
     }
     setLoading(false);
+
+    setTimeout(() => setProgress(0), 900);
   };
 
   if (!user) {
@@ -112,6 +133,8 @@ export default function AiToolPage() {
                 className="w-24 px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-900 text-indigo-100 placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
               />
             </div>
+            {/* Progress bar */}
+            {loading && <ProgressBar percent={progress} />}
             <button
               type="submit"
               className="w-full py-3 rounded-lg bg-gradient-to-r from-sky-500 to-violet-500 text-white font-semibold shadow-lg hover:from-sky-400 hover:to-fuchsia-500 transition text-lg"
