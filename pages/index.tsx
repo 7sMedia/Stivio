@@ -10,7 +10,7 @@ import { supabase } from "../lib/supabaseClient";
 
 function GradientBackground({children}: {children: React.ReactNode}) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-violet-900 to-black flex flex-col items-center justify-center relative">
+    <div className="min-h-screen w-full overflow-hidden bg-gradient-to-br from-indigo-900 via-violet-900 to-black flex flex-col items-center justify-center relative">
       <div className="absolute inset-0 pointer-events-none" style={{zIndex:0}}>
         <motion.div
           initial={{opacity:0, scale:0.8}}
@@ -125,84 +125,84 @@ export default function HomePage() {
   if (page === 'landing') {
     return (
       <GradientBackground>
-  <motion.div initial={{y:30,opacity:0}} animate={{y:0,opacity:1}} transition={{duration:1}}>
-    {/* Glowing, animated shape */}
-    <div className="relative flex flex-col items-center mb-12 mt-20">
-      <motion.div
-        animate={{
-          rotate: [0, 360],
-          scale: [1, 1.08, 1],
-          opacity: [0.8, 1, 0.8]
-        }}
-        transition={{ repeat: Infinity, duration: 16, ease: "linear" }}
-        className="absolute -top-24 left-1/2 -translate-x-1/2 z-0"
-        style={{width:380, height:380}}
-      >
-        <svg width="380" height="380" viewBox="0 0 380 380" fill="none">
-          <defs>
-            <radialGradient id="g1" cx="50%" cy="50%" r="75%">
-              <stop stopColor="#a5b4fc" stopOpacity="0.7"/>
-              <stop offset="0.6" stopColor="#a78bfa" stopOpacity="0.38"/>
-              <stop offset="1" stopColor="#0ea5e9" stopOpacity="0.17"/>
-            </radialGradient>
-          </defs>
-          <circle cx="190" cy="190" r="155" fill="url(#g1)" />
-        </svg>
-      </motion.div>
-      <div className="relative z-10 flex items-center gap-3">
-        <Image size={48} className="text-indigo-100 drop-shadow-xl"/>
-        <span className="text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-xl font-display">
-          Beta7
-        </span>
-      </div>
-    </div>
-    <motion.h1
-      className="text-4xl md:text-6xl font-bold mt-10 text-center text-white leading-tight font-display drop-shadow-xl"
-      initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} transition={{delay:0.5}}>
-      Bring <span className="bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">Still Images</span> to Life<br/>
-      with <span className="bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">AI Video Creation</span>
-    </motion.h1>
-    <p className="mt-8 text-xl md:text-2xl text-indigo-200 text-center max-w-2xl mx-auto font-medium drop-shadow">
-      The fastest way to transform your photos into stunning, shareable AI videos.<br/>
-      Upload, generate, and impress—no editing skills needed.
-    </p>
-    <motion.div
-      initial={{opacity:0}}
-      animate={{opacity:1}}
-      transition={{delay:1}}
-      className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
-    >
-      <Button size="lg" className="text-lg px-8 py-4 font-semibold text-white shadow-xl bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-400 hover:to-fuchsia-500 border-0" onClick={()=>setPage('signup')}>
-        Get Started Free
-      </Button>
-      <Button variant="outline" size="lg" className="text-lg px-8 py-4 font-semibold border-indigo-200 text-indigo-100 hover:bg-indigo-900 shadow" onClick={()=>setPage('login')}>
-        Login
-      </Button>
-    </motion.div>
-    <motion.div
-      initial={{opacity:0, y:80}}
-      animate={{opacity:1, y:0}}
-      transition={{delay:1.3, duration:1}}
-      className="mt-14 flex justify-center"
-    >
-      <div className="rounded-2xl shadow-2xl bg-black/40 border-4 border-indigo-600/40 p-2">
-        <video className="rounded-xl w-[350px] md:w-[560px]" src="https://samplelib.com/mp4/sample-5s.mp4" autoPlay loop muted playsInline/>
-      </div>
-    </motion.div>
-    <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
-      {/* Feature bubbles */}
-      <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-        <UploadCloud className="text-sky-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">Upload images</span>
-      </div>
-      <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-        <Image className="text-pink-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">AI animates</span>
-      </div>
-      <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-        <User className="text-green-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">Share anywhere</span>
-      </div>
-    </div>
-  </motion.div>
-</GradientBackground>
+        <motion.div initial={{y:30,opacity:0}} animate={{y:0,opacity:1}} transition={{duration:1}}>
+          {/* Glowing, animated shape */}
+          <div className="relative flex flex-col items-center mb-12 mt-20">
+            <motion.div
+              animate={{
+                rotate: [0, 360],
+                scale: [1, 1.08, 1],
+                opacity: [0.8, 1, 0.8]
+              }}
+              transition={{ repeat: Infinity, duration: 16, ease: "linear" }}
+              className="absolute -top-24 left-1/2 -translate-x-1/2 z-0"
+              style={{width:380, height:380}}
+            >
+              <svg width="380" height="380" viewBox="0 0 380 380" fill="none">
+                <defs>
+                  <radialGradient id="g1" cx="50%" cy="50%" r="75%">
+                    <stop stopColor="#a5b4fc" stopOpacity="0.7"/>
+                    <stop offset="0.6" stopColor="#a78bfa" stopOpacity="0.38"/>
+                    <stop offset="1" stopColor="#0ea5e9" stopOpacity="0.17"/>
+                  </radialGradient>
+                </defs>
+                <circle cx="190" cy="190" r="155" fill="url(#g1)" />
+              </svg>
+            </motion.div>
+            <div className="relative z-10 flex items-center gap-3">
+              <Image size={48} className="text-indigo-100 drop-shadow-xl"/>
+              <span className="text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-xl font-display">
+                Beta7
+              </span>
+            </div>
+          </div>
+          <motion.h1
+            className="text-4xl md:text-6xl font-bold mt-10 text-center text-white leading-tight font-display drop-shadow-xl"
+            initial={{opacity:0,y:40}} animate={{opacity:1,y:0}} transition={{delay:0.5}}>
+            Bring <span className="bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">Still Images</span> to Life<br/>
+            with <span className="bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">AI Video Creation</span>
+          </motion.h1>
+          <p className="mt-8 text-xl md:text-2xl text-indigo-200 text-center max-w-2xl mx-auto font-medium drop-shadow">
+            The fastest way to transform your photos into stunning, shareable AI videos.<br/>
+            Upload, generate, and impress—no editing skills needed.
+          </p>
+          <motion.div
+            initial={{opacity:0}}
+            animate={{opacity:1}}
+            transition={{delay:1}}
+            className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
+          >
+            <Button size="lg" className="text-lg px-8 py-4 font-semibold text-white shadow-xl bg-gradient-to-r from-sky-500 to-violet-500 hover:from-sky-400 hover:to-fuchsia-500 border-0" onClick={()=>setPage('signup')}>
+              Get Started Free
+            </Button>
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4 font-semibold border-indigo-200 text-indigo-100 hover:bg-indigo-900 shadow" onClick={()=>setPage('login')}>
+              Login
+            </Button>
+          </motion.div>
+          <motion.div
+            initial={{opacity:0, y:80}}
+            animate={{opacity:1, y:0}}
+            transition={{delay:1.3, duration:1}}
+            className="mt-14 flex justify-center"
+          >
+            <div className="rounded-2xl shadow-2xl bg-black/40 border-4 border-indigo-600/40 p-2">
+              <video className="rounded-xl w-[350px] md:w-[560px] max-w-full" src="https://samplelib.com/mp4/sample-5s.mp4" autoPlay loop muted playsInline/>
+            </div>
+          </motion.div>
+          <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
+            {/* Feature bubbles */}
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <UploadCloud className="text-sky-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">Upload images</span>
+            </div>
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <Image className="text-pink-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">AI animates</span>
+            </div>
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <User className="text-green-400" size={32}/> <span className="text-lg text-indigo-100 font-semibold">Share anywhere</span>
+            </div>
+          </div>
+        </motion.div>
+      </GradientBackground>
     );
   }
 
