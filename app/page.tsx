@@ -11,8 +11,8 @@ import { useRouter } from "next/navigation";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full overflow-hidden bg-gradient-to-br from-indigo-900 via-violet-900 to-black flex flex-col items-center justify-center relative">
-      <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 0 }}>
+    <div className="min-h-screen h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative">
+      <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
