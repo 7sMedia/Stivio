@@ -31,8 +31,3 @@ html, body {
 body {
   -webkit-tap-highlight-color: transparent;
 }
-
-/* Optional: Hide scrollbars on mobile for cleaner UI */
-/* ::-webkit-scrollbar {
-  display: none;
-} */
