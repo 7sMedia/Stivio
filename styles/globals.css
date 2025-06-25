@@ -2,16 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Global CSS Variables */
-:root {
-  --main-bg: linear-gradient(
-    to bottom right,
-    #312e81,
-    #7c3aed 40%,
-    #000 100%
-  );
-}
-
 /* Font smoothing for crisper type */
 html {
   -webkit-font-smoothing: antialiased;
