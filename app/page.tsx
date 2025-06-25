@@ -11,8 +11,27 @@ import { useRouter } from "next/navigation";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen h-full w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative">
-      {/* ...the rest */}
+    <div
+      className="
+        min-h-screen h-full w-full flex flex-col items-center justify-center 
+        bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative
+        pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]
+        sm:pt-0 sm:pb-0
+      "
+      style={{
+        // This fixes Android Chrome “cut off” at the top
+        paddingTop: "max(env(safe-area-inset-top), 1.5rem)",   // fallback 24px
+        paddingBottom: "env(safe-area-inset-bottom)",
+      }}
+    >
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-indigo-400/30 blur-3xl"
+        />
+      </div>
       <div className="z-10 w-full flex-1 flex flex-col items-center justify-center">{children}</div>
     </div>
   );
