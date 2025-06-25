@@ -2,14 +2,35 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Prevent horizontal scroll and ensure body covers full height */
+/* Global CSS Variables */
+:root {
+  --main-bg: linear-gradient(
+    to bottom right,
+    #312e81,
+    #7c3aed 40%,
+    #000 100%
+  );
+}
+
+/* Font smoothing for crisper type */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Prevent horizontal scroll, layout shifts, and set global background */
 html, body {
-  overflow-x: hidden;
   min-height: 100%;
   width: 100vw;
-  /* Optional: makes sure background always covers */
-  background: transparent;
+  max-width: 100vw;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  background: var(--main-bg);
+}
+
+/* Optional: Ensure all elements use border-box for sizing */
+*, *::before, *::after {
+  box-sizing: inherit;
 }
