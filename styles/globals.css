@@ -18,16 +18,17 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Prevent horizontal scroll, layout shifts, and set global background */
+/* Prevent horizontal scroll, layout shifts */
 html, body {
   min-height: 100%;
+  height: 100%;
   width: 100vw;
   max-width: 100vw;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  background: var(--main-bg);
+  /* background: var(--main-bg);   <-- REMOVE THIS LINE! */
 }
 
 /* Optional: Ensure all elements use border-box for sizing */
