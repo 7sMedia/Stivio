@@ -19,20 +19,26 @@ html, body {
   box-sizing: border-box;
 }
 
-/* Safe-area for notch and browser chrome (iOS/Android) */
+/* Safe-area for iOS/Android notches and browser bars */
 body {
-  padding-top: env(safe-area-inset-top);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Use iOS full height on Safari/Chrome mobile */
+@supports (-webkit-touch-callout: none) {
+  html {
+    min-height: -webkit-fill-available;
+  }
+  body {
+    min-height: -webkit-fill-available;
+  }
+  .min-h-screen {
+    min-height: -webkit-fill-available !important;
+  }
 }
 
 /* Optional: Ensure all elements use border-box for sizing */
 *, *::before, *::after {
   box-sizing: inherit;
-}
-
-/* iOS 100vh fix for Tailwind's min-h-screen */
-@supports (-webkit-touch-callout: none) {
-  .min-h-screen {
-    min-height: -webkit-fill-available !important;
-  }
 }
