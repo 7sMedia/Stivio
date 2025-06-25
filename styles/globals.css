@@ -28,7 +28,6 @@ html, body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
-  /* background: var(--main-bg);   <-- REMOVE THIS LINE! */
 }
 
 /* Optional: Ensure all elements use border-box for sizing */
