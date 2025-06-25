@@ -1,11 +1,11 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import { generateSeedanceVideo } from "./actions/seedance";
-import ImageUpload from "./components/ImageUpload";
-import PromptInput from "./components/PromptInput";
-import VideoResult from "./components/VideoResult";
-import NavBar from "../../components/NavBar";
-import ProgressBar from "../../components/ProgressBar";
+import { generateSeedanceVideo } from "actions/seedance";
+import ImageUpload from "components/ImageUpload";
+import PromptInput from "components/PromptInput";
+import VideoResult from "components/VideoResult";
+import NavBar from "components/NavBar";
+import ProgressBar from "components/ProgressBar";
 import { supabase } from "lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
