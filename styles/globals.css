@@ -2,32 +2,32 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Font smoothing for crisp type */
+/* Font smoothing */
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* iOS Safari & Android Chrome 100vh viewport fix */
+/* Universal box-sizing and body background fallback */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 html, body {
-  min-height: 100vh;
   height: 100%;
-  min-height: -webkit-fill-available; /* iOS Safari fill viewport */
+  min-height: 100dvh; /* dynamic viewport units for iOS/Android 2024+ */
   width: 100vw;
   max-width: 100vw;
-  overflow-x: hidden;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
-  background: #000; /* fallback, most pages use Tailwind bg classes */
+  overflow-x: hidden;
+  background: #000;
 }
 
-/* Prevent layout shift, global border-box */
-*, *::before, *::after {
-  box-sizing: inherit;
-}
-
-/* Optional: Remove tap highlight on mobile */
+/* Fix for iOS Safari viewport cut-off (safe area) */
 body {
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   -webkit-tap-highlight-color: transparent;
+  padding-bottom: env(safe-area-inset-bottom); /* For iPhone X notch, optional */
 }
