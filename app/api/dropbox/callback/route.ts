@@ -60,14 +60,15 @@ export async function GET(req: NextRequest) {
       }),
     });
 
-    let data: any;
-    const contentType = tokenRes.headers.get("content-type") || "";
+    // ----- SAFELY READ BODY: JSON or TEXT -----
+    let data: any = {};
+    const tokenContentType = tokenRes.headers.get("content-type") || "";
     if (!tokenRes.ok) {
       // Try to parse error body as text
       const errText = await tokenRes.text();
       console.error("[DROPBOX CALLBACK] Dropbox token error response:", errText);
       let msg = "Could not connect to Dropbox.";
-      if (contentType.includes("application/json")) {
+      if (tokenContentType.includes("application/json")) {
         try {
           const errJson = JSON.parse(errText);
           if (errJson.error === "invalid_grant") {
@@ -81,8 +82,16 @@ export async function GET(req: NextRequest) {
         status: 400,
         headers: { "Content-Type": "text/html" }
       });
-    } else if (contentType.includes("application/json")) {
-      data = await tokenRes.json();
+    } else if (tokenContentType.includes("application/json")) {
+      try {
+        data = await tokenRes.json();
+      } catch (e) {
+        console.error("[DROPBOX CALLBACK] Could not parse Dropbox token JSON:", e);
+        return new Response(errorHtml("Dropbox gave an invalid response. Please try again."), {
+          status: 500,
+          headers: { "Content-Type": "text/html" }
+        });
+      }
     } else {
       const txt = await tokenRes.text();
       console.error("[DROPBOX CALLBACK] Unexpected Dropbox token response:", txt);
@@ -105,10 +114,20 @@ export async function GET(req: NextRequest) {
       method: "POST",
       headers: { "Authorization": `Bearer ${data.access_token}` }
     });
+
     let accountData: any = {};
-    try {
-      accountData = await accountRes.json();
-    } catch (e) {
+    const accountContentType = accountRes.headers.get("content-type") || "";
+    if (accountContentType.includes("application/json")) {
+      try {
+        accountData = await accountRes.json();
+      } catch (e) {
+        console.error("[DROPBOX CALLBACK] Failed to parse account info as JSON");
+        return new Response(errorHtml("Could not retrieve your Dropbox account info (parse error)."), {
+          status: 400,
+          headers: { "Content-Type": "text/html" }
+        });
+      }
+    } else {
       const txt = await accountRes.text();
       console.error("[DROPBOX CALLBACK] Unexpected Dropbox account info response:", txt);
       return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
