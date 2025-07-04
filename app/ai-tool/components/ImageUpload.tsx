@@ -1,4 +1,6 @@
 // /app/ai-tool/components/ImageUpload.tsx
+import DropboxImportButton from "./DropboxImportButton";
+
 "use client";
 import React from "react";
 
