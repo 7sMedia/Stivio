@@ -17,7 +17,8 @@
     "baseUrl": ".",
     "paths": {
       "@components/*": ["components/*"],
-      "@lib/*": ["lib/*"]
+      "@lib/*": ["lib/*"],
+      "components/*": ["components/*"]         // <-- add this for fallback absolute import
     }
   },
   "include": [
