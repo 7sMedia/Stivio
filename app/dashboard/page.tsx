@@ -6,11 +6,13 @@ import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
 import NavBar from "@components/NavBar";
 import ProgressBar from "@components/ProgressBar";
-import DropboxFileList from "@components/DropboxFileList"; // <- Add this import!
+import DropboxFileList from "@components/DropboxFileList";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [importedFile, setImportedFile] = useState<any>(null);
+  const [importing, setImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -27,9 +29,29 @@ export default function DashboardPage() {
 
   // Called when user clicks "Import/Process" on a Dropbox file
   async function handleProcessFile(file: any) {
-    setImportedFile(file);
-    alert(`Queued ${file.name} for processing!`);
-    // Replace with actual backend POST if you want to trigger automation
+    setImporting(true);
+    setImportError(null);
+    setImportedFile(null);
+
+    try {
+      const res = await fetch("/api/dropbox/process-file", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: user.id,
+          file
+        }),
+      });
+      const result = await res.json();
+      if (result.ok) {
+        setImportedFile(file);
+      } else {
+        setImportError(result.error || "Failed to import file.");
+      }
+    } catch (e) {
+      setImportError("Network error importing file.");
+    }
+    setImporting(false);
   }
 
   if (!user) {
@@ -127,9 +149,17 @@ export default function DashboardPage() {
         <div className="w-full max-w-2xl mt-10 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
           <h2 className="text-2xl font-bold text-white mb-4">Your Dropbox Files</h2>
           <DropboxFileList userId={user.id} onProcessFile={handleProcessFile} />
-          {importedFile && (
+          {importing && (
+            <div className="mt-4 text-indigo-100">Importing file...</div>
+          )}
+          {importedFile && !importError && (
             <div className="mt-6 p-4 bg-green-900/60 rounded-xl text-green-300 font-bold">
               Imported: {importedFile.name}
+            </div>
+          )}
+          {importError && (
+            <div className="mt-6 p-4 bg-red-900/60 rounded-xl text-red-300 font-bold">
+              {importError}
             </div>
           )}
         </div>
