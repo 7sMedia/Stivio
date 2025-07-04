@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { generateSeedanceVideo } from "@lib/generateSeedanceVideo"; // Make sure this file exists as described!
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
@@ -21,7 +22,7 @@ async function downloadDropboxFile(access_token: string, filePath: string): Prom
 }
 
 export async function POST(req: NextRequest) {
-  const { userId, file } = await req.json();
+  const { userId, file, prompt, videoLength } = await req.json();
   if (!userId || !file) {
     return NextResponse.json({ error: "Missing userId or file" }, { status: 400 });
   }
@@ -46,9 +47,20 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Failed to download Dropbox file" }, { status: 500 });
   }
 
-  // TODO: Process fileBuffer, e.g. send to image-to-video workflow, or store, etc.
+  // --- Process file with Seedance (Wavespeed) API ---
+  let result;
+  try {
+    result = await generateSeedanceVideo({
+      fileBuffer,
+      fileName: file.name,
+      prompt: prompt || file.name, // use prompt from user, or filename as fallback
+      videoLength: videoLength || 5,
+    });
+  } catch (e) {
+    result = { status: "error", video_url: null, error: "Seedance API error" };
+  }
 
-  // Save record of imported file to your DB for tracking
+  // Save record of imported file and result to your DB for tracking
   await supabase.from("imported_files").insert([
     {
       user_id: userId,
@@ -56,9 +68,17 @@ export async function POST(req: NextRequest) {
       file_name: file.name,
       dropbox_path: file.path_display,
       imported_at: new Date().toISOString(),
-      // Optionally, status, processing result, etc.
+      status: result.status,
+      output_url: result.video_url || null,
+      error: result.error || null,
     },
   ]);
 
-  return NextResponse.json({ ok: true, fileName: file.name });
+  return NextResponse.json({
+    ok: true,
+    fileName: file.name,
+    output_url: result.video_url,
+    status: result.status,
+    error: result.error,
+  });
 }
