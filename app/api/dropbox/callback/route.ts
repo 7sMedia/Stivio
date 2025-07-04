@@ -7,7 +7,7 @@ const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
 const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!; // Service role key (server-side only!)
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 
 function errorHtml(message: string) {
   return `
@@ -33,84 +33,103 @@ function errorHtml(message: string) {
 }
 
 export async function GET(req: NextRequest) {
-  const code = req.nextUrl.searchParams.get("code");
-  const state = req.nextUrl.searchParams.get("state"); // user_id
+  try {
+    const code = req.nextUrl.searchParams.get("code");
+    const state = req.nextUrl.searchParams.get("state"); // user_id
 
-  if (!code || !state) {
-    return new Response(errorHtml("Missing Dropbox code or user ID."), {
-      status: 400,
-      headers: { "Content-Type": "text/html" }
-    });
-  }
+    console.log("[DROPBOX CALLBACK] code/state:", { code, state });
 
-  // Exchange code for tokens
-  const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      code,
-      grant_type: "authorization_code",
-      client_id: DROPBOX_CLIENT_ID,
-      client_secret: DROPBOX_CLIENT_SECRET,
-      redirect_uri: DROPBOX_REDIRECT_URI,
-    }),
-  });
-
-  const data = await tokenRes.json();
-
-  // Handle OAuth errors and give user-friendly feedback
-  if (!data.access_token) {
-    let msg = "Could not connect to Dropbox.";
-    if (data.error === "invalid_grant") {
-      msg = "This Dropbox sign-in link has expired or already been used. Please try connecting again.";
-    } else if (data.error_description) {
-      msg = data.error_description;
+    if (!code || !state) {
+      console.warn("[DROPBOX CALLBACK] Missing code or state!");
+      return new Response(errorHtml("Missing Dropbox code or user ID."), {
+        status: 400,
+        headers: { "Content-Type": "text/html" }
+      });
     }
-    return new Response(errorHtml(msg), {
-      status: 400,
-      headers: { "Content-Type": "text/html" }
+
+    // Exchange code for tokens
+    const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code,
+        grant_type: "authorization_code",
+        client_id: DROPBOX_CLIENT_ID,
+        client_secret: DROPBOX_CLIENT_SECRET,
+        redirect_uri: DROPBOX_REDIRECT_URI,
+      }),
     });
-  }
 
-  // --- GET Dropbox Account Info (account_id) ---
-  const accountRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${data.access_token}` }
-  });
-  const accountData = await accountRes.json();
-  if (!accountData.account_id) {
-    return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
-      status: 400,
-      headers: { "Content-Type": "text/html" }
+    const data = await tokenRes.json();
+    console.log("[DROPBOX CALLBACK] token exchange response:", data);
+
+    // Handle OAuth errors and give user-friendly feedback
+    if (!data.access_token) {
+      let msg = "Could not connect to Dropbox.";
+      if (data.error === "invalid_grant") {
+        msg = "This Dropbox sign-in link has expired or already been used. Please try connecting again.";
+      } else if (data.error_description) {
+        msg = data.error_description;
+      }
+      console.warn("[DROPBOX CALLBACK] OAuth error:", data);
+      return new Response(errorHtml(msg), {
+        status: 400,
+        headers: { "Content-Type": "text/html" }
+      });
+    }
+
+    // --- GET Dropbox Account Info (account_id) ---
+    const accountRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${data.access_token}` }
     });
-  }
+    const accountData = await accountRes.json();
+    console.log("[DROPBOX CALLBACK] accountData:", accountData);
 
-  // Save token (and account_id) to Supabase
-  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    if (!accountData.account_id) {
+      console.warn("[DROPBOX CALLBACK] No account_id from Dropbox!", accountData);
+      return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
+        status: 400,
+        headers: { "Content-Type": "text/html" }
+      });
+    }
 
-  // Remove any previous tokens for this user
-  await supabase.from("dropbox_tokens").delete().eq("user_id", state);
+    // Save token (and account_id) to Supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // Save the new token and account_id
-  const { error: dbError } = await supabase.from("dropbox_tokens").insert([
-    {
-      user_id: state,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token || null,
-      expires_at: data.expires_in
-        ? new Date(Date.now() + data.expires_in * 1000).toISOString()
-        : null,
-      account_id: accountData.account_id,
-    },
-  ]);
+    // Remove any previous tokens for this user
+    const delRes = await supabase.from("dropbox_tokens").delete().eq("user_id", state);
+    console.log("[DROPBOX CALLBACK] supabase delete response:", delRes);
 
-  if (dbError) {
-    return new Response(errorHtml("Failed to save Dropbox token. Please try again."), {
+    // Save the new token and account_id
+    const { error: dbError } = await supabase.from("dropbox_tokens").insert([
+      {
+        user_id: state,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token || null,
+        expires_at: data.expires_in
+          ? new Date(Date.now() + data.expires_in * 1000).toISOString()
+          : null,
+        account_id: accountData.account_id,
+      },
+    ]);
+    console.log("[DROPBOX CALLBACK] supabase insert error:", dbError);
+
+    if (dbError) {
+      console.error("[DROPBOX CALLBACK] Failed to save token!", dbError);
+      return new Response(errorHtml("Failed to save Dropbox token. Please try again."), {
+        status: 500,
+        headers: { "Content-Type": "text/html" }
+      });
+    }
+
+    // Redirect to dashboard or show success
+    return NextResponse.redirect("/dashboard?dropbox=connected");
+  } catch (err: any) {
+    console.error("[DROPBOX CALLBACK] Unexpected error:", err);
+    return new Response(errorHtml("An unexpected error occurred. Please try again or contact support."), {
       status: 500,
       headers: { "Content-Type": "text/html" }
     });
   }
-
-  // Redirect to dashboard or show success
-  return NextResponse.redirect("/dashboard?dropbox=connected");
 }
