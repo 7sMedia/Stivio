@@ -38,6 +38,16 @@ export default function DropboxFileList({ userId, onProcessFile }: DropboxFileLi
       {files.map(file =>
         file[".tag"] === "file" ? (
           <div key={file.id} className="p-2 bg-indigo-900/60 rounded shadow flex flex-col items-center">
+            {/* Image preview if file is an image (future: use your own API to protect files) */}
+            {file.name.match(/\.(jpg|jpeg|png|gif)$/i) ? (
+              <div className="mb-1 w-20 h-20 bg-black rounded flex items-center justify-center">
+                <span className="text-xs text-indigo-300">Preview unavailable</span>
+                {/* 
+                // You cannot directly use Dropbox API URLs for <img src> unless the file is public/shared.
+                // In production, create a backend route that securely fetches and streams the file buffer.
+                */}
+              </div>
+            ) : null}
             <span className="text-indigo-200 text-xs truncate mb-1">{file.name}</span>
             <button
               className="mt-1 px-3 py-1 bg-sky-600 text-white rounded text-xs hover:bg-sky-700"
