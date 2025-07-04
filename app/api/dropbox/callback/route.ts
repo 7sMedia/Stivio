@@ -60,19 +60,41 @@ export async function GET(req: NextRequest) {
       }),
     });
 
-    const data = await tokenRes.json();
-    console.log("[DROPBOX CALLBACK] token exchange response:", data);
-
-    // Handle OAuth errors and give user-friendly feedback
-    if (!data.access_token) {
+    let data: any;
+    const contentType = tokenRes.headers.get("content-type") || "";
+    if (!tokenRes.ok) {
+      // Try to parse error body as text
+      const errText = await tokenRes.text();
+      console.error("[DROPBOX CALLBACK] Dropbox token error response:", errText);
       let msg = "Could not connect to Dropbox.";
-      if (data.error === "invalid_grant") {
-        msg = "This Dropbox sign-in link has expired or already been used. Please try connecting again.";
-      } else if (data.error_description) {
-        msg = data.error_description;
+      if (contentType.includes("application/json")) {
+        try {
+          const errJson = JSON.parse(errText);
+          if (errJson.error === "invalid_grant") {
+            msg = "This Dropbox sign-in link has expired or already been used. Please try connecting again.";
+          } else if (errJson.error_description) {
+            msg = errJson.error_description;
+          }
+        } catch {}
       }
-      console.warn("[DROPBOX CALLBACK] OAuth error:", data);
       return new Response(errorHtml(msg), {
+        status: 400,
+        headers: { "Content-Type": "text/html" }
+      });
+    } else if (contentType.includes("application/json")) {
+      data = await tokenRes.json();
+    } else {
+      const txt = await tokenRes.text();
+      console.error("[DROPBOX CALLBACK] Unexpected Dropbox token response:", txt);
+      return new Response(errorHtml("Dropbox gave an unexpected response. Please try again later."), {
+        status: 500,
+        headers: { "Content-Type": "text/html" }
+      });
+    }
+
+    // Defensive: If for any reason we don't have a token now, bail out.
+    if (!data?.access_token) {
+      return new Response(errorHtml("Could not connect to Dropbox (no access token)."), {
         status: 400,
         headers: { "Content-Type": "text/html" }
       });
@@ -83,12 +105,20 @@ export async function GET(req: NextRequest) {
       method: "POST",
       headers: { "Authorization": `Bearer ${data.access_token}` }
     });
-    const accountData = await accountRes.json();
-    console.log("[DROPBOX CALLBACK] accountData:", accountData);
+    let accountData: any = {};
+    try {
+      accountData = await accountRes.json();
+    } catch (e) {
+      const txt = await accountRes.text();
+      console.error("[DROPBOX CALLBACK] Unexpected Dropbox account info response:", txt);
+      return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
+        status: 400,
+        headers: { "Content-Type": "text/html" }
+      });
+    }
 
     if (!accountData.account_id) {
-      console.warn("[DROPBOX CALLBACK] No account_id from Dropbox!", accountData);
-      return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
+      return new Response(errorHtml("Could not retrieve your Dropbox account info (no account ID)."), {
         status: 400,
         headers: { "Content-Type": "text/html" }
       });
@@ -99,7 +129,6 @@ export async function GET(req: NextRequest) {
 
     // Remove any previous tokens for this user
     const delRes = await supabase.from("dropbox_tokens").delete().eq("user_id", state);
-    console.log("[DROPBOX CALLBACK] supabase delete response:", delRes);
 
     // Save the new token and account_id
     const { error: dbError } = await supabase.from("dropbox_tokens").insert([
@@ -113,10 +142,8 @@ export async function GET(req: NextRequest) {
         account_id: accountData.account_id,
       },
     ]);
-    console.log("[DROPBOX CALLBACK] supabase insert error:", dbError);
 
     if (dbError) {
-      console.error("[DROPBOX CALLBACK] Failed to save token!", dbError);
       return new Response(errorHtml("Failed to save Dropbox token. Please try again."), {
         status: 500,
         headers: { "Content-Type": "text/html" }
@@ -126,7 +153,7 @@ export async function GET(req: NextRequest) {
     // Redirect to dashboard or show success
     return NextResponse.redirect("/dashboard?dropbox=connected");
   } catch (err: any) {
-    console.error("[DROPBOX CALLBACK] Unexpected error:", err);
+    console.error("[DROPBOX CALLBACK] Unexpected error:", err, err?.stack);
     return new Response(errorHtml("An unexpected error occurred. Please try again or contact support."), {
       status: 500,
       headers: { "Content-Type": "text/html" }
