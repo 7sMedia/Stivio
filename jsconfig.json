@@ -12,3 +12,11 @@
     "app"
   ]
 }
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "components/*": ["components/*"]
+    }
+  }
+}
