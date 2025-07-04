@@ -1,11 +1,7 @@
 // /app/ai-tool/components/ImageUpload.tsx
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import DropboxImportButton from "./DropboxImportButton";
-
-type Props = {
-  onChange?: (file: File | null) => void; // Now optional, to not break current usage
-};
 
 type UploadedImage = {
   name: string;
@@ -14,34 +10,24 @@ type UploadedImage = {
   fileObj?: File; // for local uploads
 };
 
-export default function ImageUpload({ onChange }: Props) {
-  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+type Props = {
+  // Passes the uploaded local file up (for single-upload mode)
+  onChange?: (file: File | null) => void;
+  // Passes Dropbox files up
+  onDropbox?: (files: any[]) => void;
+};
 
+export default function ImageUpload({ onChange, onDropbox }: Props) {
   // Handle local file uploads
   function handleLocalUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0] || null;
     if (!file) return;
-    const url = URL.createObjectURL(file);
-    const imgObj: UploadedImage = {
-      name: file.name,
-      url,
-      fromDropbox: false,
-      fileObj: file,
-    };
-    setUploadedImages((prev) => [...prev, imgObj]);
     if (onChange) onChange(file);
   }
 
   // Handle Dropbox file selection
   function handleDropboxFiles(files: any[]) {
-    const dropboxImages: UploadedImage[] = files.map((file: any) => ({
-      name: file.name,
-      url: file.link, // direct link to image
-      fromDropbox: true,
-    }));
-    setUploadedImages((prev) => [...prev, ...dropboxImages]);
-    // You can also pass these files to parent if needed:
-    // if (onChange) onChange(null);
+    if (onDropbox) onDropbox(files);
   }
 
   return (
@@ -59,21 +45,6 @@ export default function ImageUpload({ onChange }: Props) {
 
       {/* Dropbox Import */}
       <DropboxImportButton onFilesSelected={handleDropboxFiles} />
-
-      {/* Image Previews */}
-      {uploadedImages.length > 0 && (
-        <div className="flex gap-4 flex-wrap mt-4">
-          {uploadedImages.map((img, idx) => (
-            <div key={idx} className="w-24 h-24 border rounded overflow-hidden flex flex-col items-center">
-              <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-              <span className="text-xs truncate text-white bg-black bg-opacity-40 px-1">{img.name}</span>
-              {img.fromDropbox && (
-                <span className="text-[10px] text-blue-400">Dropbox</span>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
