@@ -1,8 +1,14 @@
 // components/DropboxFileList.tsx
+
 "use client";
 import React, { useEffect, useState } from "react";
 
-export default function DropboxFileList({ userId, onProcessFile }) {
+type DropboxFileListProps = {
+  userId: string;
+  onProcessFile: (file: any) => void;
+};
+
+export default function DropboxFileList({ userId, onProcessFile }: DropboxFileListProps) {
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
