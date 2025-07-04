@@ -1,6 +1,13 @@
 "use client";
 import React from "react";
 
+// FIX: Tell TypeScript about window.Dropbox
+declare global {
+  interface Window {
+    Dropbox: any;
+  }
+}
+
 type DropboxImportButtonProps = {
   onFilesSelected: (files: any[]) => void;
 };
