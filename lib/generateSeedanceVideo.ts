@@ -11,6 +11,7 @@ export async function generateSeedanceVideo({
   prompt: string,
   videoLength?: number,
 }) {
+  // Create FormData (works in Node 18+)
   const formData = new FormData();
   formData.append("prompt", prompt);
   formData.append("video_length", videoLength.toString());
@@ -20,6 +21,7 @@ export async function generateSeedanceVideo({
     method: "POST",
     headers: {
       "Authorization": `Bearer ${process.env.SEEDANCE_API_KEY}`,
+      // DO NOT set Content-Type here; let fetch handle it with FormData!
     },
     body: formData as any,
   });
@@ -31,6 +33,7 @@ export async function generateSeedanceVideo({
       video_url: null,
     };
   }
+
   const data = await res.json();
   return {
     status: data.status || "success",
