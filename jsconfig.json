@@ -3,20 +3,13 @@
     "baseUrl": ".",
     "paths": {
       "@components/*": ["components/*"],
-      "@lib/*": ["lib/*"]
+      "@lib/*": ["lib/*"],
+      "components/*": ["components/*"]
     }
   },
   "include": [
+    "app",
     "components",
-    "lib",
-    "app"
+    "lib"
   ]
-}
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "components/*": ["components/*"]
-    }
-  }
 }
