@@ -1,18 +1,15 @@
 // /app/api/dropbox/webhook/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-/**
- * Dropbox will send:
- * - GET requests for webhook verification (with a "challenge" param)
- * - POST requests with user_id(s) when there are changes
- */
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 
-// Handle GET: Respond to challenge
+// Handle GET: Dropbox webhook verification challenge
 export async function GET(req: NextRequest) {
   const challenge = req.nextUrl.searchParams.get("challenge");
   if (challenge) {
-    // Respond with the challenge string, as required by Dropbox
     return new Response(challenge, {
       status: 200,
       headers: { "Content-Type": "text/plain" },
@@ -21,24 +18,32 @@ export async function GET(req: NextRequest) {
   return new Response("Missing challenge param", { status: 400 });
 }
 
-// Handle POST: Dropbox sends a JSON with user IDs whose files have changed
+// Handle POST: Dropbox sends account IDs for users with changes
 export async function POST(req: NextRequest) {
   const body = await req.json();
+  const changedAccounts: string[] = body?.list_folder?.accounts || [];
 
-  // Dropbox sends:
-  // { "list_folder": { "accounts": ["dbid:AACxxxxxxx", ...] } }
-  const changedAccounts = body?.list_folder?.accounts || [];
+  // Set up Supabase client
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-  // For each Dropbox account that changed, you need to:
-  // 1. Find the corresponding user in your DB (if you saved Dropbox account ID)
-  // 2. Fetch their latest files from Dropbox (using their stored token)
-  // 3. Process new files as needed (e.g., trigger your video workflow)
+  for (const accountId of changedAccounts) {
+    // Look up user_id and access_token by Dropbox account_id
+    const { data, error } = await supabase
+      .from("dropbox_tokens")
+      .select("user_id, access_token")
+      .eq("account_id", accountId)
+      .maybeSingle();
 
-  // TODO: Implement logic to map Dropbox account ID to your user, and trigger processing.
-  // (You may want to log the incoming body to see the shape.)
+    if (data?.user_id && data.access_token) {
+      // TODO: Check for new files and trigger your automation here!
+      // For now, just log:
+      console.log(`Webhook: Found user_id=${data.user_id} for Dropbox account_id=${accountId}`);
+      // Example: Trigger a workflow/queue or fetch/process new files
+    } else {
+      console.warn(`Webhook: No user found for Dropbox account_id=${accountId}`);
+    }
+  }
 
-  console.log("Dropbox webhook POST received. Changed accounts:", changedAccounts);
-
-  // Always respond with 200 OK quickly!
+  // Always respond quickly!
   return NextResponse.json({ ok: true });
 }
