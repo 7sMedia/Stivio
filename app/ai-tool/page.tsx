@@ -14,9 +14,17 @@ const ENGINES = [
   // { label: "SkyReels", value: "skyreels" }, // Example for future
 ];
 
+type UploadedImage = {
+  name: string;
+  url: string;
+  fromDropbox?: boolean;
+  fileObj?: File;
+};
+
 export default function AiToolPage() {
   const [activeEngine, setActiveEngine] = useState("seedance");
-  const [image, setImage] = useState<File | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
+  const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [prompt, setPrompt] = useState("");
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +34,7 @@ export default function AiToolPage() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
 
-  // Auth guard: check if user logged in
+  // Auth guard
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -39,6 +47,31 @@ export default function AiToolPage() {
     getUser();
   }, [router]);
 
+  // Handle images from ImageUpload
+  function handleImageUpload(file: File | null) {
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    const imgObj: UploadedImage = {
+      name: file.name,
+      url,
+      fromDropbox: false,
+      fileObj: file,
+    };
+    setUploadedImages((prev) => [...prev, imgObj]);
+    setSelectedImageIdx(uploadedImages.length); // select the new one
+  }
+
+  // Handle Dropbox files (multiple at once)
+  function handleDropboxFiles(files: any[]) {
+    const dropboxImages: UploadedImage[] = files.map((file: any) => ({
+      name: file.name,
+      url: file.link,
+      fromDropbox: true,
+    }));
+    setUploadedImages((prev) => [...prev, ...dropboxImages]);
+    if (files.length > 0) setSelectedImageIdx(uploadedImages.length); // select the first new one
+  }
+
   // Simulated Progress Bar Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,8 +79,8 @@ export default function AiToolPage() {
     setVideoUrl(null);
     setProgress(0);
 
-    if (!image || !prompt) {
-      setError("Image and prompt are required.");
+    if (selectedImageIdx === null || !uploadedImages[selectedImageIdx] || !prompt) {
+      setError("Please select an image and enter a prompt.");
       return;
     }
 
@@ -63,9 +96,20 @@ export default function AiToolPage() {
       }
     }, 300);
 
+    // Prepare the formData for Seedance
+    const img = uploadedImages[selectedImageIdx];
+    let imageData: File | Blob;
+    if (img.fromDropbox) {
+      // fetch from Dropbox URL as Blob
+      const res = await fetch(img.url);
+      imageData = await res.blob();
+    } else {
+      imageData = img.fileObj!;
+    }
+
     const formData = new FormData();
     formData.append("prompt", prompt);
-    formData.append("image", image);
+    formData.append("image", imageData, img.name);
     formData.append("video_length", videoLength.toString());
 
     const res = await generateSeedanceVideo(formData);
@@ -84,7 +128,6 @@ export default function AiToolPage() {
   };
 
   if (!user) {
-    // Optionally show a loading spinner or blank while fetching user
     return <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">Loading...</div>;
   }
 
@@ -120,7 +163,31 @@ export default function AiToolPage() {
             onSubmit={handleSubmit}
             className="space-y-6 bg-indigo-950/90 rounded-2xl p-8 shadow-2xl border border-indigo-800/40"
           >
-            <ImageUpload onChange={setImage} />
+            {/* Upload and Dropbox */}
+            <ImageUpload
+              onChange={handleImageUpload}
+              onDropbox={handleDropboxFiles}
+            />
+            {/* Show all uploaded images & selection */}
+            {uploadedImages.length > 0 && (
+              <div className="flex gap-2 flex-wrap">
+                {uploadedImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    className={`w-20 h-20 rounded overflow-hidden border-2 ${
+                      idx === selectedImageIdx ? "border-indigo-500" : "border-gray-400"
+                    }`}
+                    onClick={e => { e.preventDefault(); setSelectedImageIdx(idx); }}
+                    type="button"
+                  >
+                    <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+                    {img.fromDropbox && (
+                      <span className="block text-[10px] text-blue-400">Dropbox</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
             <PromptInput value={prompt} onChange={setPrompt} />
             <div>
               <label className="mr-2 text-indigo-200 font-medium">Video Length (1–8s):</label>
@@ -147,7 +214,7 @@ export default function AiToolPage() {
             )}
           </form>
         )}
-        {/* Add other engine forms here */}
+        {/* Video Result */}
         {videoUrl && <VideoResult url={videoUrl} />}
       </div>
     </>
