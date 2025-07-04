@@ -6,26 +6,33 @@ import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
 import NavBar from "@components/NavBar";
 import ProgressBar from "@components/ProgressBar";
+import DropboxFileList from "@components/DropboxFileList"; // <- Add this import!
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
+  const [importedFile, setImportedFile] = useState<any>(null);
   const router = useRouter();
 
-  // Fetch user info on mount, redirect if not logged in
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUser(data.user);
       } else {
-        router.push("/"); // Not logged in, go to landing
+        router.push("/");
       }
     };
     getUser();
   }, [router]);
 
+  // Called when user clicks "Import/Process" on a Dropbox file
+  async function handleProcessFile(file: any) {
+    setImportedFile(file);
+    alert(`Queued ${file.name} for processing!`);
+    // Replace with actual backend POST if you want to trigger automation
+  }
+
   if (!user) {
-    // Optionally show a loading spinner or blank until user is fetched/redirected
     return (
       <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">
         Loading...
@@ -116,6 +123,16 @@ export default function DashboardPage() {
             </div>
           </div>
         </motion.div>
+        {/* ---- Dropbox File Picker BELOW welcome box ---- */}
+        <div className="w-full max-w-2xl mt-10 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Your Dropbox Files</h2>
+          <DropboxFileList userId={user.id} onProcessFile={handleProcessFile} />
+          {importedFile && (
+            <div className="mt-6 p-4 bg-green-900/60 rounded-xl text-green-300 font-bold">
+              Imported: {importedFile.name}
+            </div>
+          )}
+        </div>
       </div>
     </>
   );
