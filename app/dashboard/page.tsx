@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "lib/supabaseClient";
 import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
-import NavBar from "components/NavBar";
+import NavBar from "components/ui/NavBar";
+import ProgressBar from "components/ui/ProgressBar";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
