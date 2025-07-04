@@ -4,14 +4,14 @@ import { generateSeedanceVideo } from "./actions/seedance";
 import ImageUpload from "./components/ImageUpload";
 import PromptInput from "./components/PromptInput";
 import VideoResult from "./components/VideoResult";
-import NavBar from "components/NavBar";
-import ProgressBar from "components/ProgressBar";
-import { supabase } from "lib/supabaseClient";
+import NavBar from "./components/NavBar"; // FIX: use ./components/NavBar if it's in the same directory
+import ProgressBar from "./components/ProgressBar"; // FIX: use ./components/ProgressBar if in same directory
+import { supabase } from "../../lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const ENGINES = [
   { label: "Seedance", value: "seedance" },
-  // { label: "SkyReels", value: "skyreels" }, // Example for future
+  // { label: "SkyReels", value: "skyreels" },
 ];
 
 type UploadedImage = {
@@ -41,13 +41,12 @@ export default function AiToolPage() {
       if (data?.user) {
         setUser(data.user);
       } else {
-        router.push("/"); // Not logged in
+        router.push("/");
       }
     };
     getUser();
   }, [router]);
 
-  // Handle images from ImageUpload
   function handleImageUpload(file: File | null) {
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -58,10 +57,9 @@ export default function AiToolPage() {
       fileObj: file,
     };
     setUploadedImages((prev) => [...prev, imgObj]);
-    setSelectedImageIdx(uploadedImages.length); // select the new one
+    setSelectedImageIdx(uploadedImages.length);
   }
 
-  // Handle Dropbox files (multiple at once)
   function handleDropboxFiles(files: any[]) {
     const dropboxImages: UploadedImage[] = files.map((file: any) => ({
       name: file.name,
@@ -69,10 +67,9 @@ export default function AiToolPage() {
       fromDropbox: true,
     }));
     setUploadedImages((prev) => [...prev, ...dropboxImages]);
-    if (files.length > 0) setSelectedImageIdx(uploadedImages.length); // select the first new one
+    if (files.length > 0) setSelectedImageIdx(uploadedImages.length);
   }
 
-  // Simulated Progress Bar Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -85,22 +82,18 @@ export default function AiToolPage() {
     }
 
     setLoading(true);
-
-    // Simulate smooth progress bar
     let current = 0;
     setProgress(0);
     const fakeProgress = setInterval(() => {
-      current += Math.random() * 6 + 4; // Increment 4–10% per tick
+      current += Math.random() * 6 + 4;
       if (current < 92) {
         setProgress(Math.floor(current));
       }
     }, 300);
 
-    // Prepare the formData for Seedance
     const img = uploadedImages[selectedImageIdx];
     let imageData: File | Blob;
     if (img.fromDropbox) {
-      // fetch from Dropbox URL as Blob
       const res = await fetch(img.url);
       imageData = await res.blob();
     } else {
@@ -128,7 +121,11 @@ export default function AiToolPage() {
   };
 
   if (!user) {
-    return <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -177,7 +174,10 @@ export default function AiToolPage() {
                     className={`w-20 h-20 rounded overflow-hidden border-2 ${
                       idx === selectedImageIdx ? "border-indigo-500" : "border-gray-400"
                     }`}
-                    onClick={e => { e.preventDefault(); setSelectedImageIdx(idx); }}
+                    onClick={e => {
+                      e.preventDefault();
+                      setSelectedImageIdx(idx);
+                    }}
                     type="button"
                   >
                     <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
@@ -200,7 +200,6 @@ export default function AiToolPage() {
                 className="w-24 px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-900 text-indigo-100 placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
               />
             </div>
-            {/* Progress bar */}
             {loading && <ProgressBar percent={progress} />}
             <button
               type="submit"
@@ -214,7 +213,6 @@ export default function AiToolPage() {
             )}
           </form>
         )}
-        {/* Video Result */}
         {videoUrl && <VideoResult url={videoUrl} />}
       </div>
     </>
