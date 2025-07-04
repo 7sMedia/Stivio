@@ -25,7 +25,11 @@ export default function DashboardPage() {
 
   if (!user) {
     // Optionally show a loading spinner or blank until user is fetched/redirected
-    return <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">Loading...</div>;
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center text-white text-2xl">
+        Loading...
+      </div>
+    );
   }
 
   return (
@@ -74,6 +78,17 @@ export default function DashboardPage() {
             >
               🚀 Start New AI Video
             </button>
+            {/* Connect Dropbox anchor tag */}
+            <a
+              href={`/api/dropbox/auth?user_id=${user.id || user.user_id || user.sub || ""}`}
+              className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
+              style={{ display: "inline-block" }}
+            >
+              <span role="img" aria-label="dropbox" className="mr-2">
+                <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
+              </span>
+              Connect Dropbox (Auto Sync)
+            </a>
             <button
               className="mt-2 px-6 py-2 rounded-lg bg-indigo-800 text-indigo-200 font-semibold shadow hover:bg-pink-500 hover:text-white transition"
               onClick={async () => {
