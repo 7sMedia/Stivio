@@ -1,5 +1,3 @@
-// app/api/dropbox/status/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@lib/dropbox";
 
@@ -21,7 +19,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ connected: false });
   }
 
-  // Actually call Dropbox to verify token/account is valid
+  // FIX: Send explicit empty JSON body!
   let text = "";
   let res;
   try {
@@ -31,6 +29,7 @@ export async function GET(req: NextRequest) {
         Authorization: `Bearer ${dropboxToken}`,
         "Content-Type": "application/json",
       },
+      body: "{}", // <<--- FIXED!
     });
     text = await res.text();
     console.log("[DROPBOX STATUS] Dropbox API response:", res.status, text);
@@ -40,7 +39,6 @@ export async function GET(req: NextRequest) {
   }
 
   if (!res.ok) {
-    // Log Dropbox error response for easier debugging
     return NextResponse.json({ connected: false, dropboxError: text });
   }
 
