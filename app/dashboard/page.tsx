@@ -7,12 +7,15 @@ import { User as UserIcon } from "lucide-react";
 import NavBar from "@components/NavBar";
 import ProgressBar from "@components/ProgressBar";
 import DropboxFileList from "@components/DropboxFileList";
+import DropboxFolderPicker from "@components/DropboxFolderPicker";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
   const [importedFile, setImportedFile] = useState<any>(null);
   const [importing, setImporting] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [pickedFolder, setPickedFolder] = useState<string | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -145,9 +148,31 @@ export default function DashboardPage() {
             </div>
           </div>
         </motion.div>
-        {/* ---- Dropbox File Picker BELOW welcome box ---- */}
+        {/* ---- Dropbox Folder Picker BELOW welcome box ---- */}
         <div className="w-full max-w-2xl mt-10 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
-          <h2 className="text-2xl font-bold text-white mb-4">Your Dropbox Files</h2>
+          <h2 className="text-2xl font-bold text-white mb-4">Dropbox Folder Picker</h2>
+          <DropboxFolderPicker
+            userId={user.id}
+            onFolderPick={(folderPath) => {
+              setPickedFolder(folderPath);
+              // You can save this to your DB as their "automation folder" if needed
+              alert(`You picked folder: ${folderPath}`);
+            }}
+            // Optional: allow picking files directly
+            onFilePick={file => {
+              // e.g. trigger import, etc.
+              handleProcessFile(file);
+            }}
+          />
+          {pickedFolder && (
+            <div className="mt-4 text-sky-200 text-sm">
+              Selected folder for automation: <span className="font-mono">{pickedFolder}</span>
+            </div>
+          )}
+        </div>
+        {/* ---- Dropbox File List BELOW folder picker ---- */}
+        <div className="w-full max-w-2xl mt-6 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
+          <h2 className="text-2xl font-bold text-white mb-4">Your Dropbox Files (Root)</h2>
           <DropboxFileList userId={user.id} onProcessFile={handleProcessFile} />
           {importing && (
             <div className="mt-4 text-indigo-100">Importing file...</div>
