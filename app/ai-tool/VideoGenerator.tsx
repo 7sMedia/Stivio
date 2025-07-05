@@ -1,7 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import ImageUpload from "./components/ImageUpload";
-import { CheckCircle } from "lucide-react"; // If you have lucide-react. If not, see SVG/emoji note below.
+import { CheckCircle } from "lucide-react";
+import PromptTemplatePicker from "./PromptTemplatePicker";
 
 type UploadedImage = {
   name: string;
@@ -120,7 +121,6 @@ export default function VideoGenerator() {
       {/* Success Checkmark */}
       {showSuccess && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
-          {/* Lucide CheckCircle. If you don't have lucide-react, replace with SVG or emoji below */}
           <CheckCircle size={80} className="text-green-500 mb-4" />
           <div className="text-2xl font-bold text-green-400 mb-2">Video Ready!</div>
         </div>
@@ -145,6 +145,10 @@ export default function VideoGenerator() {
           ))}
         </div>
       )}
+
+      {/* ---- PROMPT TEMPLATE PICKER HERE ---- */}
+      <PromptTemplatePicker setPrompt={setPrompt} />
+
       <input
         className="w-full px-4 py-2 border rounded text-black"
         placeholder="Describe how you want the image to animate..."
