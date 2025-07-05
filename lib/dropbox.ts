@@ -21,12 +21,17 @@ export async function getValidDropboxToken(userId: string): Promise<string | nul
   const row = data[0];
 
   // 2. Check if access token is about to expire (within 5 minutes)
-  const expiresAt = new Date(row.expires_at).getTime();
+  // Defensive: handle missing or invalid expires_at
+  let expiresAt: number | null = null;
+  if (row.expires_at) {
+    const ts = new Date(row.expires_at).getTime();
+    expiresAt = isNaN(ts) ? null : ts;
+  }
   const now = Date.now();
   const fiveMinutes = 5 * 60 * 1000;
 
-  if (expiresAt - now > fiveMinutes) {
-    // Token is still valid
+  // If expiresAt is missing or invalid, treat token as valid!
+  if (!expiresAt || expiresAt - now > fiveMinutes) {
     return row.access_token;
   }
 
@@ -57,7 +62,7 @@ export async function getValidDropboxToken(userId: string): Promise<string | nul
   const newAccessToken = json.access_token;
   const expiresIn = json.expires_in; // seconds
 
-  const newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+  const newExpiresAt = new Date(Date.now() + (expiresIn || 3 * 60 * 60) * 1000).toISOString(); // fallback: +3hr
 
   await supabase
     .from("dropbox_tokens")
