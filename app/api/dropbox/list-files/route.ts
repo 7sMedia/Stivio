@@ -9,13 +9,14 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 export async function GET(req: NextRequest) {
   try {
     const userId = req.nextUrl.searchParams.get("user_id");
+    const folderPath = req.nextUrl.searchParams.get("path") || "";
+
     if (!userId) {
       return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
     }
 
-    // Fetch Dropbox token from DB
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    const { data: tokenRow, error } = await supabase
+    const { data: tokenRow } = await supabase
       .from("dropbox_tokens")
       .select("access_token")
       .eq("user_id", userId)
@@ -25,7 +26,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No Dropbox token for user" }, { status: 404 });
     }
 
-    // Call Dropbox API (list_folder)
     const res = await fetch("https://api.dropboxapi.com/2/files/list_folder", {
       method: "POST",
       headers: {
@@ -33,7 +33,7 @@ export async function GET(req: NextRequest) {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        path: "",
+        path: folderPath,
         recursive: false,
         include_media_info: false,
         include_deleted: false,
