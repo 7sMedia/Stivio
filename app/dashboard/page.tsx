@@ -39,9 +39,13 @@ export default function DashboardPage() {
       const res = await fetch(`/api/dropbox/status?user_id=${user.id}`);
       const data = await res.json();
       setDropboxStatus(data);
+      console.log("DEBUG dropboxStatus after fetch:", data); // <--- DEBUG
     }
     fetchDropboxStatus();
   }, [user]);
+
+  // DEBUG: Log dropboxStatus in every render
+  console.log("DEBUG dropboxStatus in render:", dropboxStatus);
 
   // Called when user clicks "Import/Process" on a Dropbox file
   async function handleProcessFile(file: any) {
@@ -167,6 +171,18 @@ export default function DashboardPage() {
                 </a>
               )
             )}
+
+            {/* Manual test button for debugging */}
+            <button
+              onClick={async () => {
+                const res = await fetch(`/api/dropbox/status?user_id=${user.id}`);
+                const data = await res.json();
+                alert(JSON.stringify(data));
+              }}
+              className="mt-2 px-3 py-1 bg-indigo-700 text-white rounded"
+            >
+              Test Dropbox Status
+            </button>
 
             <button
               className="mt-2 px-6 py-2 rounded-lg bg-indigo-800 text-indigo-200 font-semibold shadow hover:bg-pink-500 hover:text-white transition"
