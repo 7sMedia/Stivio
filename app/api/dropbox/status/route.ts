@@ -26,9 +26,8 @@ export async function GET(req: NextRequest) {
       headers: {
         Authorization: `Bearer ${dropboxToken}`,
         "Content-Type": "application/json",
-      },
-      // body: "{}", // REMOVE THIS LINE!
-      // body: null, // Or use this for Node fetch
+      }
+      // No body property at all!
     });
     text = await res.text();
     console.log("[DROPBOX STATUS] Dropbox API response:", res.status, text);
