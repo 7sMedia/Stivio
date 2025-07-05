@@ -7,17 +7,10 @@ const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-type UserDropboxData = {
-  id: string; // user_id or PK
-  dropbox_access_token: string;
-  dropbox_refresh_token: string;
-  dropbox_token_expires_at: string; // ISO timestamp
-};
-
 export async function getValidDropboxToken(userId: string): Promise<string | null> {
-  // 1. Get Dropbox token data from DB
+  // 1. Get Dropbox token data from DB (no type argument on .from)
   const { data, error } = await supabase
-    .from<UserDropboxData>("users")
+    .from("users")
     .select("dropbox_access_token, dropbox_refresh_token, dropbox_token_expires_at")
     .eq("id", userId)
     .single();
