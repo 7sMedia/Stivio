@@ -8,7 +8,7 @@ import NavBar from "@components/NavBar";
 import ProgressBar from "@components/ProgressBar";
 import DropboxFileList from "@components/DropboxFileList";
 import DropboxFolderPicker from "@components/DropboxFolderPicker";
-import ResponsiveContainer from "../components/ui/ResponsiveContainer";
+import ResponsiveContainer from "@components/ui/ResponsiveContainer";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
