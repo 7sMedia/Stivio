@@ -10,7 +10,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ connected: false });
   }
 
-  // Try to get (and if needed, refresh) a Dropbox token
   const dropboxToken = await getValidDropboxToken(userId);
   console.log("[DROPBOX STATUS] Token from getValidDropboxToken:", dropboxToken);
 
@@ -19,7 +18,6 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ connected: false });
   }
 
-  // FIX: Send explicit empty JSON body!
   let text = "";
   let res;
   try {
@@ -29,7 +27,8 @@ export async function GET(req: NextRequest) {
         Authorization: `Bearer ${dropboxToken}`,
         "Content-Type": "application/json",
       },
-      body: "{}", // <<--- FIXED!
+      // body: "{}", // REMOVE THIS LINE!
+      // body: null, // Or use this for Node fetch
     });
     text = await res.text();
     console.log("[DROPBOX STATUS] Dropbox API response:", res.status, text);
