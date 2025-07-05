@@ -18,7 +18,8 @@
     "paths": {
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
-      "components/*": ["components/*"]         // <-- add this for fallback absolute import
+      "@/*": ["./*"],                    // <-- This enables @/lib, @/components, etc.
+      "components/*": ["components/*"]
     }
   },
   "include": [
