@@ -1,8 +1,8 @@
 // app/layout.tsx
-import './styles/globals.css'; // Adjust if your styles import path is different
+import '../styles/globals.css';
 import { ReactNode } from "react";
 import Script from "next/script";
-import ResponsiveContainer from "@components/ui/ResponsiveContainer";
+import ResponsiveContainer from "@ui/ResponsiveContainer";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
