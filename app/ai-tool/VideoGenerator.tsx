@@ -1,11 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import ImageUpload from "./components/ImageUpload"; // CORRECT path
-// import other needed components, or remove if unused
+import ImageUpload from "./components/ImageUpload"; // Keep your path
 
 type UploadedImage = {
   name: string;
   url: string;
+  dropboxPath?: string; // NEW: for Dropbox files, store the path
   fromDropbox?: boolean;
   fileObj?: File;
 };
@@ -14,11 +14,15 @@ export default function VideoGenerator() {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [videoLength, setVideoLength] = useState(18);
   const [loading, setLoading] = useState(false);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [dropboxVideoPath, setDropboxVideoPath] = useState<string | null>(null);
+  const [dropboxPreviewUrl, setDropboxPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // TODO: Replace this with your real user ID/session
+  const userId = typeof window !== "undefined" ? localStorage.getItem("supabase_user_id") || "" : "";
+
+  // -- Image upload/selection handlers --
   function handleImageUpload(file: File | null) {
     if (!file) return;
     const url = URL.createObjectURL(file);
@@ -35,16 +39,20 @@ export default function VideoGenerator() {
   function handleDropboxFiles(files: any[]) {
     const dropboxImages: UploadedImage[] = files.map((file: any) => ({
       name: file.name,
-      url: file.link,
+      url: file.link, // a preview link, not the Dropbox API path!
+      dropboxPath: file.path_lower || file.path_display, // needed for backend call
       fromDropbox: true,
     }));
     setUploadedImages(prev => [...prev, ...dropboxImages]);
-    if (files.length > 0) setSelectedImageIdx(uploadedImages.length); // select the first new one
+    if (files.length > 0) setSelectedImageIdx(uploadedImages.length); // select first new one
   }
 
+  // -- Video generation handler --
   async function handleGenerateVideo() {
     setError(null);
-    setVideoUrl(null);
+    setDropboxVideoPath(null);
+    setDropboxPreviewUrl(null);
+
     if (selectedImageIdx === null || !uploadedImages[selectedImageIdx]) {
       setError("Please select an image.");
       return;
@@ -53,34 +61,54 @@ export default function VideoGenerator() {
       setError("Please enter an animation prompt.");
       return;
     }
+    if (!userId) {
+      setError("User not authenticated.");
+      return;
+    }
     setLoading(true);
 
     try {
       const imageObj = uploadedImages[selectedImageIdx];
-      let imageData: Blob | string;
-      if (imageObj.fromDropbox) {
-        const res = await fetch(imageObj.url);
-        imageData = await res.blob();
-      } else {
-        imageData = imageObj.fileObj!;
+      let backendDropboxPath: string | undefined = imageObj.dropboxPath;
+
+      // Only support Dropbox images for this workflow
+      if (!imageObj.fromDropbox || !backendDropboxPath) {
+        setError("Please select an image from your Dropbox account.");
+        setLoading(false);
+        return;
       }
 
-      const formData = new FormData();
-      formData.append("image", imageData, imageObj.name);
-      formData.append("prompt", prompt);
-      formData.append("length", String(videoLength));
-
-      // Replace with your actual API endpoint and auth
-      const apiEndpoint = "https://api.wavespeed.ai/seedance/generate";
-      const apiRes = await fetch(apiEndpoint, {
+      // Backend call
+      const res = await fetch("/api/ai-tool/generate", {
         method: "POST",
-        body: formData,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          dropboxPath: backendDropboxPath,
+          prompt,
+        }),
       });
 
-      if (!apiRes.ok) throw new Error("Video generation failed.");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Video generation failed.");
 
-      const { videoUrl } = await apiRes.json();
-      setVideoUrl(videoUrl);
+      setDropboxVideoPath(data.dropbox_video_path);
+
+      // For previewing directly, you may need to fetch a temporary Dropbox link:
+      // (Optional, adjust as needed for your workflow)
+      const previewRes = await fetch("/api/dropbox/get-temporary-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          path: data.dropbox_video_path,
+        }),
+      });
+      const previewData = await previewRes.json();
+      if (previewRes.ok && previewData.link) {
+        setDropboxPreviewUrl(previewData.link);
+      }
+
     } catch (err: any) {
       setError(err.message || "Error generating video.");
     } finally {
@@ -88,6 +116,7 @@ export default function VideoGenerator() {
     }
   }
 
+  // -- UI --
   return (
     <div className="max-w-lg mx-auto flex flex-col gap-6 mt-8">
       <ImageUpload
@@ -119,34 +148,49 @@ export default function VideoGenerator() {
         value={prompt}
         onChange={e => setPrompt(e.target.value)}
       />
-      <div className="flex items-center gap-2">
-        <label htmlFor="length" className="text-indigo-200">Video Length:</label>
-        <select
-          id="length"
-          className="bg-gray-900 border rounded text-white"
-          value={videoLength}
-          onChange={e => setVideoLength(Number(e.target.value))}
-        >
-          <option value={10}>10 seconds</option>
-          <option value={18}>18 seconds</option>
-          <option value={30}>30 seconds</option>
-        </select>
-      </div>
       <button
         className="bg-indigo-600 text-white px-6 py-3 rounded font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
         onClick={handleGenerateVideo}
         disabled={loading}
         type="button"
       >
-        {loading ? "Generating..." : "Generate Video"}
+        {loading ? (
+          <span>
+            <span className="inline-block animate-spin mr-2">🔄</span>
+            Generating...
+          </span>
+        ) : (
+          "Generate Video"
+        )}
       </button>
       {error && <div className="text-red-400">{error}</div>}
-      {videoUrl && (
-        <video
-          controls
-          src={videoUrl}
-          className="w-full rounded shadow-lg mt-4"
-        />
+
+      {/* Progress/Spinner */}
+      {loading && (
+        <div className="w-full flex justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+        </div>
+      )}
+
+      {/* Show preview and Dropbox link */}
+      {dropboxVideoPath && (
+        <div className="flex flex-col items-center gap-2 mt-4">
+          <a
+            href={`https://www.dropbox.com/home${dropboxVideoPath}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-400 underline"
+          >
+            View Video in Dropbox
+          </a>
+          {dropboxPreviewUrl && (
+            <video
+              controls
+              src={dropboxPreviewUrl}
+              className="w-full rounded shadow-lg mt-2"
+            />
+          )}
+        </div>
       )}
     </div>
   );
