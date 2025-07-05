@@ -18,8 +18,8 @@
     "paths": {
       "@components/*": ["components/*"],
       "@lib/*": ["lib/*"],
-      "@/*": ["./*"],                    // <-- This enables @/lib, @/components, etc.
-      "components/*": ["components/*"]
+      "@ui/*": ["components/ui/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [
