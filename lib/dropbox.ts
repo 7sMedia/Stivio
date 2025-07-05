@@ -11,26 +11,29 @@ export async function getValidDropboxToken(userId: string): Promise<string | nul
   // 1. Get Dropbox token data from dropbox_tokens table
   const { data, error } = await supabase
     .from("dropbox_tokens")
-    .select("access_token, refresh_token, expires_at")
-    .eq("user_id", userId)
-    .single();
+    .select("*")
+    .eq("user_id", userId);
 
-  if (error || !data) return null;
+  console.log("Supabase query result for dropbox_tokens:", data, error);
+
+  if (error || !data || data.length === 0) return null;
+
+  const row = data[0];
 
   // 2. Check if access token is about to expire (within 5 minutes)
-  const expiresAt = new Date(data.expires_at).getTime();
+  const expiresAt = new Date(row.expires_at).getTime();
   const now = Date.now();
   const fiveMinutes = 5 * 60 * 1000;
 
   if (expiresAt - now > fiveMinutes) {
     // Token is still valid
-    return data.access_token;
+    return row.access_token;
   }
 
   // 3. Token expired or about to expire, refresh it!
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
-  params.append("refresh_token", data.refresh_token);
+  params.append("refresh_token", row.refresh_token);
 
   const basicAuth = Buffer.from(`${DROPBOX_CLIENT_ID}:${DROPBOX_CLIENT_SECRET}`).toString("base64");
 
