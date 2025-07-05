@@ -1,3 +1,4 @@
+// lib/dropbox.ts
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -8,30 +9,22 @@ const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 export async function getValidDropboxToken(userId: string): Promise<string | null> {
-  // 1. Get Dropbox token data from dropbox_tokens table
   const { data, error } = await supabase
     .from("dropbox_tokens")
     .select("*")
     .eq("user_id", userId);
-
-  console.log("Supabase query result for dropbox_tokens:", data, error);
 
   if (error || !data || data.length === 0) return null;
 
   const row = data[0];
 
   // 2. Check if access token is about to expire (within 5 minutes)
-  // Defensive: handle missing or invalid expires_at
-  let expiresAt: number | null = null;
-  if (row.expires_at) {
-    const ts = new Date(row.expires_at).getTime();
-    expiresAt = isNaN(ts) ? null : ts;
-  }
+  const expiresAt = new Date(row.expires_at).getTime();
   const now = Date.now();
   const fiveMinutes = 5 * 60 * 1000;
 
-  // If expiresAt is missing or invalid, treat token as valid!
-  if (!expiresAt || expiresAt - now > fiveMinutes) {
+  if (expiresAt - now > fiveMinutes) {
+    // Token is still valid
     return row.access_token;
   }
 
@@ -62,7 +55,7 @@ export async function getValidDropboxToken(userId: string): Promise<string | nul
   const newAccessToken = json.access_token;
   const expiresIn = json.expires_in; // seconds
 
-  const newExpiresAt = new Date(Date.now() + (expiresIn || 3 * 60 * 60) * 1000).toISOString(); // fallback: +3hr
+  const newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
 
   await supabase
     .from("dropbox_tokens")
