@@ -16,6 +16,8 @@ export default function DashboardPage() {
   const [importError, setImportError] = useState<string | null>(null);
   const [pickedFolder, setPickedFolder] = useState<string | null>(null);
 
+  const [dropboxStatus, setDropboxStatus] = useState<{ connected: boolean; email?: string } | null>(null);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -29,6 +31,17 @@ export default function DashboardPage() {
     };
     getUser();
   }, [router]);
+
+  // Fetch Dropbox connection status
+  useEffect(() => {
+    async function fetchDropboxStatus() {
+      if (!user) return;
+      const res = await fetch(`/api/dropbox/status?user_id=${user.id}`);
+      const data = await res.json();
+      setDropboxStatus(data);
+    }
+    fetchDropboxStatus();
+  }, [user]);
 
   // Called when user clicks "Import/Process" on a Dropbox file
   async function handleProcessFile(file: any) {
@@ -55,6 +68,22 @@ export default function DashboardPage() {
       setImportError("Network error importing file.");
     }
     setImporting(false);
+  }
+
+  // Handle disconnect Dropbox
+  async function handleDisconnectDropbox() {
+    if (!user?.id) return;
+    const res = await fetch("/api/dropbox/disconnect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    if (res.ok) {
+      setDropboxStatus({ connected: false });
+      window.location.reload();
+    } else {
+      alert("Failed to disconnect Dropbox.");
+    }
   }
 
   if (!user) {
@@ -105,23 +134,34 @@ export default function DashboardPage() {
             >
               {user.email}
             </motion.div>
-            <button
-              className="px-8 py-4 rounded-xl bg-gradient-to-r from-sky-500 to-violet-500 text-white font-semibold shadow-lg text-xl hover:from-sky-400 hover:to-fuchsia-500 transition mb-6"
-              onClick={() => router.push("/ai-tool")}
-            >
-              🚀 Start New AI Video
-            </button>
-            {/* Connect Dropbox anchor tag */}
-            <a
-              href={`/api/dropbox/auth?user_id=${user.id || user.user_id || user.sub || ""}`}
-              className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
-              style={{ display: "inline-block" }}
-            >
-              <span role="img" aria-label="dropbox" className="mr-2">
-                <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
-              </span>
-              Connect Dropbox (Auto Sync)
-            </a>
+
+            {/* --- Dropbox status & connect/disconnect buttons --- */}
+            {dropboxStatus && dropboxStatus.connected ? (
+              <div className="flex items-center gap-3 mb-2">
+                <span className="flex items-center text-green-400 font-semibold">
+                  <svg className="w-5 h-5 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20"><path d="M16.707 5.293a1 1 0 010 1.414L9 14.414l-3.707-3.707a1 1 0 111.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"></path></svg>
+                  Connected as {dropboxStatus.email}
+                </span>
+                <button
+                  className="px-3 py-1 bg-red-600 text-white rounded text-xs font-bold hover:bg-red-700 ml-3"
+                  onClick={handleDisconnectDropbox}
+                >
+                  Disconnect Dropbox
+                </button>
+              </div>
+            ) : (
+              <a
+                href={`/api/dropbox/auth?user_id=${user.id || user.user_id || user.sub || ""}`}
+                className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
+                style={{ display: "inline-block" }}
+              >
+                <span role="img" aria-label="dropbox" className="mr-2">
+                  <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
+                </span>
+                Connect Dropbox (Auto Sync)
+              </a>
+            )}
+
             <button
               className="mt-2 px-6 py-2 rounded-lg bg-indigo-800 text-indigo-200 font-semibold shadow hover:bg-pink-500 hover:text-white transition"
               onClick={async () => {
@@ -148,6 +188,7 @@ export default function DashboardPage() {
             </div>
           </div>
         </motion.div>
+
         {/* ---- Dropbox Folder Picker BELOW welcome box ---- */}
         <div className="w-full max-w-2xl mt-10 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
           <h2 className="text-2xl font-bold text-white mb-4">Dropbox Folder Picker</h2>
@@ -155,14 +196,10 @@ export default function DashboardPage() {
             userId={user.id}
             onFolderPick={(folderPath) => {
               setPickedFolder(folderPath);
-              // You can save this to your DB as their "automation folder" if needed
+              // Optionally: save to DB as their automation folder
               alert(`You picked folder: ${folderPath}`);
             }}
-            // Optional: allow picking files directly
-            onFilePick={file => {
-              // e.g. trigger import, etc.
-              handleProcessFile(file);
-            }}
+            onFilePick={file => handleProcessFile(file)}
           />
           {pickedFolder && (
             <div className="mt-4 text-sky-200 text-sm">
@@ -170,6 +207,7 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
+
         {/* ---- Dropbox File List BELOW folder picker ---- */}
         <div className="w-full max-w-2xl mt-6 bg-indigo-900/80 rounded-3xl shadow-2xl border border-indigo-700/40 p-8 flex flex-col items-center">
           <h2 className="text-2xl font-bold text-white mb-4">Your Dropbox Files (Root)</h2>
