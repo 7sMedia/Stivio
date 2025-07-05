@@ -20,6 +20,40 @@ export default function DashboardPage() {
 
   const router = useRouter();
 
+  // --- Listen for postMessage from popup ---
+  useEffect(() => {
+    function handler(event: MessageEvent) {
+      if (event.data?.type === "dropbox-connected") {
+        window.location.reload();
+      }
+    }
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
+
+  // --- Open OAuth popup ---
+  function openDropboxOAuthPopup(userId: string) {
+    const width = 520;
+    const height = 720;
+    const left = window.screenX + (window.outerWidth - width) / 2;
+    const top = window.screenY + (window.outerHeight - height) / 2;
+
+    const url = `/api/dropbox/auth?user_id=${userId}`;
+
+    const popup = window.open(
+      url,
+      "dropbox-oauth",
+      `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes`
+    );
+
+    const timer = setInterval(() => {
+      if (!popup || popup.closed) {
+        clearInterval(timer);
+        window.location.reload();
+      }
+    }, 700);
+  }
+
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -39,7 +73,7 @@ export default function DashboardPage() {
       const res = await fetch(`/api/dropbox/status?user_id=${user.id}`);
       const data = await res.json();
       setDropboxStatus(data);
-      console.log("DEBUG dropboxStatus after fetch:", data); // <--- DEBUG
+      console.log("DEBUG dropboxStatus after fetch:", data);
     }
     fetchDropboxStatus();
   }, [user]);
@@ -159,16 +193,16 @@ export default function DashboardPage() {
             ) : (
               // Only render button if user and user.id are present
               user && user.id && (
-                <a
-                  href={`/api/dropbox/auth?user_id=${user.id}`}
+                <button
                   className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
                   style={{ display: "inline-block" }}
+                  onClick={() => openDropboxOAuthPopup(user.id)}
                 >
                   <span role="img" aria-label="dropbox" className="mr-2">
                     <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
                   </span>
                   Connect Dropbox (Auto Sync)
-                </a>
+                </button>
               )
             )}
 
@@ -218,7 +252,6 @@ export default function DashboardPage() {
             userId={user.id}
             onFolderPick={(folderPath) => {
               setPickedFolder(folderPath);
-              // Optionally: save to DB as their automation folder
               alert(`You picked folder: ${folderPath}`);
             }}
             onFilePick={file => handleProcessFile(file)}
