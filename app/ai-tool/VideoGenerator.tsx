@@ -1,8 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import ImageUpload from "./components/ImageUpload";
-import { CheckCircle } from "lucide-react";
-import Confetti from "react-confetti";
+import { CheckCircle } from "lucide-react"; // If you have lucide-react. If not, see SVG/emoji note below.
 
 type UploadedImage = {
   name: string;
@@ -106,8 +105,8 @@ export default function VideoGenerator() {
       const previewData = await previewRes.json();
       if (previewRes.ok && previewData.link) {
         setDropboxPreviewUrl(previewData.link);
-        setShowSuccess(true); // Show confetti and checkmark
-        setTimeout(() => setShowSuccess(false), 4000); // Confetti duration
+        setShowSuccess(true); // Show checkmark
+        setTimeout(() => setShowSuccess(false), 4000); // Show for 4 seconds
       }
     } catch (err: any) {
       setError(err.message || "Error generating video.");
@@ -118,19 +117,13 @@ export default function VideoGenerator() {
 
   return (
     <div className="max-w-lg mx-auto flex flex-col gap-6 mt-8 relative">
+      {/* Success Checkmark */}
       {showSuccess && (
-        <>
-          <Confetti
-            width={typeof window !== "undefined" ? window.innerWidth : 400}
-            height={typeof window !== "undefined" ? window.innerHeight : 400}
-            numberOfPieces={120}
-            recycle={false}
-          />
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
-            <CheckCircle size={80} className="text-green-500 mb-4" />
-            <div className="text-2xl font-bold text-green-400 mb-2">Video Ready!</div>
-          </div>
-        </>
+        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
+          {/* Lucide CheckCircle. If you don't have lucide-react, replace with SVG or emoji below */}
+          <CheckCircle size={80} className="text-green-500 mb-4" />
+          <div className="text-2xl font-bold text-green-400 mb-2">Video Ready!</div>
+        </div>
       )}
       <ImageUpload onChange={handleImageUpload} onDropbox={handleDropboxFiles} />
       {uploadedImages.length > 0 && (
