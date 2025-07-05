@@ -4,11 +4,11 @@
 import { useState } from "react";
 import { PROMPT_TEMPLATES } from "./promptTemplates";
 
-export default function PromptTemplatePicker({
-  setPrompt,
-}: {
+type Props = {
   setPrompt: (prompt: string) => void;
-}) {
+};
+
+export default function PromptTemplatePicker({ setPrompt }: Props) {
   const [filter, setFilter] = useState<"all" | "animation" | "text">("all");
 
   const filteredTemplates =
