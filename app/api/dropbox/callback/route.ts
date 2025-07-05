@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // --- GET Dropbox Account Info (account_id) ---
+    // --- GET Dropbox Account Info (account_id and email) ---
     const accountRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
       method: "POST",
       headers: { "Authorization": `Bearer ${data.access_token}` }
@@ -114,14 +114,14 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Save token (and account_id) to Supabase
+    // Save token (and account_id/email) to Supabase
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
     // Remove any previous tokens for this user
     const delRes = await supabase.from("dropbox_tokens").delete().eq("user_id", state);
     console.log("[DROPBOX CALLBACK] supabase delete response:", delRes);
 
-    // Save the new token and account_id
+    // Save the new token and account_id/email
     const { error: dbError } = await supabase.from("dropbox_tokens").insert([{
       user_id: state,
       access_token: data.access_token,
@@ -130,6 +130,7 @@ export async function GET(req: NextRequest) {
         ? new Date(Date.now() + data.expires_in * 1000).toISOString()
         : null,
       account_id: accountData.account_id,
+      dropbox_email: accountData.email || null, // <--- store email
     }]);
     console.log("[DROPBOX CALLBACK] supabase insert error:", dbError);
 
