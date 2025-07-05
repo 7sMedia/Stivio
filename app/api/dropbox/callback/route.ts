@@ -1,6 +1,5 @@
-// /app/api/dropbox/callback/route.ts
-
-import { NextRequest } from "next/server";
+// app/api/dropbox/callback/route.ts
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
@@ -128,7 +127,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // --- Popup Success HTML (closes window and notifies parent) ---
+    // Close the popup and notify parent (if opened in a popup)
     return new Response(`
       <html>
         <body style="background: #181b24; color: #fff; font-family: sans-serif; text-align: center; padding-top: 4em;">
@@ -146,7 +145,6 @@ export async function GET(req: NextRequest) {
       status: 200,
       headers: { "Content-Type": "text/html" },
     });
-
   } catch (err: any) {
     return new Response(errorHtml("An unexpected error occurred. Please try again or contact support."), {
       status: 500,
