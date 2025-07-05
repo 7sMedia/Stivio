@@ -122,6 +122,9 @@ export default function DashboardPage() {
             </svg>
           </motion.div>
           <div className="relative z-10 flex flex-col items-center">
+            {/* DEBUG: Log user object */}
+            {console.log("user in dashboard", user)}
+
             <UserIcon size={42} className="text-indigo-100 mb-2 drop-shadow-xl" />
             <h1 className="text-4xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-xl mb-2 font-display">
               Welcome back!
@@ -150,16 +153,19 @@ export default function DashboardPage() {
                 </button>
               </div>
             ) : (
-              <a
-                href={`/api/dropbox/auth?user_id=${user.id || user.user_id || user.sub || ""}`}
-                className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
-                style={{ display: "inline-block" }}
-              >
-                <span role="img" aria-label="dropbox" className="mr-2">
-                  <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
-                </span>
-                Connect Dropbox (Auto Sync)
-              </a>
+              // Only render button if user and user.id are present
+              user && user.id && (
+                <a
+                  href={`/api/dropbox/auth?user_id=${user.id}`}
+                  className="mb-3 px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
+                  style={{ display: "inline-block" }}
+                >
+                  <span role="img" aria-label="dropbox" className="mr-2">
+                    <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 align-text-bottom" />
+                  </span>
+                  Connect Dropbox (Auto Sync)
+                </a>
+              )
             )}
 
             <button
