@@ -31,7 +31,7 @@ export default function UserGeneratedVideos({ userId }: { userId: string }) {
   }, [userId]);
 
   return (
-    <div className="card">
+    <div className="min-h-screen overflow-x-hidden overflow-y-auto">
       <h2 className="text-lg md:text-xl font-semibold text-white mb-4">
         Your Generated Videos
       </h2>
