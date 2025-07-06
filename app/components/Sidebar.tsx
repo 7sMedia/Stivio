@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { usePathname } from "next/navigation";
 import {
   User as UserIcon,
@@ -19,8 +20,22 @@ interface SidebarProps {
   onClose: () => void;
 }
 
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ReactElement;
+}
+
 export default function Sidebar({ user, open, onClose }: SidebarProps) {
   const pathname = usePathname();
+
+  const navItems: NavItem[] = [
+    { href: "/dashboard", label: "Dashboard", icon: <Home className="w-5 h-5" /> },
+    { href: "/ai-tool", label: "AI Tool", icon: <Cpu className="w-5 h-5" /> },
+    { href: "/calendar", label: "Calendar", icon: <Calendar className="w-5 h-5" /> },
+    { href: "/analytics", label: "Analytics", icon: <BarChart2 className="w-5 h-5" /> },
+    { href: "/team", label: "Team", icon: <Users className="w-5 h-5" /> },
+  ];
 
   return (
     <>
@@ -57,22 +72,14 @@ export default function Sidebar({ user, open, onClose }: SidebarProps) {
             <UserIcon className="w-5 h-5" />
             <span className="truncate">{user.email}</span>
           </div>
-          {/* Links */}
-          {[
-            ["/dashboard", "Dashboard", <Home />],
-            ["/ai-tool", "AI Tool", <Cpu />],
-            ["/calendar", "Calendar", <Calendar />],
-            ["/analytics", "Analytics", <BarChart2 />],
-            ["/team", "Team", <Users />],
-          ].map(([href, label, icon]) => (
+
+          {navItems.map(item => (
             <SidebarLink
-              key={href}
-              href={href as string}
-              label={label as string}
-              icon={React.cloneElement(icon as React.ReactElement, {
-                className: "w-5 h-5",
-              })}
-              active={pathname === href}
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              active={pathname === item.href}
               onClick={onClose}
             />
           ))}
@@ -120,9 +127,11 @@ function SidebarLink({
       onClick={onClick}
       className={`
         flex items-center gap-3 px-3 py-2 rounded
-        ${active
-          ? "bg-[#23242d] text-white font-semibold"
-          : "hover:bg-[#23242d] hover:text-white text-[#b1b2c1]"}
+        ${
+          active
+            ? "bg-[#23242d] text-white font-semibold"
+            : "hover:bg-[#23242d] hover:text-white text-[#b1b2c1]"
+        }
       `}
       aria-current={active ? "page" : undefined}
     >
