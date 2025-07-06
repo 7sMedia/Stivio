@@ -1,70 +1,74 @@
-"use client";
+// ✅ 1. components/ui/use-toast.ts
 
-import * as React from "react";
-import { cn } from "@/lib/utils"; // optional, remove if unused
-
-type ToastVariant = "default" | "success" | "error";
-
-type ToastOptions = {
-  title: string;
-  description?: string;
-  variant?: ToastVariant;
-};
-
-let listeners: React.Dispatch<React.SetStateAction<ToastOptions[]>>[] = [];
+import { useContext } from "react";
+import { ToastContext } from "@/components/ui/toast-provider"; // ensure this path is correct in your project
 
 export function useToast() {
-  const toast = (opts: ToastOptions) => {
-    listeners.forEach((setQueue) =>
-      setQueue((prev) => [...prev, { ...opts }])
-    );
-  };
-
-  return { toast };
+  return useContext(ToastContext);
 }
 
-export function ToastProvider({ children }: { children: React.ReactNode }) {
-  const [toasts, setToasts] = React.useState<ToastOptions[]>([]);
+// No direct export of `toast` here
 
-  React.useEffect(() => {
-    listeners.push(setToasts);
-    return () => {
-      listeners = listeners.filter((l) => l !== setToasts);
+
+// ✅ 2. components/sidebar.tsx
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
+
+export default function Sidebar() {
+  const { toast } = useToast();
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      const email = user?.email ?? null;
+      if (!email) {
+        window.location.href = "/login";
+      } else {
+        setUserEmail(email);
+      }
     };
+
+    fetchUser();
   }, []);
 
-  React.useEffect(() => {
-    if (toasts.length === 0) return;
-    const timer = setTimeout(() => {
-      setToasts((prev) => prev.slice(1));
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, [toasts]);
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Logged out",
+      description: "You have been signed out successfully.",
+    });
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1500);
+  };
 
   return (
-    <>
-      {children}
-      <div className="fixed top-4 right-4 z-50 space-y-3 max-w-sm w-full">
-        {toasts.map((toast, i) => (
-          <div
-            key={i}
-            className={cn(
-              "rounded-xl px-4 py-3 shadow-lg transition-all duration-300 text-sm",
-              toast.variant === "error"
-                ? "bg-red-500 text-white"
-                : toast.variant === "success"
-                ? "bg-green-500 text-white"
-                : "bg-zinc-900 text-white"
-            )}
-          >
-            <div className="font-semibold">{toast.title}</div>
-            {toast.description && (
-              <div className="text-sm opacity-90 mt-1">{toast.description}</div>
-            )}
-          </div>
-        ))}
+    <aside className="hidden md:flex flex-col w-64 border-r border-zinc-800 p-6 bg-zinc-950">
+      <h1 className="text-2xl font-bold tracking-tight mb-4">Beta7</h1>
+      <nav className="space-y-2">
+        <Button variant="secondary" className="w-full justify-start">
+          Dashboard
+        </Button>
+        <Button variant="ghost" className="w-full justify-start">
+          AI Tool
+        </Button>
+      </nav>
+
+      <div className="mt-auto pt-6 text-sm text-muted-foreground">
+        <p className="mb-2">{userEmail ?? "Loading..."}</p>
+        <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+          Log Out
+        </Button>
       </div>
-    </>
+    </aside>
   );
 }
- 
