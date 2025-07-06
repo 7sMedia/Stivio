@@ -24,7 +24,8 @@
     "bufferutil": "^4.0.8",
     "utf-8-validate": "^6.0.3",
     "react-dropzone": "^14.2.3",
-    "@radix-ui/react-toast": "^1.0.4"
+    "@radix-ui/react-toast": "^1.0.4",
+    "dropbox": "^11.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
