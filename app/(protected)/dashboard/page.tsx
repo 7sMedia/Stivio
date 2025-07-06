@@ -97,7 +97,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full max-w-none space-y-8">
+    <div className="w-full max-w-none space-y-8 px-4 md:px-6 py-4">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 18 }}
@@ -109,19 +109,19 @@ export default function DashboardPage() {
           <div className="flex items-center gap-4 mb-6 z-10">
             <UserIcon size={44} className="text-[#c3bfff]" />
             <div>
-              <h1 className="text-2xl font-bold mb-1 tracking-tight text-white">Welcome back!</h1>
-              <div className="text-[#b1b2c1] font-medium">{user.email}</div>
+              <h1 className="text-2xl md:text-3xl font-bold mb-1 tracking-tight text-white">Welcome back!</h1>
+              <div className="text-[#b1b2c1] font-medium break-all">{user.email}</div>
             </div>
           </div>
           <div className="flex flex-col md:flex-row gap-3 mb-6 z-10">
             {dropboxStatus?.connected ? (
-              <span className="flex items-center text-green-400 font-semibold bg-[#232e23] px-3 py-1.5 rounded">
+              <span className="flex flex-wrap items-center text-green-400 font-semibold bg-[#232e23] px-3 py-1.5 rounded">
                 <svg className="w-5 h-5 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M16.707 5.293a1 1 0 010 1.414L9 14.414l-3.707-3.707a1 1 0 111.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/>
                 </svg>
                 Connected as {dropboxStatus.email}
                 <button
-                  className="ml-4 px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white font-bold"
+                  className="ml-4 mt-2 md:mt-0 px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white font-bold"
                   onClick={handleDisconnectDropbox}
                 >
                   Disconnect
@@ -138,7 +138,6 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Latest Videos */}
           <div className="w-full z-10">
             <div className="font-semibold text-base mb-2 text-[#b1b2c1]">Your Latest Videos</div>
             <div className="grid grid-cols-2 gap-4">
@@ -151,15 +150,13 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* User Generated Videos */}
           <div className="w-full z-10 mt-6">
             <UserGeneratedVideos userId={user.id} />
           </div>
         </motion.div>
 
-        {/* Dropbox Folder Picker */}
         <div className="card flex flex-col items-center">
-          <h2 className="text-xl font-bold mb-4 text-white">Dropbox Folder Picker</h2>
+          <h2 className="text-xl font-bold mb-4 text-white text-center">Dropbox Folder Picker</h2>
           <DropboxFolderPicker
             userId={user.id}
             onFolderPick={(folderPath) => {
@@ -169,14 +166,13 @@ export default function DashboardPage() {
             onFilePick={file => handleProcessFile(file)}
           />
           {pickedFolder && (
-            <div className="mt-4 text-[#4ad1fa] text-xs">
+            <div className="mt-4 text-[#4ad1fa] text-xs break-all">
               Selected folder: <span className="font-mono">{pickedFolder}</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* Dropbox File List */}
       <div className="card mt-4">
         <h2 className="text-xl font-bold mb-4 text-white">Your Dropbox Files (Root)</h2>
         <DropboxFileList userId={user.id} onProcessFile={handleProcessFile} />
