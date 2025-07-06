@@ -28,10 +28,10 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app",
-    "components",
-    "lib",
-    "styles"
+    "app/**/*",
+    "components/**/*",
+    "lib/**/*",
+    "styles/**/*"
   ],
   "exclude": ["node_modules"]
 }
