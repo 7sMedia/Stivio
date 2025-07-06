@@ -90,7 +90,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         <header className="flex items-center justify-between px-14 md:px-6 py-4 bg-[#1B1D25] border-b border-[#2A2C33] relative">
           <h1 className="text-lg font-semibold">Beta7 Dashboard</h1>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full">
           {children}
         </main>
       </div>
