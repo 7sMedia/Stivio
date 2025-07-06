@@ -16,22 +16,23 @@ export default function VideoGenerator() {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [overlayText, setOverlayText] = useState("");  // NEW for advanced editing
+  const [overlayText, setOverlayText] = useState("");
   const [loading, setLoading] = useState(false);
   const [dropboxVideoPath, setDropboxVideoPath] = useState<string | null>(null);
   const [dropboxPreviewUrl, setDropboxPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const inputFolderPath = localStorage.getItem("dropbox_input_folder_path") || "";
+
   const userId =
     typeof window !== "undefined"
       ? localStorage.getItem("supabase_user_id") || ""
       : "";
 
-  // Handle templates with {text} placeholder
   function handleTemplatePrompt(templatePrompt: string) {
     if (templatePrompt.includes("{text}")) {
-      setOverlayText(""); // reset input
+      setOverlayText("");
       setPrompt(templatePrompt);
     } else {
       setOverlayText("");
@@ -39,7 +40,6 @@ export default function VideoGenerator() {
     }
   }
 
-  // Final prompt to send to backend
   const finalPrompt = prompt.includes("{text}")
     ? prompt.replace("{text}", overlayText || "Your text here")
     : prompt;
@@ -96,6 +96,7 @@ export default function VideoGenerator() {
         setLoading(false);
         return;
       }
+
       const res = await fetch("/api/ai-tool/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -111,7 +112,6 @@ export default function VideoGenerator() {
 
       setDropboxVideoPath(data.dropbox_video_path);
 
-      // Fetch Dropbox temporary preview link
       const previewRes = await fetch("/api/dropbox/get-temporary-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -141,7 +141,11 @@ export default function VideoGenerator() {
           <div className="text-2xl font-bold text-green-400 mb-2">Video Ready!</div>
         </div>
       )}
-      <ImageUpload onChange={handleImageUpload} onDropbox={handleDropboxFiles} />
+      <ImageUpload
+        inputFolderPath={inputFolderPath}
+        onChange={handleImageUpload}
+        onDropbox={handleDropboxFiles}
+      />
       {uploadedImages.length > 0 && (
         <div className="flex gap-2 flex-wrap">
           {uploadedImages.map((img, idx) => (
@@ -162,10 +166,8 @@ export default function VideoGenerator() {
         </div>
       )}
 
-      {/* ---- PROMPT TEMPLATE PICKER ---- */}
       <PromptTemplatePicker setPrompt={handleTemplatePrompt} />
 
-      {/* Show overlay text input if needed */}
       {prompt.includes("{text}") && (
         <input
           className="w-full px-4 py-2 border rounded text-black bg-yellow-50 font-semibold"
