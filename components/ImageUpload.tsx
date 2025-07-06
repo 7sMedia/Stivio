@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
 import { uploadToDropbox } from "@/lib/dropboxUpload";
 import Image from "next/image";
@@ -10,79 +10,78 @@ import { useToast } from "@/components/ui/use-toast";
 
 interface UploadedImage {
   id: string;
-  file: File;
   name: string;
+  path: string;
   previewUrl: string;
-  dropboxPath: string;
+  file: File;
+}
+
+interface ImageUploadProps {
+  dropboxAccessToken: string;
+  inputFolderPath: string;
 }
 
 export default function ImageUpload({
+  dropboxAccessToken,
   inputFolderPath,
-  accessToken,
-}: {
-  inputFolderPath: string;
-  accessToken?: string;
-}) {
-  const [images, setImages] = useState<UploadedImage[]>([]);
+}: ImageUploadProps) {
   const { toast } = useToast();
+  const [images, setImages] = useState<UploadedImage[]>([]);
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    for (const file of acceptedFiles) {
-      if (!["image/jpeg", "image/png", "image/jpg"].includes(file.type)) continue;
+  const onDrop = useCallback(
+    async (acceptedFiles: File[]) => {
+      for (const file of acceptedFiles) {
+        const ext = file.name.split(".").pop()?.toLowerCase();
+        if (!["jpg", "jpeg", "png"].includes(ext || "")) {
+          toast({ title: "Invalid file", description: file.name });
+          continue;
+        }
 
-      const filename = file.name;
-      const isDuplicate = images.some((img) => img.name === filename);
+        // Check for duplicate name
+        const existing = images.find((img) => img.name === file.name);
+        if (existing) {
+          toast({
+            title: "Duplicate file",
+            description: `${file.name} already uploaded.`,
+          });
+          continue;
+        }
 
-      if (isDuplicate) {
-        toast({
-          title: "Duplicate file",
-          description: `"${filename}" has already been uploaded.`,
-          variant: "destructive",
-        });
-        continue;
-      }
+        const previewUrl = URL.createObjectURL(file);
 
-      const previewUrl = URL.createObjectURL(file);
-
-      // Optimistically add to UI
-      const tempId = `${Date.now()}-${filename}`;
-      const dropboxPath = `${inputFolderPath}/${filename}`;
-
-      setImages((prev) => [
-        ...prev,
-        {
-          id: tempId,
+        // Optimistic update
+        const newImage: UploadedImage = {
+          id: crypto.randomUUID(),
+          name: file.name,
+          path: "",
           file,
-          name: filename,
           previewUrl,
-          dropboxPath,
-        },
-      ]);
+        };
+        setImages((prev) => [...prev, newImage]);
 
-      try {
-        const uploaded = await uploadToDropbox({
-          file,
-          path: dropboxPath,
-          accessToken,
-        });
+        try {
+          const { path } = await uploadToDropbox(
+            dropboxAccessToken,
+            inputFolderPath,
+            file
+          );
 
-        toast({
-          title: "Uploaded",
-          description: `"${uploaded.name}" saved to Dropbox.`,
-        });
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "Upload failed",
-          description: `"${filename}" could not be uploaded.`,
-          variant: "destructive",
-        });
-
-        // Remove from UI on error
-        setImages((prev) => prev.filter((img) => img.id !== tempId));
+          // Update path in metadata
+          setImages((prev) =>
+            prev.map((img) =>
+              img.id === newImage.id ? { ...img, path } : img
+            )
+          );
+        } catch (err) {
+          toast({
+            title: "Upload error",
+            description: (err as Error).message,
+          });
+        }
       }
-    }
-  };
+    },
+    [dropboxAccessToken, inputFolderPath, images, toast]
+  );
 
   const handleRename = (id: string, newName: string) => {
     setImages((prev) =>
@@ -94,21 +93,14 @@ export default function ImageUpload({
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    multiple: true,
-    accept: {
-      "image/jpeg": [".jpeg", ".jpg"],
-      "image/png": [".png"],
-    },
-  });
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full p-4 bg-zinc-900 border border-zinc-700 rounded-xl">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed p-8 rounded-xl text-center cursor-pointer transition ${
-          isDragActive ? "border-blue-500 bg-blue-50" : "border-zinc-700"
+        className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer ${
+          isDragActive ? "border-blue-500" : "border-zinc-600"
         }`}
       >
         <input {...getInputProps()} />
@@ -117,34 +109,38 @@ export default function ImageUpload({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
+      <div className="mt-6 space-y-4">
         {images.map((img) => (
           <div
             key={img.id}
-            className="relative border rounded-lg overflow-hidden shadow-md"
+            className="flex items-center justify-between border border-zinc-700 rounded-md p-2"
           >
-            <Image
-              src={img.previewUrl}
-              alt={img.name}
-              width={300}
-              height={200}
-              className="object-cover w-full h-32"
-            />
-            <div className="p-2 bg-zinc-900 text-xs">
-              <Input
-                className="w-full text-white text-xs bg-zinc-800"
-                value={img.name}
-                onChange={(e) => handleRename(img.id, e.target.value)}
+            <div className="flex items-center gap-3">
+              <Image
+                src={img.previewUrl}
+                alt={img.name}
+                width={60}
+                height={60}
+                className="rounded-md object-cover"
               />
-              <Button
-                size="sm"
-                variant="destructive"
-                className="mt-2 w-full"
-                onClick={() => handleDelete(img.id)}
-              >
-                Delete
-              </Button>
+              <div className="space-y-1">
+                <Input
+                  className="text-sm bg-zinc-800 border-zinc-600 w-48"
+                  value={img.name}
+                  onChange={(e) => handleRename(img.id, e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground break-all">
+                  {img.path || "Uploading..."}
+                </p>
+              </div>
             </div>
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={() => handleDelete(img.id)}
+            >
+              Delete
+            </Button>
           </div>
         ))}
       </div>
