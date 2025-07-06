@@ -2,17 +2,24 @@
 "use client";
 
 import React from "react";
-// …same imports…
+import Sidebar from "@components/Sidebar";
+import TopBar from "@components/TopBar";
+import NavBar from "@components/NavBar";
 
 export default function TeamPage() {
+  // TODO: replace with real user & nav logic
+  const user = { email: "jay7nyc@hotmail.com" };
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#141518] text-white">
-      {/* NavBar, Sidebar, TopBar as above */}
-      <main className="flex-1 p-8">
-        <h1 className="text-3xl font-bold mb-4">Team</h1>
-        {/* team management UI */}
-      </main>
+    <div className="min-h-screen flex bg-[#141518] text-white">
+      <Sidebar user={user} open={true} onClose={() => {}} />
+      <div className="flex-1 flex flex-col">
+        <TopBar user={user} onLogout={() => window.location.href = "/logout"} onMenuToggle={() => {}} />
+        <main className="flex-1 p-8">
+          <h1 className="text-3xl font-bold mb-4">Team</h1>
+          {/* your team management UI goes here */}
+        </main>
+      </div>
     </div>
   );
 }
-
