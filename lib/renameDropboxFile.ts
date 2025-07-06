@@ -1,6 +1,10 @@
 import { Dropbox } from "dropbox";
 
-export async function renameDropboxFile(accessToken: string, fromPath: string, toPath: string) {
+export async function renameDropboxFile(
+  accessToken: string,
+  fromPath: string,
+  toPath: string
+) {
   const dbx = new Dropbox({ accessToken });
 
   try {
