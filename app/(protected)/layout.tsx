@@ -1,6 +1,6 @@
 // app/(protected)/layout.tsx
 "use client";
-import "../styles/globals.css";
+import "styles/globals.css";
 import { ReactNode, useState } from "react";
 import Sidebar from "@components/Sidebar";
 import TopBar from "@components/TopBar";
