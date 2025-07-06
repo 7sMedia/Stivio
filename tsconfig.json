@@ -18,8 +18,8 @@
     "paths": {
       "@components/*": [
         "app/components/*",
-        "app/ai-tool/components/*",
-        "Stivio/components/*"
+        "components/*",
+        "app/ai-tool/components/*"
       ],
       "@lib/*": ["lib/*"],
       "@ui/*": ["components/ui/*"],
@@ -34,8 +34,7 @@
     "app",
     "components",
     "lib",
-    "app/ai-tool/components",
-    "Stivio/components"
+    "app/ai-tool/components"
   ],
   "exclude": ["node_modules"]
 }
