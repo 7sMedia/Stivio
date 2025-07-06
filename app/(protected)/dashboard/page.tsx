@@ -6,15 +6,12 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@lib/supabaseClient";
 import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
-import DropboxFileList from "@components/DropboxFileList";
 import DropboxFolderPicker from "@components/DropboxFolderPicker";
 import UserGeneratedVideos from "@components/UserGeneratedVideos";
+import DropboxImageUploader from "@components/DropboxImageUploader";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
-  const [importedFile, setImportedFile] = useState<any>(null);
-  const [importing, setImporting] = useState(false);
-  const [importError, setImportError] = useState<string | null>(null);
   const [pickedFolder, setPickedFolder] = useState<string | null>(null);
   const [dropboxStatus, setDropboxStatus] = useState<{ connected: boolean; email?: string } | null>(null);
 
@@ -58,25 +55,6 @@ export default function DashboardPage() {
     }, 700);
   }
 
-  async function handleProcessFile(file: any) {
-    setImporting(true);
-    setImportError(null);
-    setImportedFile(null);
-    try {
-      const res = await fetch("/api/dropbox/process-file", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id, file }),
-      });
-      const result = await res.json();
-      if (result.ok) setImportedFile(file);
-      else setImportError(result.error || "Failed to import file.");
-    } catch {
-      setImportError("Network error importing file.");
-    }
-    setImporting(false);
-  }
-
   async function handleDisconnectDropbox() {
     if (!user?.id) return;
     const res = await fetch("/api/dropbox/disconnect", {
@@ -99,7 +77,7 @@ export default function DashboardPage() {
   return (
     <div className="w-full px-4 md:px-8 max-w-7xl mx-auto space-y-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left Side: Welcome + Videos */}
+        {/* Left Side */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 18 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -141,18 +119,6 @@ export default function DashboardPage() {
           </div>
 
           <div className="w-full z-10">
-            <div className="font-semibold text-base mb-2 text-[#b1b2c1]">Your Latest Videos</div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg bg-[#1e1e28] aspect-video flex items-center justify-center text-[#c3bfff] font-bold text-lg shadow-inner border border-[#23242d]">
-                Video 1
-              </div>
-              <div className="rounded-lg bg-[#1e1e28] aspect-video flex items-center justify-center text-[#c3bfff] font-bold text-lg shadow-inner border border-[#23242d]">
-                Video 2
-              </div>
-            </div>
-          </div>
-
-          <div className="w-full z-10 mt-6">
             <UserGeneratedVideos userId={user.id} />
           </div>
         </motion.div>
@@ -166,7 +132,6 @@ export default function DashboardPage() {
               setPickedFolder(folderPath);
               alert(`You picked folder: ${folderPath}`);
             }}
-            onFilePick={file => handleProcessFile(file)}
           />
           {pickedFolder && (
             <div className="mt-4 text-[#4ad1fa] text-xs break-all">
@@ -176,20 +141,10 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Upload Section */}
       <div className="card mt-4">
-        <h2 className="text-xl font-bold mb-4 text-white">Your Dropbox Files (Root)</h2>
-        <DropboxFileList userId={user.id} onProcessFile={handleProcessFile} />
-        {importing && <div className="mt-4 text-[#b1b2c1]">Importing file...</div>}
-        {importedFile && !importError && (
-          <div className="mt-6 p-4 bg-green-900/60 rounded-xl text-green-300 font-bold">
-            Imported: {importedFile.name}
-          </div>
-        )}
-        {importError && (
-          <div className="mt-6 p-4 bg-red-900/60 rounded-xl text-red-300 font-bold">
-            {importError}
-          </div>
-        )}
+        <h2 className="text-xl font-bold mb-4 text-white">Upload Images</h2>
+        <DropboxImageUploader />
       </div>
     </div>
   );
