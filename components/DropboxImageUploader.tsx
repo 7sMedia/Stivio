@@ -1,116 +1,109 @@
-'use client';
+// /components/DropboxImageUploader.tsx
+"use client";
 
-import React, { useCallback, useState } from 'react';
-import { useDropzone } from 'react-dropzone';
-import Image from 'next/image';
-import { Button } from '@/components/ui/button'; // using Shadcn UI
-import { Trash, Pencil } from 'lucide-react';
+import React, { useCallback, useState } from "react";
+import { useDropzone } from "react-dropzone";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Trash, Pencil } from "lucide-react";
 
-type UploadedImage = {
-  file: File;
-  preview: string;
-  name: string;
+type DropboxImageUploaderProps = {
+  userId: string;
 };
 
-export default function DropboxImageUploader() {
-  const [images, setImages] = useState<UploadedImage[]>([]);
+export default function DropboxImageUploader({ userId }: DropboxImageUploaderProps) {
+  const [files, setFiles] = useState<File[]>([]);
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    setImages(prev => {
-      const existingNames = new Set(prev.map(img => img.name));
-      const newImages = acceptedFiles
-        .filter(file => !existingNames.has(file.name))
-        .filter(file => /\.(jpe?g|png)$/i.test(file.name))
-        .map(file => ({
-          file,
-          preview: URL.createObjectURL(file),
-          name: file.name,
-        }));
-      return [...prev, ...newImages];
+  const onDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const validExtensions = [".jpg", ".jpeg", ".png"];
+      const newFiles = acceptedFiles.filter(file => {
+        const ext = file.name.toLowerCase().split(".").pop();
+        return ext && validExtensions.includes(`.${ext}`);
+      });
+
+      // Prevent duplicates
+      const existingNames = new Set(files.map(f => f.name));
+      const uniqueFiles = newFiles.filter(f => !existingNames.has(f.name));
+      setFiles(prev => [...prev, ...uniqueFiles]);
+    },
+    [files]
+  );
+
+  const handleRename = (index: number, newName: string) => {
+    setFiles(prev => {
+      const updated = [...prev];
+      const ext = updated[index].name.split(".").pop();
+      const renamed = new File([updated[index]], `${newName}.${ext}`, { type: updated[index].type });
+      updated[index] = renamed;
+      return updated;
     });
-  }, []);
+  };
+
+  const handleDelete = (index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+  };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/jpeg': ['.jpg', '.jpeg'],
-      'image/png': ['.png'],
-    },
-    multiple: true,
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/png": [".png"]
+    }
   });
 
-  const handleDelete = (name: string) => {
-    setImages(prev => prev.filter(img => img.name !== name));
-  };
-
-  const handleRename = (oldName: string, newName: string) => {
-    if (!newName || newName === oldName) return;
-    if (images.some(img => img.name === newName)) return alert('Name already in use.');
-    setImages(prev =>
-      prev.map(img =>
-        img.name === oldName ? { ...img, name: newName } : img
-      )
-    );
-  };
-
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      {/* Dropzone */}
+    <div className="border border-[#2a2b35] rounded-lg bg-[#1c1d26] p-4 mt-6">
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition bg-[#16181f] ${
-          isDragActive ? 'border-[#0EC9DB]' : 'border-[#2A2C33]'
+        className={`cursor-pointer p-6 rounded-md border-2 border-dashed transition ${
+          isDragActive ? "border-blue-400 bg-[#27283a]" : "border-[#3a3b4d] bg-[#1f202a]"
         }`}
       >
         <input {...getInputProps()} />
-        <p className="text-[#b1b2c1]">
-          {isDragActive
-            ? 'Drop the files here...'
-            : 'Drag & drop images here, or click to browse (.jpg, .jpeg, .png)'}
+        <p className="text-[#a3a4b5] text-sm text-center">
+          {isDragActive ? "Drop images here..." : "Drag & drop images or click to upload"}
         </p>
       </div>
 
-      {/* Uploaded Images */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-8">
-        {images.map((img, idx) => (
-          <div
-            key={img.name + idx}
-            className="relative rounded-lg overflow-hidden shadow border border-[#2A2C33] bg-[#1e1e28]"
-          >
-            <Image
-              src={img.preview}
-              alt={img.name}
-              width={300}
-              height={200}
-              className="object-cover w-full h-40"
-            />
-            <div className="p-2 text-xs text-[#b1b2c1] truncate">
-              {img.name}
+      {files.length > 0 && (
+        <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+          {files.map((file, index) => (
+            <div
+              key={index}
+              className="relative group bg-[#27283a] rounded-md p-2 shadow border border-[#353644]"
+            >
+              <Image
+                src={URL.createObjectURL(file)}
+                alt={file.name}
+                width={160}
+                height={90}
+                className="rounded-md object-cover aspect-video"
+              />
+              <div className="text-xs mt-2 text-white truncate">{file.name}</div>
+              <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition">
+                <Button
+                  size="icon"
+                  className="w-6 h-6 p-0 bg-red-600 hover:bg-red-700"
+                  onClick={() => handleDelete(index)}
+                >
+                  <Trash size={14} />
+                </Button>
+                <Button
+                  size="icon"
+                  className="w-6 h-6 p-0 bg-yellow-600 hover:bg-yellow-700"
+                  onClick={() => {
+                    const newName = prompt("Enter new name (no extension):");
+                    if (newName) handleRename(index, newName);
+                  }}
+                >
+                  <Pencil size={14} />
+                </Button>
+              </div>
             </div>
-
-            {/* Actions */}
-            <div className="absolute top-2 right-2 flex gap-2">
-              <button
-                onClick={() => {
-                  const newName = prompt('Rename file:', img.name);
-                  if (newName) handleRename(img.name, newName);
-                }}
-                className="bg-[#0EC9DB] text-black p-1 rounded hover:brightness-110"
-                title="Rename"
-              >
-                <Pencil size={14} />
-              </button>
-              <button
-                onClick={() => handleDelete(img.name)}
-                className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
-                title="Delete"
-              >
-                <Trash size={14} />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
