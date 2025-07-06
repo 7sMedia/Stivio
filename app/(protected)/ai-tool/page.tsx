@@ -1,13 +1,14 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import { generateSeedanceVideo } from "./actions/seedance";
-import ImageUpload from "@components/ai-tool/ImageUpload";
-import PromptInput from "@components/ai-tool/PromptInput";
-import VideoResult from "@components/ai-tool/VideoResult";
-import NavBar from "components/NavBar";
-import ProgressBar from "components/ProgressBar";
-import { supabase } from "lib/supabaseClient";
-import { useRouter } from "next/navigation";
+import ImageUpload      from "@components/ImageUpload";
+import PromptInput      from "@components/PromptInput";
+import VideoResult      from "@components/VideoResult";
+import NavBar           from "@components/NavBar";
+import ProgressBar      from "@components/ProgressBar";
+import { supabase }     from "@lib/supabaseClient";
+import { useRouter }    from "next/navigation";
 
 const ENGINES = [
   { label: "Seedance", value: "seedance" },
@@ -38,11 +39,8 @@ export default function AiToolPage() {
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
-      } else {
-        router.push("/");
-      }
+      if (data?.user) setUser(data.user);
+      else router.push("/");
     };
     getUser();
   }, [router]);
@@ -50,24 +48,19 @@ export default function AiToolPage() {
   function handleImageUpload(file: File | null) {
     if (!file) return;
     const url = URL.createObjectURL(file);
-    const imgObj: UploadedImage = {
-      name: file.name,
-      url,
-      fromDropbox: false,
-      fileObj: file,
-    };
-    setUploadedImages((prev) => [...prev, imgObj]);
+    const imgObj: UploadedImage = { name: file.name, url, fromDropbox: false, fileObj: file };
+    setUploadedImages(prev => [...prev, imgObj]);
     setSelectedImageIdx(uploadedImages.length);
   }
 
   function handleDropboxFiles(files: any[]) {
-    const dropboxImages: UploadedImage[] = files.map((file: any) => ({
-      name: file.name,
-      url: file.link,
-      fromDropbox: true,
+    const dropboxImages = files.map(f => ({
+      name: f.name,
+      url: f.link,
+      fromDropbox: true
     }));
-    setUploadedImages((prev) => [...prev, ...dropboxImages]);
-    if (files.length > 0) setSelectedImageIdx(uploadedImages.length);
+    setUploadedImages(prev => [...prev, ...dropboxImages]);
+    if (files.length) setSelectedImageIdx(uploadedImages.length);
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -83,12 +76,9 @@ export default function AiToolPage() {
 
     setLoading(true);
     let current = 0;
-    setProgress(0);
     const fakeProgress = setInterval(() => {
       current += Math.random() * 6 + 4;
-      if (current < 92) {
-        setProgress(Math.floor(current));
-      }
+      if (current < 92) setProgress(Math.floor(current));
     }, 300);
 
     const img = uploadedImages[selectedImageIdx];
@@ -103,7 +93,7 @@ export default function AiToolPage() {
     const formData = new FormData();
     formData.append("prompt", prompt);
     formData.append("image", imageData, img.name);
-    formData.append("video_length", videoLength.toString());
+    formData.append("video_length", String(videoLength));
 
     const res = await generateSeedanceVideo(formData);
 
@@ -116,7 +106,6 @@ export default function AiToolPage() {
       setError(res.error || "Something went wrong.");
     }
     setLoading(false);
-
     setTimeout(() => setProgress(0), 900);
   };
 
@@ -132,45 +121,42 @@ export default function AiToolPage() {
     <>
       <NavBar user={user} />
       <div className="max-w-xl mx-auto px-2 py-8 space-y-6">
-        <div className="text-3xl font-bold mb-4 text-center bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent drop-shadow">
+        <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">
           AI Photo Animator
-        </div>
-        {/* Tabs */}
+        </h1>
+
+        {/* Engine Tabs */}
         <div className="flex justify-center gap-4 mb-6">
-          {ENGINES.map((engine) => (
+          {ENGINES.map(engine => (
             <button
               key={engine.value}
               type="button"
-              className={`px-5 py-2 rounded-xl font-semibold transition shadow
-                ${
-                  activeEngine === engine.value
-                    ? "bg-gradient-to-r from-sky-500 to-violet-500 text-white"
-                    : "bg-indigo-900 text-indigo-300 hover:bg-indigo-800"
-                }
-              `}
               onClick={() => setActiveEngine(engine.value)}
+              className={`px-5 py-2 rounded-xl font-semibold transition shadow ${
+                activeEngine === engine.value
+                  ? "bg-gradient-to-r from-sky-500 to-violet-500 text-white"
+                  : "bg-indigo-900 text-indigo-300 hover:bg-indigo-800"
+              }`}
             >
               {engine.label}
             </button>
           ))}
         </div>
-        {/* Engine Form */}
+
+        {/* Seedance Form */}
         {activeEngine === "seedance" && (
           <form
             onSubmit={handleSubmit}
             className="space-y-6 bg-indigo-950/90 rounded-2xl p-8 shadow-2xl border border-indigo-800/40"
           >
-            {/* Upload and Dropbox */}
-            <ImageUpload
-              onChange={handleImageUpload}
-              onDropbox={handleDropboxFiles}
-            />
-            {/* Show all uploaded images & selection */}
+            <ImageUpload onChange={handleImageUpload} onDropbox={handleDropboxFiles} />
+
             {uploadedImages.length > 0 && (
               <div className="flex gap-2 flex-wrap">
                 {uploadedImages.map((img, idx) => (
                   <button
                     key={idx}
+                    type="button"
                     className={`w-20 h-20 rounded overflow-hidden border-2 ${
                       idx === selectedImageIdx ? "border-indigo-500" : "border-gray-400"
                     }`}
@@ -178,17 +164,16 @@ export default function AiToolPage() {
                       e.preventDefault();
                       setSelectedImageIdx(idx);
                     }}
-                    type="button"
                   >
                     <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
-                    {img.fromDropbox && (
-                      <span className="block text-[10px] text-blue-400">Dropbox</span>
-                    )}
+                    {img.fromDropbox && <span className="text-[10px] text-blue-400">Dropbox</span>}
                   </button>
                 ))}
               </div>
             )}
+
             <PromptInput value={prompt} onChange={setPrompt} />
+
             <div>
               <label className="mr-2 text-indigo-200 font-medium">Video Length (1–8s):</label>
               <input
@@ -196,11 +181,13 @@ export default function AiToolPage() {
                 min={1}
                 max={8}
                 value={videoLength}
-                onChange={(e) => setVideoLength(Number(e.target.value))}
+                onChange={e => setVideoLength(Number(e.target.value))}
                 className="w-24 px-3 py-2 rounded-lg border border-indigo-500 bg-indigo-900 text-indigo-100 placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
               />
             </div>
+
             {loading && <ProgressBar percent={progress} />}
+
             <button
               type="submit"
               className="w-full py-3 rounded-lg bg-gradient-to-r from-sky-500 to-violet-500 text-white font-semibold shadow-lg hover:from-sky-400 hover:to-fuchsia-500 transition text-lg"
@@ -208,11 +195,11 @@ export default function AiToolPage() {
             >
               {loading ? "Generating..." : "Generate Video"}
             </button>
-            {error && (
-              <div className="text-red-400 font-semibold text-center">{error}</div>
-            )}
+
+            {error && <div className="text-red-400 font-semibold text-center">{error}</div>}
           </form>
         )}
+
         {videoUrl && <VideoResult url={videoUrl} />}
       </div>
     </>
