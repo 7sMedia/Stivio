@@ -33,13 +33,15 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-[#101217] text-[#E6E8EB] relative">
-      {/* Sidebar Toggle (Mobile) */}
-      <button
-        className="md:hidden absolute top-4 left-4 z-50 text-white text-2xl"
-        onClick={() => setSidebarOpen(prev => !prev)}
-      >
-        ☰
-      </button>
+      {/* Mobile Sidebar Toggle */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          className="text-white text-3xl focus:outline-none"
+          onClick={() => setSidebarOpen(prev => !prev)}
+        >
+          ☰
+        </button>
+      </div>
 
       {/* Sidebar */}
       <aside
@@ -85,10 +87,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
-        <header className="flex items-center px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
+        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
           <h1 className="text-lg font-semibold">Beta7 Dashboard</h1>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-[1600px] mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6 w-full max-w-[1600px] mx-auto">
           {children}
         </main>
       </div>
