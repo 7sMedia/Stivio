@@ -81,7 +81,7 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* Hero animation & logo */}
+          {/* Glowing animated shape & logo */}
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
               animate={{
@@ -112,7 +112,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Tagline */}
+          {/* Headline */}
           <motion.h1
             className="text-4xl md:text-6xl font-bold mt-10 text-center text-white leading-tight font-display drop-shadow-xl"
             initial={{ opacity: 0, y: 40 }}
@@ -130,6 +130,21 @@ export default function HomePage() {
               AI Video Creation
             </span>
           </motion.h1>
+
+          {/* Buttons */}
+          <motion.div
+            className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            <Button size="lg" onClick={() => setPage("signup")}>
+              Get Started Free
+            </Button>
+            <Button variant="outline" onClick={() => setPage("login")}>
+              Login
+            </Button>
+          </motion.div>
 
           {/* Hero video */}
           <motion.div
@@ -150,7 +165,7 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Feature bullets */}
+          {/* Feature bubbles */}
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
             <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
               <UploadCloud className="text-sky-400" size={32} />
@@ -165,27 +180,12 @@ export default function HomePage() {
               <span className="text-lg text-indigo-100 font-semibold">Share anywhere</span>
             </div>
           </div>
-
-          {/* Get Started / Login */}
-          <motion.div
-            className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 1 }}
-          >
-            <Button size="lg" onClick={() => setPage("signup")}>
-              Get Started Free
-            </Button>
-            <Button variant="outline" onClick={() => setPage("login")}>
-              Login
-            </Button>
-          </motion.div>
         </motion.div>
       </GradientBackground>
     );
   }
 
-  // Signup & Login forms
+  // Signup/Login forms
   return (
     <GradientBackground>
       <motion.div
@@ -221,10 +221,13 @@ export default function HomePage() {
                   />
                 </div>
               </div>
+
               {error && <div className="text-pink-300 text-sm mt-2">{error}</div>}
+
               <Button onClick={page === "signup" ? handleSignup : handleLogin}>
                 {page === "signup" ? "Create Account" : "Login"}
               </Button>
+
               <Button
                 variant="ghost"
                 className="text-indigo-300 mt-2"
@@ -234,7 +237,12 @@ export default function HomePage() {
                   ? "Already have an account? Login"
                   : "New here? Sign Up"}
               </Button>
-              <Button variant="ghost" className="text-indigo-400 mt-2" onClick={() => setPage("landing")}>
+
+              <Button
+                variant="ghost"
+                className="text-indigo-400 mt-2"
+                onClick={() => setPage("landing")}
+              >
                 ← Back to Home
               </Button>
             </div>
