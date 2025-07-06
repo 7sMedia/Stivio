@@ -46,6 +46,15 @@ export default function VideoGenerator() {
 
   function handleImageUpload(file: File | null) {
     if (!file) return;
+
+    const isDuplicate = uploadedImages.some(
+      (img) => img.name.toLowerCase() === file.name.toLowerCase()
+    );
+    if (isDuplicate) {
+      setError("This image has already been uploaded.");
+      return;
+    }
+
     const url = URL.createObjectURL(file);
     const imgObj: UploadedImage = {
       name: file.name,
@@ -58,14 +67,28 @@ export default function VideoGenerator() {
   }
 
   function handleDropboxFiles(files: any[]) {
-    const dropboxImages: UploadedImage[] = files.map((file: any) => ({
-      name: file.name,
-      url: file.link,
-      dropboxPath: file.path_lower || file.path_display,
-      fromDropbox: true,
-    }));
-    setUploadedImages(prev => [...prev, ...dropboxImages]);
-    if (files.length > 0) setSelectedImageIdx(uploadedImages.length);
+    const uniqueDropboxImages: UploadedImage[] = [];
+
+    for (const file of files) {
+      const isDuplicate = uploadedImages.some(
+        (img) => img.name.toLowerCase() === file.name.toLowerCase()
+      );
+      if (!isDuplicate) {
+        uniqueDropboxImages.push({
+          name: file.name,
+          url: file.link,
+          dropboxPath: file.path_lower || file.path_display,
+          fromDropbox: true,
+        });
+      }
+    }
+
+    if (uniqueDropboxImages.length !== files.length) {
+      setError("Some images were skipped because they’re already uploaded.");
+    }
+
+    setUploadedImages(prev => [...prev, ...uniqueDropboxImages]);
+    if (uniqueDropboxImages.length > 0) setSelectedImageIdx(uploadedImages.length);
   }
 
   async function handleGenerateVideo() {
