@@ -32,20 +32,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   if (user === null) return null;
 
   return (
-    <div className="min-h-screen flex bg-[#101217] text-[#E6E8EB] relative">
-      {/* Mobile Sidebar Toggle */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <button
-          className="text-white text-3xl focus:outline-none"
-          onClick={() => setSidebarOpen(prev => !prev)}
-        >
-          ☰
-        </button>
-      </div>
-
+    <div className="min-h-screen flex flex-col md:flex-row bg-[#101217] text-[#E6E8EB]">
       {/* Sidebar */}
       <aside
-        className={`fixed md:relative top-0 left-0 h-full w-64 bg-[#16181f] border-r border-[#2A2C33] flex flex-col justify-between z-40 transform transition-transform duration-300 ${
+        className={`fixed md:static top-0 left-0 h-full md:h-auto w-64 bg-[#16181f] border-r border-[#2A2C33] flex flex-col justify-between z-40 transform transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
         }`}
       >
@@ -85,10 +75,21 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
+      {/* Mobile Toggle */}
+      <div className="md:hidden fixed top-4 left-4 z-50">
+        <button
+          className="text-white text-3xl focus:outline-none"
+          onClick={() => setSidebarOpen((prev) => !prev)}
+          aria-label="Toggle Sidebar"
+        >
+          ☰
+        </button>
+      </div>
+
       {/* Main Content */}
-      <div className="flex-1 flex flex-col ml-0 md:ml-64">
-        <header className="flex flex-wrap items-center gap-4 justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
-          <h1 className="text-lg font-semibold w-full md:w-auto text-center md:text-left">
+      <div className="flex-1 flex flex-col mt-16 md:mt-0 md:ml-64">
+        <header className="flex items-center justify-center md:justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
+          <h1 className="text-lg font-semibold text-center md:text-left">
             Beta7 Dashboard
           </h1>
         </header>
