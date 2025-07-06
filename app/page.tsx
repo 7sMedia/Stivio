@@ -46,43 +46,33 @@ export default function HomePage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // If already signed in, go straight to dashboard
+  // Redirect if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) {
         router.replace("/dashboard");
       }
     });
-    // Also listen for sign‐in events happening elsewhere
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
-      if (session) {
-        router.replace("/dashboard");
-      }
+      if (session) router.replace("/dashboard");
     });
     return () => sub.subscription.unsubscribe();
   }, [router]);
 
   const handleLogin = async () => {
     setError("");
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) setError(error.message);
     else router.replace("/dashboard");
   };
 
   const handleSignup = async () => {
     setError("");
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signUp({ email, password });
     if (error) setError(error.message);
     else router.replace("/dashboard");
   };
 
-  // Landing
   if (page === "landing") {
     return (
       <GradientBackground>
@@ -91,7 +81,7 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* Hero SVG & Title */}
+          {/* Hero animation & logo */}
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
               animate={{
@@ -141,6 +131,41 @@ export default function HomePage() {
             </span>
           </motion.h1>
 
+          {/* Hero video */}
+          <motion.div
+            initial={{ opacity: 0, y: 80 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 1 }}
+            className="mt-14 flex justify-center"
+          >
+            <div className="rounded-2xl shadow-2xl bg-black/40 border-4 border-indigo-600/40 p-2">
+              <video
+                className="rounded-xl w-[350px] md:w-[560px] max-w-full"
+                src="/hero-demo.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
+            </div>
+          </motion.div>
+
+          {/* Feature bullets */}
+          <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <UploadCloud className="text-sky-400" size={32} />
+              <span className="text-lg text-indigo-100 font-semibold">Upload images</span>
+            </div>
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <ImageIcon className="text-pink-400" size={32} />
+              <span className="text-lg text-indigo-100 font-semibold">AI animates</span>
+            </div>
+            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
+              <User className="text-green-400" size={32} />
+              <span className="text-lg text-indigo-100 font-semibold">Share anywhere</span>
+            </div>
+          </div>
+
           {/* Get Started / Login */}
           <motion.div
             className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
@@ -175,7 +200,6 @@ export default function HomePage() {
               <h2 className="text-3xl font-bold text-white mb-2">
                 {page === "signup" ? "Sign Up" : "Login"}
               </h2>
-
               <div className="w-full flex flex-col gap-4">
                 <div className="flex items-center gap-2 bg-indigo-800/60 px-4 rounded-xl">
                   <User size={20} className="text-indigo-300" />
@@ -183,7 +207,7 @@ export default function HomePage() {
                     placeholder="Email"
                     className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
                     value={email}
-                    onChange={e => setEmail(e.target.value)}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
                 <div className="flex items-center gap-2 bg-indigo-800/60 px-4 rounded-xl">
@@ -193,17 +217,14 @@ export default function HomePage() {
                     type="password"
                     className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
                     value={password}
-                    onChange={e => setPassword(e.target.value)}
+                    onChange={(e) => setPassword(e.target.value)}
                   />
                 </div>
               </div>
-
               {error && <div className="text-pink-300 text-sm mt-2">{error}</div>}
-
               <Button onClick={page === "signup" ? handleSignup : handleLogin}>
                 {page === "signup" ? "Create Account" : "Login"}
               </Button>
-
               <Button
                 variant="ghost"
                 className="text-indigo-300 mt-2"
@@ -213,12 +234,7 @@ export default function HomePage() {
                   ? "Already have an account? Login"
                   : "New here? Sign Up"}
               </Button>
-
-              <Button
-                variant="ghost"
-                className="text-indigo-400 mt-2"
-                onClick={() => setPage("landing")}
-              >
+              <Button variant="ghost" className="text-indigo-400 mt-2" onClick={() => setPage("landing")}>
                 ← Back to Home
               </Button>
             </div>
