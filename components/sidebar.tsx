@@ -3,10 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "@/components/ui/use-toast";
 
 export default function Sidebar() {
-  const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -51,7 +50,12 @@ export default function Sidebar() {
 
       <div className="mt-auto pt-6 text-sm text-muted-foreground">
         <p className="mb-2">{userEmail ?? "Loading..."}</p>
-        <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full"
+          onClick={handleLogout}
+        >
           Log Out
         </Button>
       </div>
