@@ -1,4 +1,4 @@
-import { Dropbox } from "dropbox";
+import { Dropbox, files as DropboxTypes } from "dropbox";
 
 const IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png"];
 
@@ -8,11 +8,15 @@ export async function listDropboxImages(accessToken: string, inputFolderPath: st
   try {
     const response = await dbx.filesListFolder({ path: inputFolderPath });
 
-    const imageFiles = response.result.entries.filter((entry) => {
-      if (entry[".tag"] !== "file") return false;
-      const ext = entry.name.toLowerCase().slice(entry.name.lastIndexOf("."));
-      return IMAGE_EXTENSIONS.includes(ext);
-    });
+    const imageFiles = response.result.entries
+      .filter(
+        (entry): entry is DropboxTypes.FileMetadataReference =>
+          entry[".tag"] === "file"
+      )
+      .filter((file) => {
+        const ext = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+        return IMAGE_EXTENSIONS.includes(ext);
+      });
 
     return imageFiles.map((file) => ({
       name: file.name,
