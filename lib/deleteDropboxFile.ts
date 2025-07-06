@@ -1,6 +1,6 @@
 export async function deleteDropboxFile(
   accessToken: string,
-  filePath: string
+  path: string
 ): Promise<void> {
   const response = await fetch("https://api.dropboxapi.com/2/files/delete_v2", {
     method: "POST",
@@ -8,7 +8,7 @@ export async function deleteDropboxFile(
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ path: filePath }),
+    body: JSON.stringify({ path }),
   });
 
   if (!response.ok) {
