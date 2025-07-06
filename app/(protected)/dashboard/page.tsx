@@ -6,9 +6,10 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "@lib/supabaseClient";
 import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
+import DropboxFileList from "@components/DropboxFileList";
 import DropboxFolderPicker from "@components/DropboxFolderPicker";
-import UserGeneratedVideos from "@components/UserGeneratedVideos";
 import DropboxImageUploader from "@components/DropboxImageUploader";
+import UserGeneratedVideos from "@components/UserGeneratedVideos";
 
 export default function DashboardPage() {
   const [user, setUser] = useState<any>(null);
@@ -75,57 +76,56 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full px-4 md:px-8 max-w-7xl mx-auto space-y-8">
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Left Side */}
+    <div className="min-h-screen bg-[#0e0f11] text-white px-4 md:px-6 py-6 max-w-screen-2xl mx-auto">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+        {/* Welcome & Upload Section */}
         <motion.div
-          initial={{ opacity: 0, scale: 0.97, y: 18 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="card flex flex-col justify-center items-start min-h-[340px] relative overflow-hidden lg:col-span-2"
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="xl:col-span-3 bg-[#1a1b1e] rounded-xl p-6 shadow-md"
         >
-          <div className="absolute top-0 right-0 left-0 h-24 bg-gradient-to-br from-[#4339ce22] to-transparent pointer-events-none" />
-          <div className="flex items-center gap-4 mb-6 z-10">
+          <div className="flex items-center gap-4 mb-6">
             <UserIcon size={44} className="text-[#c3bfff]" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-semibold mb-1 tracking-tight text-white">Welcome back!</h1>
-              <div className="text-[#b1b2c1] font-medium break-all">{user.email}</div>
+              <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back!</h1>
+              <p className="text-[#b1b2c1] font-medium break-all">{user.email}</p>
             </div>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-3 mb-6 z-10">
-            {dropboxStatus?.connected ? (
-              <span className="flex flex-wrap items-center text-green-400 font-semibold bg-[#232e23] px-3 py-1.5 rounded">
-                <svg className="w-5 h-5 text-green-500 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M16.707 5.293a1 1 0 010 1.414L9 14.414l-3.707-3.707a1 1 0 111.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/>
-                </svg>
-                Connected as {dropboxStatus.email}
-                <button
-                  className="ml-4 mt-2 md:mt-0 px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white font-bold"
-                  onClick={handleDisconnectDropbox}
-                >
-                  Disconnect
-                </button>
-              </span>
-            ) : (
+          {dropboxStatus?.connected ? (
+            <div className="flex flex-wrap items-center text-green-400 font-semibold bg-[#232e23] px-4 py-2 rounded-lg mb-6">
+              <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M16.707 5.293a1 1 0 010 1.414L9 14.414l-3.707-3.707a1 1 0 111.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/>
+              </svg>
+              Connected as {dropboxStatus.email}
               <button
-                className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition text-md"
-                onClick={() => openDropboxOAuthPopup(user.id)}
+                className="ml-4 px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white font-bold"
+                onClick={handleDisconnectDropbox}
               >
-                <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 mr-2 align-text-bottom" />
-                Connect Dropbox (Auto Sync)
+                Disconnect
               </button>
-            )}
-          </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => openDropboxOAuthPopup(user.id)}
+              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition mb-6"
+            >
+              <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 mr-2 align-text-bottom" />
+              Connect Dropbox (Auto Sync)
+            </button>
+          )}
 
-          <div className="w-full z-10">
+          <DropboxImageUploader userId={user.id} />
+
+          <div className="mt-8">
             <UserGeneratedVideos userId={user.id} />
           </div>
         </motion.div>
 
-        {/* Right Side: Folder Picker */}
-        <div className="card flex flex-col items-center lg:col-span-1">
-          <h2 className="text-xl font-bold mb-4 text-white text-center">Dropbox Folder Picker</h2>
+        {/* Folder Picker */}
+        <div className="xl:col-span-2 bg-[#1a1b1e] rounded-xl p-6 shadow-md">
+          <h2 className="text-xl font-bold mb-4">Dropbox Folder Picker</h2>
           <DropboxFolderPicker
             userId={user.id}
             onFolderPick={(folderPath) => {
@@ -139,12 +139,6 @@ export default function DashboardPage() {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Upload Section */}
-      <div className="card mt-4">
-        <h2 className="text-xl font-bold mb-4 text-white">Upload Images</h2>
-        <DropboxImageUploader />
       </div>
     </div>
   );
