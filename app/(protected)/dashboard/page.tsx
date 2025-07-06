@@ -1,16 +1,37 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import Sidebar from "@/components/sidebar";
 import { Upload } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Sidebar from "@/components/sidebar";
+import { Card, CardContent } from "@/components/ui/card";
 
 export default function DashboardPage() {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [outputFolder, setOutputFolder] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<File[]>([]);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        window.location.href = "/login";
+      } else {
+        setUserEmail(user.email);
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return;
@@ -32,6 +53,8 @@ export default function DashboardPage() {
     setUploadedImages((prev) => prev.filter((file) => file.name !== filename));
   };
 
+  if (loading) return <div className="p-10 text-white">Loading...</div>;
+
   return (
     <div className="flex min-h-screen bg-zinc-950 text-white">
       <Sidebar />
@@ -44,14 +67,12 @@ export default function DashboardPage() {
           <Card className="bg-gradient-to-tr from-zinc-900 to-zinc-800 rounded-2xl shadow-md">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-xl font-semibold tracking-tight">Dropbox Folder Setup</h3>
-
               <div className="space-y-2">
                 <label className="text-sm text-muted-foreground">Input Folder</label>
                 <Button variant="outline" className="w-full">
                   {inputFolder ?? "Select Input Folder"}
                 </Button>
               </div>
-
               <div className="space-y-2">
                 <label className="text-sm text-muted-foreground">Output Folder</label>
                 <Button variant="outline" className="w-full">
@@ -65,7 +86,6 @@ export default function DashboardPage() {
           <Card className="bg-gradient-to-tr from-zinc-900 to-zinc-800 rounded-2xl shadow-md">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-xl font-semibold tracking-tight">Upload Images</h3>
-
               <label
                 htmlFor="upload"
                 className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-zinc-600 hover:border-blue-500 transition-all p-6 rounded-xl cursor-pointer text-center"
