@@ -37,7 +37,5 @@
     "app/ai-tool/components",
     "Stivio/components"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
