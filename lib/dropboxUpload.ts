@@ -1,35 +1,34 @@
 import { Dropbox } from "dropbox";
 
-const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN!; // Replace if you're passing token per user
+/**
+ * Uploads a file to Dropbox.
+ * @param accessToken Dropbox OAuth token
+ * @param folderPath Path in Dropbox to upload to (e.g. "/MyFolder")
+ * @param file File to upload (from <input> or drag-drop)
+ * @param newFileName Optional override for the file name
+ */
+export async function uploadToDropbox(
+  accessToken: string,
+  folderPath: string,
+  file: File,
+  newFileName?: string
+): Promise<{ path: string; name: string }> {
+  const dbx = new Dropbox({ accessToken, fetch });
 
-export async function uploadToDropbox({
-  file,
-  path,
-  accessToken = DROPBOX_ACCESS_TOKEN,
-}: {
-  file: File;
-  path: string; // e.g. "/Beta7/input/filename.jpg"
-  accessToken?: string;
-}) {
-  const dbx = new Dropbox({ accessToken });
+  const fileName = newFileName || file.name;
+  const dropboxPath = `${folderPath}/${fileName}`;
 
-  const arrayBuffer = await file.arrayBuffer();
-
-  const dropboxPath = path.startsWith("/") ? path : `/${path}`;
+  const fileBuffer = await file.arrayBuffer();
 
   const response = await dbx.filesUpload({
     path: dropboxPath,
-    mode: "add", // Avoid overwriting
-    autorename: true,
+    contents: fileBuffer,
+    mode: { ".tag": "overwrite" },
     mute: true,
-    strict_conflict: false,
-    contents: arrayBuffer,
   });
 
   return {
-    name: response.result.name,
-    path: response.result.path_display,
-    id: response.result.id,
-    client_modified: response.result.client_modified,
+    path: response.result.path_display || dropboxPath,
+    name: fileName,
   };
 }
