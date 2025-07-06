@@ -8,9 +8,9 @@ import { motion } from "framer-motion";
 import { User as UserIcon } from "lucide-react";
 import DropboxFileList from "@components/DropboxFileList";
 import DropboxFolderPicker from "@components/DropboxFolderPicker";
+import UserGeneratedVideos from "@components/UserGeneratedVideos";
 
 export default function DashboardPage() {
-  // We assume ProtectedLayout has already fetched & guaranteed `user`
   const [user, setUser] = useState<any>(null);
   const [importedFile, setImportedFile] = useState<any>(null);
   const [importing, setImporting] = useState(false);
@@ -18,14 +18,12 @@ export default function DashboardPage() {
   const [pickedFolder, setPickedFolder] = useState<string | null>(null);
   const [dropboxStatus, setDropboxStatus] = useState<{ connected: boolean; email?: string } | null>(null);
 
-  // Pull the current user from Supabase once on mount
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
     });
   }, []);
 
-  // Listen for the Dropbox OAuth popup message
   useEffect(() => {
     function handler(event: MessageEvent) {
       if (event.data?.type === "dropbox-connected") {
@@ -36,7 +34,6 @@ export default function DashboardPage() {
     return () => window.removeEventListener("message", handler);
   }, []);
 
-  // Fetch Dropbox connection status once we have `user`
   useEffect(() => {
     if (!user) return;
     fetch(`/api/dropbox/status?user_id=${user.id}`)
@@ -44,7 +41,6 @@ export default function DashboardPage() {
       .then(data => setDropboxStatus(data));
   }, [user]);
 
-  // Open the Dropbox OAuth popup
   function openDropboxOAuthPopup(userId: string) {
     const width = 520, height = 720;
     const left = window.screenX + (window.outerWidth - width) / 2;
@@ -62,7 +58,6 @@ export default function DashboardPage() {
     }, 700);
   }
 
-  // Process a single file via your API
   async function handleProcessFile(file: any) {
     setImporting(true);
     setImportError(null);
@@ -82,7 +77,6 @@ export default function DashboardPage() {
     setImporting(false);
   }
 
-  // Disconnect Dropbox
   async function handleDisconnectDropbox() {
     if (!user?.id) return;
     const res = await fetch("/api/dropbox/disconnect", {
@@ -94,7 +88,6 @@ export default function DashboardPage() {
     else alert("Failed to disconnect Dropbox.");
   }
 
-  // While we’re waiting for supabase.auth.getUser()…
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center text-2xl text-[#b1b2c1] bg-[#141518]">
@@ -106,7 +99,6 @@ export default function DashboardPage() {
   return (
     <div className="w-full max-w-none space-y-8">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
-        {/* Welcome/User card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 18 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -157,6 +149,11 @@ export default function DashboardPage() {
                 Video 2
               </div>
             </div>
+          </div>
+
+          {/* User Generated Videos */}
+          <div className="w-full z-10 mt-6">
+            <UserGeneratedVideos userId={user.id} />
           </div>
         </motion.div>
 
