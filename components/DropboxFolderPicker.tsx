@@ -1,3 +1,4 @@
+// components/DropboxFolderPicker.tsx
 "use client";
 import React, { useEffect, useState } from "react";
 
@@ -72,58 +73,65 @@ export default function DropboxFolderPicker({
   };
 
   return (
-    <div className="bg-slate-900/90 rounded-xl p-6">
+    <div className="bg-white rounded-xl p-6">
       <div className="flex items-center mb-3 gap-2">
         <button
           disabled={history.length === 0}
           onClick={goUp}
-          className="px-2 py-1 bg-indigo-700 text-white rounded disabled:opacity-50"
-        >Up</button>
-        <span className="text-sky-200 text-xs">{currentPath || "/"}</span>
+          className="px-2 py-1 bg-gray-200 text-gray-800 rounded disabled:opacity-50"
+        >
+          Up
+        </button>
+        <span className="text-gray-800 text-xs">{currentPath || "/"}</span>
       </div>
-      {loading && <div>Loading...</div>}
-      {error && <div className="text-red-400">{error}</div>}
+      {loading && <div className="text-gray-600">Loading...</div>}
+      {error && <div className="text-red-600">{error}</div>}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4">
         {files.map(f =>
           f[".tag"] === "folder" ? (
             <button
               key={f.id}
-              className="p-2 bg-indigo-800/70 rounded flex flex-col items-center text-white hover:bg-sky-700"
               onClick={() => goIntoFolder(f)}
+              className="p-2 bg-white border border-gray-200 rounded flex flex-col items-center text-gray-900 hover:bg-gray-50"
             >
               <span className="text-2xl mb-1">📁</span>
               <span className="text-xs truncate">{f.name}</span>
-              <span className="text-[10px] text-blue-400">Folder</span>
+              <span className="text-[10px] text-gray-500">Folder</span>
               {onFolderPick && (
                 <button
-                  className="mt-1 px-2 py-0.5 bg-sky-600 text-xs rounded hover:bg-sky-700"
-                  onClick={e => { e.stopPropagation(); onFolderPick(f.path_display); }}
-                >Pick this folder</button>
+                  className="mt-1 px-2 py-0.5 bg-gray-200 text-gray-800 text-xs rounded hover:bg-gray-300"
+                  onClick={e => {
+                    e.stopPropagation();
+                    onFolderPick(f.path_display);
+                  }}
+                >
+                  Pick this folder
+                </button>
               )}
             </button>
           ) : (
             <button
               key={f.id}
-              className="p-2 bg-indigo-900/60 rounded flex flex-col items-center text-white hover:bg-sky-700"
               onClick={() => onFilePick && onFilePick(f)}
+              className="p-2 bg-white border border-gray-200 rounded flex flex-col items-center text-gray-900 hover:bg-gray-50"
             >
               <span className="text-2xl mb-1">📄</span>
               <span className="text-xs truncate">{f.name}</span>
-              <span className="text-[10px] text-green-400">File</span>
+              <span className="text-[10px] text-gray-500">File</span>
             </button>
           )
         )}
       </div>
       <div className="flex gap-2">
         <input
-          className="rounded bg-slate-800 text-white px-2 py-1 text-xs"
+          className="flex-1 rounded border border-gray-300 px-2 py-1 text-gray-900 text-xs"
           placeholder="New folder name"
           value={newFolderName}
           onChange={e => setNewFolderName(e.target.value)}
           disabled={loading}
         />
         <button
-          className="bg-green-600 text-white rounded px-2 py-1 text-xs"
+          className="bg-green-600 text-white rounded px-2 py-1 text-xs disabled:opacity-50"
           disabled={loading || !newFolderName}
           onClick={handleCreateFolder}
         >
