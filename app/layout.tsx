@@ -1,14 +1,25 @@
+// app/layout.tsx
+
 import "../styles/globals.css";
 import Sidebar from "@components/Sidebar";
 import TopBar from "@components/TopBar";
 import { ReactNode } from "react";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
-  // TODO: Replace with your actual user state logic (context or prop)
-  const user = { email: "jay7nyc@hotmail.com" };
+interface User {
+  email: string;
+}
+
+interface Props {
+  children: ReactNode;
+}
+
+export default function RootLayout({ children }: Props) {
+  // Replace with your actual user state logic (context or prop)
+  const user: User = { email: "jay7nyc@hotmail.com" };
+
   const handleLogout = async () => {
-    // You can use your existing logout logic here
-    window.location.href = "/logout"; // Or whatever sign-out method you use
+    // Replace with your actual logout logic
+    window.location.href = "/logout"; // Or your logout API endpoint
   };
 
   return (
