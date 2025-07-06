@@ -2,66 +2,51 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useToast } from "@/components/ui/use-toast";
 import ImageUpload from "@/components/ImageUpload";
-import { Loader2 } from "lucide-react";
 
 export default function AIToolPage() {
-  const [sessionLoaded, setSessionLoaded] = useState(false);
-  const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const { toast } = useToast();
+  const [inputFolder, setInputFolder] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
+    const fetchDropboxData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (error || !data.session) {
+      if (!user) {
         window.location.href = "/login";
         return;
       }
 
-      const user = data.session.user;
-      const metadata = user.user_metadata;
-      const token = metadata?.dropbox_access_token;
-      const folder = metadata?.dropbox_input_folder;
+      const { data, error } = await supabase
+        .from("dropbox_tokens")
+        .select("access_token, input_folder")
+        .eq("user_id", user.id)
+        .single();
 
-      if (!token || !folder) {
-        toast({
-          title: "Dropbox not connected",
-          description: "Please connect Dropbox in settings first.",
-          variant: "destructive",
-        });
+      if (error || !data) {
+        console.error("Dropbox info not found:", error);
         return;
       }
 
-      setAccessToken(token);
-      setInputFolder(folder);
-      setSessionLoaded(true);
+      setAccessToken(data.access_token);
+      setInputFolder(data.input_folder);
+      setLoading(false);
     };
 
-    fetchSession();
-  }, [toast]);
+    fetchDropboxData();
+  }, []);
 
-  if (!sessionLoaded) {
-    return (
-      <div className="flex justify-center items-center h-[70vh]">
-        <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
-      </div>
-    );
+  if (loading || !accessToken || !inputFolder) {
+    return <div className="p-6 text-sm text-muted-foreground">Loading Dropbox integration…</div>;
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      <h2 className="text-2xl font-bold mb-4">Upload Images</h2>
-      <p className="text-muted-foreground text-sm mb-6">
-        Upload images to your Dropbox folder: <strong>{inputFolder}</strong>
-      </p>
-
-      <ImageUpload
-        inputFolderPath={inputFolder}
-        accessToken={accessToken || undefined}
-      />
-    </div>
+    <main className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-semibold mb-4">AI Tool: Upload Images</h1>
+      <ImageUpload dropboxAccessToken={accessToken} inputFolderPath={inputFolder} />
+    </main>
   );
 }
