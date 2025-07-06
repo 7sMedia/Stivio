@@ -28,7 +28,6 @@
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/react": "^18.0.0",
-    "@types/node": "^20.0.0",
-    "@types/react-dropzone": "^14.0.3"
+    "@types/node": "^20.0.0"
   }
 }
