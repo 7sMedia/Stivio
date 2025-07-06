@@ -18,6 +18,7 @@
     "paths": {
       "styles/*": ["styles/*"],
       "@components/*": [
+        "components/*",
         "app/components/*",
         "app/(protected)/ai-tool/components/*"
       ],
