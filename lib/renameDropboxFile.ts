@@ -8,13 +8,13 @@ export async function renameDropboxFile(
   const dbx = new Dropbox({ accessToken });
 
   try {
-    const response = await dbx.filesMoveV2({
+    const res = await dbx.filesMoveV2({
       from_path: fromPath,
       to_path: toPath,
       autorename: false,
     });
 
-    return response.result.metadata;
+    return res.result;
   } catch (error) {
     console.error("Error renaming Dropbox file:", error);
     throw error;
