@@ -1,3 +1,4 @@
+// app/(protected)/layout.tsx
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
@@ -37,7 +38,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <button
         className="md:hidden absolute top-4 left-4 z-50 text-white text-2xl"
         onClick={() => setSidebarOpen(prev => !prev)}
-        aria-label="Toggle Sidebar"
+        aria-label="Toggle sidebar"
       >
         ☰
       </button>
@@ -90,7 +91,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
           <h1 className="text-lg font-semibold">Beta7 Dashboard</h1>
         </header>
         <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-6">
-          {children}
+          <div className="w-full max-w-[1600px] mx-auto">{children}</div>
         </main>
       </div>
     </div>
