@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { uploadToDropbox } from "@/lib/dropboxUpload";
+import { uploadToDropbox } from "@/lib/uploadToDropbox";
 import { useToast } from "@/components/ui/use-toast";
 
 interface ImageUploadProps {
@@ -21,10 +21,9 @@ export default function ImageUpload({ inputFolderPath, onChange, onDropbox }: Im
       if (!acceptedFiles.length) return;
 
       setUploading(true);
-
       try {
         for (const file of acceptedFiles) {
-          const result = await uploadToDropbox(file, inputFolderPath);
+          const result = await uploadToDropbox({ file, folderPath: inputFolderPath });
           onDropbox?.([result]);
         }
       } catch (error: any) {
@@ -49,7 +48,7 @@ export default function ImageUpload({ inputFolderPath, onChange, onDropbox }: Im
 
     setUploading(true);
     try {
-      const result = await uploadToDropbox(file, inputFolderPath);
+      const result = await uploadToDropbox({ file, folderPath: inputFolderPath });
       onDropbox?.([result]);
       onChange?.(file);
     } catch (error: any) {
@@ -61,8 +60,10 @@ export default function ImageUpload({ inputFolderPath, onChange, onDropbox }: Im
   };
 
   return (
-    <div className="border-2 border-dashed border-zinc-600 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-400 transition-colors"
-         {...getRootProps()}>
+    <div
+      className="border-2 border-dashed border-zinc-600 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-400 transition-colors"
+      {...getRootProps()}
+    >
       <input {...getInputProps()} />
       <input
         type="file"
