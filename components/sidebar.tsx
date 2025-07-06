@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 
 export default function Sidebar() {
+  const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
@@ -13,7 +14,13 @@ export default function Sidebar() {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-      setUserEmail(user?.email ?? null);
+
+      const email = user?.email ?? null;
+      if (!email) {
+        window.location.href = "/login";
+      } else {
+        setUserEmail(email);
+      }
     };
 
     fetchUser();
@@ -27,7 +34,7 @@ export default function Sidebar() {
     });
     setTimeout(() => {
       window.location.href = "/login";
-    }, 1000);
+    }, 1500);
   };
 
   return (
@@ -51,4 +58,3 @@ export default function Sidebar() {
     </aside>
   );
 }
- 
