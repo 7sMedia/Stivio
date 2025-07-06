@@ -1,145 +1,132 @@
-// app/(protected)/dashboard/page.tsx
 "use client";
-export const dynamic = "force-dynamic";
 
-import React, { useEffect, useState } from "react";
-import { supabase } from "@lib/supabaseClient";
-import { motion } from "framer-motion";
-import { User as UserIcon } from "lucide-react";
-import DropboxFileList from "@components/DropboxFileList";
-import DropboxFolderPicker from "@components/DropboxFolderPicker";
-import DropboxImageUploader from "@components/DropboxImageUploader";
-import UserGeneratedVideos from "@components/UserGeneratedVideos";
+import React, { useState } from "react";
+import { Upload } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<any>(null);
-  const [pickedFolder, setPickedFolder] = useState<string | null>(null);
-  const [dropboxStatus, setDropboxStatus] = useState<{ connected: boolean; email?: string } | null>(null);
+  const [inputFolder, setInputFolder] = useState<string | null>(null);
+  const [outputFolder, setOutputFolder] = useState<string | null>(null);
+  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+
+    const uniqueFiles = files.filter((file) => {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      const isImage = ["jpg", "jpeg", "png"].includes(ext ?? "");
+      const notDuplicate = !uploadedImages.some(
+        (f) => f.name === file.name && f.type === file.type
+      );
+      return isImage && notDuplicate;
     });
-  }, []);
 
-  useEffect(() => {
-    function handler(event: MessageEvent) {
-      if (event.data?.type === "dropbox-connected") {
-        window.location.reload();
-      }
-    }
-    window.addEventListener("message", handler);
-    return () => window.removeEventListener("message", handler);
-  }, []);
+    setUploadedImages((prev) => [...prev, ...uniqueFiles]);
+  };
 
-  useEffect(() => {
-    if (!user) return;
-    fetch(`/api/dropbox/status?user_id=${user.id}`)
-      .then(res => res.json())
-      .then(data => setDropboxStatus(data));
-  }, [user]);
+  const removeImage = (filename: string) => {
+    setUploadedImages((prev) => prev.filter((file) => file.name !== filename));
+  };
 
-  function openDropboxOAuthPopup(userId: string) {
-    const width = 520, height = 720;
-    const left = window.screenX + (window.outerWidth - width) / 2;
-    const top = window.screenY + (window.outerHeight - height) / 2;
-    const popup = window.open(
-      `/api/dropbox/auth?user_id=${userId}`,
-      "dropbox-oauth",
-      `width=${width},height=${height},left=${left},top=${top},resizable,scrollbars=yes`
+  const handleRename = (oldName: string, newName: string) => {
+    setUploadedImages((prev) =>
+      prev.map((file) => {
+        if (file.name === oldName) {
+          const renamed = new File([file], newName, { type: file.type });
+          return renamed;
+        }
+        return file;
+      })
     );
-    const timer = setInterval(() => {
-      if (!popup || popup.closed) {
-        clearInterval(timer);
-        window.location.reload();
-      }
-    }, 700);
-  }
-
-  async function handleDisconnectDropbox() {
-    if (!user?.id) return;
-    const res = await fetch("/api/dropbox/disconnect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: user.id }),
-    });
-    if (res.ok) window.location.reload();
-    else alert("Failed to disconnect Dropbox.");
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-2xl text-[#b1b2c1] bg-[#141518]">
-        Loading…
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0e0f11] text-white px-4 md:px-6 py-6 max-w-screen-2xl mx-auto">
-      <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
-        {/* Welcome & Upload Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="xl:col-span-3 bg-[#1a1b1e] rounded-xl p-6 shadow-md"
-        >
-          <div className="flex items-center gap-4 mb-6">
-            <UserIcon size={44} className="text-[#c3bfff]" />
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight mb-1">Welcome back!</h1>
-              <p className="text-[#b1b2c1] font-medium break-all">{user.email}</p>
-            </div>
-          </div>
+    <div className="flex min-h-screen w-full bg-black text-white">
+      {/* Left Sidebar */}
+      <aside className="hidden md:flex flex-col w-64 p-4 border-r border-gray-800">
+        <h2 className="text-xl font-semibold tracking-tight">Beta7</h2>
+        {/* Future: Add nav links */}
+      </aside>
 
-          {dropboxStatus?.connected ? (
-            <div className="flex flex-wrap items-center text-green-400 font-semibold bg-[#232e23] px-4 py-2 rounded-lg mb-6">
-              <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M16.707 5.293a1 1 0 010 1.414L9 14.414l-3.707-3.707a1 1 0 111.414-1.414L9 11.586l6.293-6.293a1 1 0 011.414 0z"/>
-              </svg>
-              Connected as {dropboxStatus.email}
-              <button
-                className="ml-4 px-3 py-1 text-xs rounded bg-red-600 hover:bg-red-700 text-white font-bold"
-                onClick={handleDisconnectDropbox}
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col p-6 gap-6">
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          {/* Dropbox Folder Pickers */}
+          <Card className="bg-gradient-to-tr from-zinc-900 to-zinc-800 rounded-2xl shadow-md p-4">
+            <CardContent className="space-y-4">
+              <h2 className="text-xl font-semibold">Dropbox Folder Setup</h2>
+              <div className="space-y-2">
+                <label className="text-sm text-muted-foreground">Input Folder</label>
+                <Button variant="outline" className="w-full">
+                  {inputFolder ?? "Select Input Folder"}
+                </Button>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm text-muted-foreground">Output Folder</label>
+                <Button variant="outline" className="w-full">
+                  {outputFolder ?? "Select Output Folder"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Image Upload Dropzone */}
+          <Card className="bg-gradient-to-tr from-zinc-900 to-zinc-800 rounded-2xl shadow-md p-4">
+            <CardContent className="space-y-4">
+              <h2 className="text-xl font-semibold">Upload Images</h2>
+
+              <label
+                htmlFor="upload"
+                className="flex flex-col items-center justify-center gap-2 border border-dashed border-gray-600 hover:border-blue-400 transition-all p-6 rounded-xl cursor-pointer text-center"
               >
-                Disconnect
-              </button>
-            </div>
-          ) : (
-            <button
-              onClick={() => openDropboxOAuthPopup(user.id)}
-              className="px-6 py-2 rounded-lg bg-blue-600 text-white font-semibold shadow hover:bg-blue-700 transition mb-6"
-            >
-              <img src="/dropbox-logo.svg" alt="Dropbox" className="inline-block w-5 h-5 mr-2 align-text-bottom" />
-              Connect Dropbox (Auto Sync)
-            </button>
-          )}
+                <Upload className="w-6 h-6 text-blue-400" />
+                <p className="text-sm text-muted-foreground">
+                  Drag & drop or click to upload .jpg, .jpeg, .png
+                </p>
+              </label>
+              <Input
+                id="upload"
+                type="file"
+                multiple
+                accept=".jpg,.jpeg,.png"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
 
-          <DropboxImageUploader userId={user.id} />
-
-          <div className="mt-8">
-            <UserGeneratedVideos userId={user.id} />
-          </div>
-        </motion.div>
-
-        {/* Folder Picker */}
-        <div className="xl:col-span-2 bg-[#1a1b1e] rounded-xl p-6 shadow-md">
-          <h2 className="text-xl font-bold mb-4">Dropbox Folder Picker</h2>
-          <DropboxFolderPicker
-            userId={user.id}
-            onFolderPick={(folderPath) => {
-              setPickedFolder(folderPath);
-              alert(`You picked folder: ${folderPath}`);
-            }}
-          />
-          {pickedFolder && (
-            <div className="mt-4 text-[#4ad1fa] text-xs break-all">
-              Selected folder: <span className="font-mono">{pickedFolder}</span>
-            </div>
-          )}
+              {/* Uploaded Preview */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {uploadedImages.map((file) => (
+                  <div
+                    key={file.name}
+                    className="relative group border border-gray-700 rounded-lg overflow-hidden"
+                  >
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt={file.name}
+                      className="object-cover w-full h-32"
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-2 transition">
+                      <Button
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => removeImage(file.name)}
+                      >
+                        Delete
+                      </Button>
+                      {/* Optional: Add Rename Input */}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }
