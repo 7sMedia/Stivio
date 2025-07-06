@@ -1,91 +1,90 @@
+// components/ImageUpload.tsx
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { uploadToDropbox } from "@/lib/dropboxUpload";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Trash, Pencil } from "lucide-react";
+import Image from "next/image";
 
 interface UploadedImage {
   id: string;
-  name: string;
-  path: string;
-  previewUrl: string;
   file: File;
-}
-
-interface ImageUploadProps {
-  dropboxAccessToken: string;
-  inputFolderPath: string;
+  previewUrl: string;
+  dropboxPath?: string;
+  modifiedName: string;
 }
 
 export default function ImageUpload({
-  dropboxAccessToken,
-  inputFolderPath,
-}: ImageUploadProps) {
+  accessToken,
+  inputFolder,
+}: {
+  accessToken: string;
+  inputFolder: string;
+}) {
   const { toast } = useToast();
   const [images, setImages] = useState<UploadedImage[]>([]);
 
   const onDrop = useCallback(
-    async (acceptedFiles: File[]) => {
-      for (const file of acceptedFiles) {
-        const ext = file.name.split(".").pop()?.toLowerCase();
-        if (!["jpg", "jpeg", "png"].includes(ext || "")) {
-          toast({ title: "Invalid file", description: file.name });
-          continue;
-        }
+    (acceptedFiles: File[]) => {
+      acceptedFiles.forEach(async (file) => {
+        const isImage = ["image/jpeg", "image/png", "image/jpg"].includes(file.type);
+        if (!isImage) return;
 
-        // Check for duplicate name
-        const existing = images.find((img) => img.name === file.name);
-        if (existing) {
+        const exists = images.find((img) => img.file.name === file.name);
+        if (exists) {
           toast({
             title: "Duplicate file",
-            description: `${file.name} already uploaded.`,
+            description: `${file.name} is already uploaded.`,
+            variant: "destructive",
           });
-          continue;
+          return;
         }
 
+        const id = crypto.randomUUID();
         const previewUrl = URL.createObjectURL(file);
+        const modifiedName = file.name;
 
-        // Optimistic update
-        const newImage: UploadedImage = {
-          id: crypto.randomUUID(),
-          name: file.name,
-          path: "",
-          file,
-          previewUrl,
-        };
-        setImages((prev) => [...prev, newImage]);
+        // Optimistic UI
+        setImages((prev) => [...prev, { id, file, previewUrl, modifiedName }]);
 
         try {
-          const { path } = await uploadToDropbox(
-            dropboxAccessToken,
-            inputFolderPath,
-            file
-          );
+          const res = await uploadToDropbox({
+            file,
+            accessToken,
+            folderPath: inputFolder,
+            modifiedFilename: modifiedName,
+          });
 
-          // Update path in metadata
           setImages((prev) =>
             prev.map((img) =>
-              img.id === newImage.id ? { ...img, path } : img
+              img.id === id ? { ...img, dropboxPath: res.path } : img
             )
           );
         } catch (err) {
           toast({
-            title: "Upload error",
-            description: (err as Error).message,
+            title: "Upload failed",
+            description: file.name,
+            variant: "destructive",
           });
+          setImages((prev) => prev.filter((img) => img.id !== id));
         }
-      }
+      });
     },
-    [dropboxAccessToken, inputFolderPath, images, toast]
+    [images, accessToken, inputFolder, toast]
   );
 
-  const handleRename = (id: string, newName: string) => {
+  const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  const handleRename = (id: string) => {
+    const newName = prompt("Enter new filename:");
+    if (!newName) return;
     setImages((prev) =>
-      prev.map((img) => (img.id === id ? { ...img, name: newName } : img))
+      prev.map((img) =>
+        img.id === id ? { ...img, modifiedName: newName } : img
+      )
     );
   };
 
@@ -93,57 +92,48 @@ export default function ImageUpload({
     setImages((prev) => prev.filter((img) => img.id !== id));
   };
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
-
   return (
-    <div className="w-full p-4 bg-zinc-900 border border-zinc-700 rounded-xl">
+    <div>
       <div
         {...getRootProps()}
-        className={`border-2 border-dashed rounded-md p-6 text-center cursor-pointer ${
-          isDragActive ? "border-blue-500" : "border-zinc-600"
-        }`}
+        className="border border-dashed border-zinc-600 p-6 rounded-lg text-center cursor-pointer hover:border-zinc-400 transition"
       >
         <input {...getInputProps()} />
-        <p className="text-sm text-muted-foreground">
-          Drag & drop images here, or click to upload
-        </p>
+        <p className="text-zinc-400">Drag & drop images here, or click to select</p>
       </div>
 
-      <div className="mt-6 space-y-4">
-        {images.map((img) => (
-          <div
-            key={img.id}
-            className="flex items-center justify-between border border-zinc-700 rounded-md p-2"
-          >
-            <div className="flex items-center gap-3">
+      {images.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+          {images.map((img) => (
+            <div key={img.id} className="relative">
               <Image
                 src={img.previewUrl}
-                alt={img.name}
-                width={60}
-                height={60}
-                className="rounded-md object-cover"
+                alt={img.modifiedName}
+                width={300}
+                height={300}
+                className="rounded-lg object-cover aspect-square"
               />
-              <div className="space-y-1">
-                <Input
-                  className="text-sm bg-zinc-800 border-zinc-600 w-48"
-                  value={img.name}
-                  onChange={(e) => handleRename(img.id, e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground break-all">
-                  {img.path || "Uploading..."}
-                </p>
+              <div className="absolute top-1 right-1 flex gap-1">
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleRename(img.id)}
+                >
+                  <Pencil className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  onClick={() => handleDelete(img.id)}
+                >
+                  <Trash className="w-4 h-4" />
+                </Button>
               </div>
+              <p className="text-xs text-center mt-1 truncate">{img.modifiedName}</p>
             </div>
-            <Button
-              size="sm"
-              variant="destructive"
-              onClick={() => handleDelete(img.id)}
-            >
-              Delete
-            </Button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
