@@ -100,7 +100,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <h1 className="text-lg font-semibold text-white">Beta7 Dashboard</h1>
+            <h1 className="text-lg font-semibold text-white">🔥 Beta7 Dashboard 🔥</h1>
           </div>
         </header>
         <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">{children}</main>
