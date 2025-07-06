@@ -1,22 +1,35 @@
-// lib/dropboxUpload.ts
 import { Dropbox } from "dropbox";
 
-export async function uploadToDropbox(file: File, path: string) {
-  try {
-    const dbx = new Dropbox({
-      accessToken: localStorage.getItem("dropbox_access_token") || "",
-      fetch,
-    });
+const DROPBOX_ACCESS_TOKEN = process.env.DROPBOX_ACCESS_TOKEN!; // Replace if you're passing token per user
 
-    const res = await dbx.filesUpload({
-      path,
-      contents: file,
-      mode: { ".tag": "overwrite" },
-    });
+export async function uploadToDropbox({
+  file,
+  path,
+  accessToken = DROPBOX_ACCESS_TOKEN,
+}: {
+  file: File;
+  path: string; // e.g. "/Beta7/input/filename.jpg"
+  accessToken?: string;
+}) {
+  const dbx = new Dropbox({ accessToken });
 
-    return { success: true, data: res };
-  } catch (error) {
-    console.error("Dropbox upload error:", error);
-    return { success: false, error };
-  }
+  const arrayBuffer = await file.arrayBuffer();
+
+  const dropboxPath = path.startsWith("/") ? path : `/${path}`;
+
+  const response = await dbx.filesUpload({
+    path: dropboxPath,
+    mode: "add", // Avoid overwriting
+    autorename: true,
+    mute: true,
+    strict_conflict: false,
+    contents: arrayBuffer,
+  });
+
+  return {
+    name: response.result.name,
+    path: response.result.path_display,
+    id: response.result.id,
+    client_modified: response.result.client_modified,
+  };
 }
