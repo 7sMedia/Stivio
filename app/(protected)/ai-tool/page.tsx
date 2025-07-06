@@ -1,18 +1,18 @@
+// app/(protected)/ai-tool/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { generateSeedanceVideo } from "./actions/seedance";
-import ImageUpload      from "@components/ImageUpload";
-import PromptInput      from "@components/PromptInput";
-import VideoResult      from "@components/VideoResult";
-import NavBar           from "@components/NavBar";
-import ProgressBar      from "@components/ProgressBar";
-import { supabase }     from "@lib/supabaseClient";
-import { useRouter }    from "next/navigation";
+import ImageUpload from "@components/ImageUpload";
+import PromptInput from "@components/PromptInput";
+import VideoResult from "@components/VideoResult";
+import NavBar from "@components/NavBar";
+import ProgressBar from "@components/ProgressBar";
+import { supabase } from "@lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 const ENGINES = [
   { label: "Seedance", value: "seedance" },
-  // { label: "SkyReels", value: "skyreels" },
 ];
 
 type UploadedImage = {
@@ -35,7 +35,6 @@ export default function AiToolPage() {
   const [progress, setProgress] = useState(0);
   const router = useRouter();
 
-  // Auth guard
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser();
@@ -120,13 +119,12 @@ export default function AiToolPage() {
   return (
     <>
       <NavBar user={user} />
-      <div className="max-w-xl mx-auto px-2 py-8 space-y-6">
+      <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
         <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">
           AI Photo Animator
         </h1>
 
-        {/* Engine Tabs */}
-        <div className="flex justify-center gap-4 mb-6">
+        <div className="flex flex-wrap justify-center gap-4 mb-6">
           {ENGINES.map(engine => (
             <button
               key={engine.value}
@@ -143,11 +141,10 @@ export default function AiToolPage() {
           ))}
         </div>
 
-        {/* Seedance Form */}
         {activeEngine === "seedance" && (
           <form
             onSubmit={handleSubmit}
-            className="space-y-6 bg-indigo-950/90 rounded-2xl p-8 shadow-2xl border border-indigo-800/40"
+            className="space-y-6 bg-indigo-950/90 rounded-2xl p-6 sm:p-8 shadow-2xl border border-indigo-800/40"
           >
             <ImageUpload onChange={handleImageUpload} onDropbox={handleDropboxFiles} />
 
