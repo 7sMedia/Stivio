@@ -7,6 +7,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en">
       <head>
         <title>Beta7</title>
+        <meta name="description" content="AI video creation from still images" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </head>
       <body className="bg-black text-white antialiased min-h-screen">
