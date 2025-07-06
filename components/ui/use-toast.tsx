@@ -1,74 +1,58 @@
-// ✅ 1. components/ui/use-toast.ts
-
-import { useContext } from "react";
-import { ToastContext } from "@/components/ui/toast-provider"; // ensure this path is correct in your project
-
-export function useToast() {
-  return useContext(ToastContext);
-}
-
-// No direct export of `toast` here
-
-
-// ✅ 2. components/sidebar.tsx
-
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { createContext, useContext, useState, ReactNode } from "react";
 
-export default function Sidebar() {
-  const { toast } = useToast();
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+type Toast = {
+  id: number;
+  title: string;
+  description?: string;
+  variant?: "success" | "error";
+};
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+type ToastContextType = {
+  toasts: Toast[];
+  toast: (toast: Omit<Toast, "id">) => void;
+};
 
-      const email = user?.email ?? null;
-      if (!email) {
-        window.location.href = "/login";
-      } else {
-        setUserEmail(email);
-      }
-    };
+const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
-    fetchUser();
-  }, []);
+export function ToastProvider({ children }: { children: ReactNode }) {
+  const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast({
-      title: "Logged out",
-      description: "You have been signed out successfully.",
-    });
+  const toast = (toast: Omit<Toast, "id">) => {
+    const id = Date.now();
+    setToasts((prev) => [...prev, { id, ...toast }]);
+
     setTimeout(() => {
-      window.location.href = "/login";
-    }, 1500);
+      setToasts((prev) => prev.filter((t) => t.id !== id));
+    }, 3000);
   };
 
   return (
-    <aside className="hidden md:flex flex-col w-64 border-r border-zinc-800 p-6 bg-zinc-950">
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Beta7</h1>
-      <nav className="space-y-2">
-        <Button variant="secondary" className="w-full justify-start">
-          Dashboard
-        </Button>
-        <Button variant="ghost" className="w-full justify-start">
-          AI Tool
-        </Button>
-      </nav>
-
-      <div className="mt-auto pt-6 text-sm text-muted-foreground">
-        <p className="mb-2">{userEmail ?? "Loading..."}</p>
-        <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-          Log Out
-        </Button>
+    <ToastContext.Provider value={{ toasts, toast }}>
+      {children}
+      <div className="fixed top-4 right-4 space-y-2 z-50">
+        {toasts.map(({ id, title, description, variant }) => (
+          <div
+            key={id}
+            className={`rounded-lg border p-4 w-64 text-sm shadow-lg
+              ${variant === "error" ? "bg-red-800/50 text-red-200 border-red-600"
+               : variant === "success" ? "bg-green-800/50 text-green-200 border-green-600"
+               : "bg-zinc-800 text-white border-zinc-700"}`}
+          >
+            <p className="font-semibold">{title}</p>
+            {description && <p className="text-xs mt-1">{description}</p>}
+          </div>
+        ))}
       </div>
-    </aside>
+    </ToastContext.Provider>
   );
+}
+
+export function useToast() {
+  const context = useContext(ToastContext);
+  if (!context) {
+    throw new Error("useToast must be used within a ToastProvider");
+  }
+  return context;
 }
