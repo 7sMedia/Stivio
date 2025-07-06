@@ -31,29 +31,33 @@ export default function UserGeneratedVideos({ userId }: { userId: string }) {
   }, [userId]);
 
   return (
-    <div className="card mt-4">
-      <h2 className="text-xl font-bold mb-4 text-white">Your Generated Videos</h2>
+    <div className="card">
+      <h2 className="text-lg font-semibold text-white mb-3">Your Generated Videos</h2>
 
-      {loading && <p className="text-[#b1b2c1]">Loading videos...</p>}
+      {loading && <p className="text-[#b1b2c1]">Loading...</p>}
       {error && <p className="text-red-400">{error}</p>}
-
       {!loading && videos.length === 0 && (
-        <p className="text-[#b1b2c1]">No videos generated yet.</p>
+        <p className="text-[#b1b2c1]">No videos found yet.</p>
       )}
 
       <div className="grid grid-cols-2 gap-4">
         {videos.map(video => (
-          <div key={video.id} className="rounded-lg bg-[#1e1e28] p-3 shadow border border-[#23242d]">
-            <p className="text-[#c3bfff] font-semibold">{video.prompt}</p>
+          <div
+            key={video.id}
+            className="bg-[#1e1e28] p-3 rounded border border-[#2c2d36] shadow-inner"
+          >
+            <p className="text-[#c3bfff] font-semibold text-sm mb-1">
+              {video.prompt}
+            </p>
             <a
               href={`https://www.dropbox.com/home${video.dropbox_path}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-400 underline text-sm"
+              className="text-blue-400 text-sm underline"
             >
               View in Dropbox
             </a>
-            <p className="text-xs text-gray-400 mt-2">
+            <p className="text-xs text-gray-400 mt-1">
               {new Date(video.created_at).toLocaleString()}
             </p>
           </div>
