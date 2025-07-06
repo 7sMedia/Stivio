@@ -1,42 +1,47 @@
-// components/UploadToOutputButton.tsx
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { uploadToDropbox } from "@/lib/dropboxUpload";
+import { uploadToDropbox } from "@/lib/uploadToDropbox";
 import { useToast } from "@/components/ui/use-toast";
 
-interface UploadToOutputButtonProps {
+export default function UploadToOutputButton({
+  videoFile,
+  outputPath,
+}: {
   videoFile: File;
   outputPath: string;
-}
-
-export default function UploadToOutputButton({ videoFile, outputPath }: UploadToOutputButtonProps) {
-  const { toast } = useToast();
+}) {
   const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
 
-  const handleUpload = async () => {
+  async function handleUpload() {
     setIsUploading(true);
     try {
-      const result = await uploadToDropbox(videoFile, outputPath);
+      const result = await uploadToDropbox({ file: videoFile, folderPath: outputPath });
       toast({
         title: "Video uploaded",
-        description: `Uploaded to ${result.path_display}`,
+        description: `Uploaded to ${result.dropboxPath}`,
       });
-    } catch (err) {
+    } catch (error: any) {
+      console.error(error);
       toast({
         title: "Upload failed",
-        description: "Something went wrong while uploading to Dropbox.",
-        variant: "destructive",
+        description: error.message,
+        variant: "error",
       });
     } finally {
       setIsUploading(false);
     }
-  };
+  }
 
   return (
-    <Button onClick={handleUpload} disabled={isUploading} variant="default">
+    <button
+      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+      onClick={handleUpload}
+      disabled={isUploading}
+      type="button"
+    >
       {isUploading ? "Uploading..." : "Upload to Output Folder"}
-    </Button>
+    </button>
   );
 }
