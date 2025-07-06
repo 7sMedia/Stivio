@@ -1,8 +1,8 @@
 "use client";
 import React, { useState } from "react";
-import ImageUpload from "./components/ImageUpload";
+import ImageUpload from "components/ImageUpload";
 import { CheckCircle } from "lucide-react";
-import PromptTemplatePicker from "./PromptTemplatePicker";
+import PromptTemplatePicker from "components/PromptTemplatePicker";
 
 type UploadedImage = {
   name: string;
