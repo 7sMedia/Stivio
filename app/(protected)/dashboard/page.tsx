@@ -97,7 +97,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full px-4 md:px-8 max-w-7xl mx-auto space-y-8">
+    <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8">
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 18 }}
