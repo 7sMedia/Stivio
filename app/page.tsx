@@ -49,9 +49,7 @@ export default function HomePage() {
   // Redirect if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) {
-        router.replace("/dashboard");
-      }
+      if (data.session) router.replace("/dashboard");
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
       if (session) router.replace("/dashboard");
@@ -81,7 +79,7 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* Glowing animated shape & logo */}
+          {/* Glowing, animated background shape & logo */}
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
               animate={{
