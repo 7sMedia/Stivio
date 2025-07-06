@@ -1,12 +1,12 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 
 type Toast = {
   id: number;
   title: string;
   description?: string;
-  variant?: "success" | "error";
+  variant?: "success" | "error" | "default";
 };
 
 type ToastContextType = {
@@ -19,14 +19,14 @@ const ToastContext = createContext<ToastContextType | undefined>(undefined);
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = (toast: Omit<Toast, "id">) => {
+  const toast = useCallback((toast: Omit<Toast, "id">) => {
     const id = Date.now();
     setToasts((prev) => [...prev, { id, ...toast }]);
 
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 3000);
-  };
+  }, []);
 
   return (
     <ToastContext.Provider value={{ toasts, toast }}>
@@ -35,10 +35,14 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         {toasts.map(({ id, title, description, variant }) => (
           <div
             key={id}
-            className={`rounded-lg border p-4 w-64 text-sm shadow-lg
-              ${variant === "error" ? "bg-red-800/50 text-red-200 border-red-600"
-               : variant === "success" ? "bg-green-800/50 text-green-200 border-green-600"
-               : "bg-zinc-800 text-white border-zinc-700"}`}
+            className={`rounded-lg border p-4 w-64 text-sm shadow-lg transition-all duration-300 ease-out
+              ${
+                variant === "error"
+                  ? "bg-red-800/50 text-red-200 border-red-600"
+                  : variant === "success"
+                  ? "bg-green-800/50 text-green-200 border-green-600"
+                  : "bg-zinc-800 text-white border-zinc-700"
+              }`}
           >
             <p className="font-semibold">{title}</p>
             {description && <p className="text-xs mt-1">{description}</p>}
