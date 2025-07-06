@@ -1,3 +1,5 @@
+// Trigger redeploy: Updated layout July 6
+
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
