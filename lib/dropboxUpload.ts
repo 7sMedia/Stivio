@@ -1,36 +1,30 @@
 // lib/dropboxUpload.ts
-
 import { Dropbox } from "dropbox";
 
 export async function uploadToDropbox({
-  file,
   accessToken,
-  folderPath,
-  modifiedFilename,
+  file,
+  dropboxPath,
 }: {
-  file: File;
   accessToken: string;
-  folderPath: string;
-  modifiedFilename: string;
-}): Promise<{ path: string; name: string }> {
-  const dbx = new Dropbox({ accessToken });
+  file: File;
+  dropboxPath: string;
+}) {
+  const dbx = new Dropbox({ accessToken, fetch });
 
-  const arrayBuffer = await file.arrayBuffer();
-  const dropboxPath = `${folderPath}/${modifiedFilename}`;
+  const fileBuffer = await file.arrayBuffer();
 
   try {
-    const res = await dbx.filesUpload({
-      path: dropboxPath,
-      contents: arrayBuffer,
-      mode: { ".tag": "overwrite" },
+    const response = await dbx.filesUpload({
+      path: `${dropboxPath}/${file.name}`,
+      contents: fileBuffer,
+      mode: { ".tag": "add" }, // dedupes by default
+      autorename: true,
     });
 
-    return {
-      path: res.result.path_display ?? dropboxPath,
-      name: res.result.name,
-    };
-  } catch (err) {
-    console.error("Dropbox upload error:", err);
-    throw err;
+    return response;
+  } catch (error) {
+    console.error("Dropbox upload failed:", error);
+    throw error;
   }
 }
