@@ -1,88 +1,113 @@
-// File: components/DropboxImageUploader.tsx
+'use client';
 
-"use client";
+import React, { useCallback, useState } from 'react';
+import { useDropzone } from 'react-dropzone';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button'; // using Shadcn UI
+import { Trash, Pencil } from 'lucide-react';
 
-import React, { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
-import Image from "next/image";
-import { Button } from "@/components/ui/button"; // Shadcn UI (optional)
-import { Trash, Pencil } from "lucide-react";
-
-interface UploadedImage {
+type UploadedImage = {
+  file: File;
+  preview: string;
   name: string;
-  url: string;
-}
+};
 
-interface Props {
-  existingImages: UploadedImage[];
-  onUpload: (file: File) => void;
-  onDelete: (filename: string) => void;
-  onRename: (oldName: string, newName: string) => void;
-}
-
-export default function DropboxImageUploader({ existingImages, onUpload, onDelete, onRename }: Props) {
-  const [renaming, setRenaming] = useState<string | null>(null);
-  const [newName, setNewName] = useState("");
+export default function DropboxImageUploader() {
+  const [images, setImages] = useState<UploadedImage[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    acceptedFiles.forEach((file) => {
-      if (!existingImages.some(img => img.name === file.name)) {
-        onUpload(file);
-      }
+    setImages(prev => {
+      const existingNames = new Set(prev.map(img => img.name));
+      const newImages = acceptedFiles
+        .filter(file => !existingNames.has(file.name))
+        .filter(file => /\.(jpe?g|png)$/i.test(file.name))
+        .map(file => ({
+          file,
+          preview: URL.createObjectURL(file),
+          name: file.name,
+        }));
+      return [...prev, ...newImages];
     });
-  }, [existingImages, onUpload]);
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/jpeg": [".jpeg", ".jpg"],
-      "image/png": [".png"]
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
     },
-    multiple: true
+    multiple: true,
   });
 
+  const handleDelete = (name: string) => {
+    setImages(prev => prev.filter(img => img.name !== name));
+  };
+
+  const handleRename = (oldName: string, newName: string) => {
+    if (!newName || newName === oldName) return;
+    if (images.some(img => img.name === newName)) return alert('Name already in use.');
+    setImages(prev =>
+      prev.map(img =>
+        img.name === oldName ? { ...img, name: newName } : img
+      )
+    );
+  };
+
   return (
-    <div className="space-y-4">
-      <div {...getRootProps()} className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer ${isDragActive ? 'bg-[#1e1e28]' : 'bg-[#0f0f15]'}`}>
+    <div className="w-full max-w-4xl mx-auto">
+      {/* Dropzone */}
+      <div
+        {...getRootProps()}
+        className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition bg-[#16181f] ${
+          isDragActive ? 'border-[#0EC9DB]' : 'border-[#2A2C33]'
+        }`}
+      >
         <input {...getInputProps()} />
-        <p className="text-white">Drag & drop images here or click to upload</p>
-        <p className="text-sm text-gray-400">Only .jpg, .jpeg, .png files are accepted. Duplicates are ignored.</p>
+        <p className="text-[#b1b2c1]">
+          {isDragActive
+            ? 'Drop the files here...'
+            : 'Drag & drop images here, or click to browse (.jpg, .jpeg, .png)'}
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {existingImages.map(img => (
-          <div key={img.name} className="relative rounded overflow-hidden bg-[#1e1e28] p-2">
-            <Image src={img.url} alt={img.name} width={200} height={150} className="rounded" />
-            <div className="mt-2 text-xs text-white break-all">{img.name}</div>
-
-            <div className="absolute top-1 right-1 flex gap-1">
-              <Button size="icon" variant="ghost" onClick={() => onDelete(img.name)}>
-                <Trash className="w-4 h-4 text-red-500" />
-              </Button>
-              <Button size="icon" variant="ghost" onClick={() => {
-                setRenaming(img.name);
-                setNewName(img.name);
-              }}>
-                <Pencil className="w-4 h-4 text-blue-500" />
-              </Button>
+      {/* Uploaded Images */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-8">
+        {images.map((img, idx) => (
+          <div
+            key={img.name + idx}
+            className="relative rounded-lg overflow-hidden shadow border border-[#2A2C33] bg-[#1e1e28]"
+          >
+            <Image
+              src={img.preview}
+              alt={img.name}
+              width={300}
+              height={200}
+              className="object-cover w-full h-40"
+            />
+            <div className="p-2 text-xs text-[#b1b2c1] truncate">
+              {img.name}
             </div>
 
-            {renaming === img.name && (
-              <div className="absolute inset-0 bg-black/80 flex flex-col justify-center items-center gap-2 p-2">
-                <input
-                  value={newName}
-                  onChange={e => setNewName(e.target.value)}
-                  className="text-sm px-2 py-1 rounded w-full"
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => {
-                    onRename(img.name, newName);
-                    setRenaming(null);
-                  }}>Save</Button>
-                  <Button size="sm" variant="secondary" onClick={() => setRenaming(null)}>Cancel</Button>
-                </div>
-              </div>
-            )}
+            {/* Actions */}
+            <div className="absolute top-2 right-2 flex gap-2">
+              <button
+                onClick={() => {
+                  const newName = prompt('Rename file:', img.name);
+                  if (newName) handleRename(img.name, newName);
+                }}
+                className="bg-[#0EC9DB] text-black p-1 rounded hover:brightness-110"
+                title="Rename"
+              >
+                <Pencil size={14} />
+              </button>
+              <button
+                onClick={() => handleDelete(img.name)}
+                className="bg-red-600 text-white p-1 rounded hover:bg-red-700"
+                title="Delete"
+              >
+                <Trash size={14} />
+              </button>
+            </div>
           </div>
         ))}
       </div>
