@@ -22,10 +22,11 @@ export default function DashboardPage() {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (!user) {
+      const email = user?.email ?? null;
+      if (!email) {
         window.location.href = "/login";
       } else {
-        setUserEmail(user.email);
+        setUserEmail(email);
         setLoading(false);
       }
     };
