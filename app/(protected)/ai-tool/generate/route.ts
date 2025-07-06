@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@/lib/dropbox";
+import { createClient } from "@supabase/supabase-js";
 
 const SEEDANCE_API_KEY = process.env.SEEDANCE_API_KEY!;
 const SEEDANCE_ENDPOINT = "https://api.wavespeed.ai/v1/endpoint";
+
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_KEY!
+);
 
 export async function POST(req: NextRequest) {
   const { userId, dropboxPath, prompt } = await req.json();
@@ -24,9 +30,11 @@ export async function POST(req: NextRequest) {
       "Dropbox-API-Arg": JSON.stringify({ path: dropboxPath }),
     },
   });
+
   if (!imageRes.ok) {
     return NextResponse.json({ error: "Failed to download Dropbox image" }, { status: 400 });
   }
+
   const imageBase64 = Buffer.from(await imageRes.arrayBuffer()).toString("base64");
 
   // Call Seedance AI
@@ -54,6 +62,7 @@ export async function POST(req: NextRequest) {
   if (!videoFileRes.ok) {
     return NextResponse.json({ error: "Failed to download video from Seedance" }, { status: 500 });
   }
+
   const videoBuffer = Buffer.from(await videoFileRes.arrayBuffer());
 
   // Upload video to Dropbox
@@ -77,7 +86,19 @@ export async function POST(req: NextRequest) {
     const err = await uploadRes.text();
     return NextResponse.json({ error: "Failed to upload video to Dropbox", details: err }, { status: 500 });
   }
+
   const uploadResult = await uploadRes.json();
+
+  // Insert record into Supabase
+  const { error: insertError } = await supabaseAdmin.from("generated_videos").insert({
+    user_id: userId,
+    dropbox_path: dropboxUploadPath,
+    prompt,
+  });
+
+  if (insertError) {
+    return NextResponse.json({ error: "Failed to insert video record into Supabase", details: insertError }, { status: 500 });
+  }
 
   return NextResponse.json({
     dropbox_video_path: dropboxUploadPath,
