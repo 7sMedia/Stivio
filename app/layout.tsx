@@ -1,22 +1,30 @@
 "use client";
+import { ReactNode, useState } from "react";
 import "../styles/globals.css";
 import Sidebar from "@components/Sidebar";
 import TopBar from "@components/TopBar";
-import { ReactNode } from "react";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const user = { email: "jay7nyc@hotmail.com" };
-  const handleLogout = async () => {
-    window.location.href = "/logout";
-  };
 
   return (
     <html lang="en">
-      <body className="bg-[#141518] text-white min-h-screen font-sans antialiased">
-        <Sidebar user={user} />
-        <div className="ml-60 min-h-screen flex flex-col">
-          <TopBar user={user} onLogout={handleLogout} />
-          <main className="flex-1 p-8">{children}</main>
+      <body className="flex bg-[#141518] text-white min-h-screen">
+        {/* Sidebar Drawer */}
+        <Sidebar
+          user={user}
+          open={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        <div className="flex-1 flex flex-col">
+          <TopBar
+            user={user}
+            onLogout={() => (window.location.href = "/logout")}
+            onMenuToggle={() => setSidebarOpen(o => !o)}
+          />
+          <main className="flex-1 p-4 sm:p-8 overflow-auto">{children}</main>
         </div>
       </body>
     </html>
