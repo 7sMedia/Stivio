@@ -8,53 +8,57 @@ import ImageUpload from "@/components/ImageUpload";
 
 export default function AIToolPage() {
   const { toast } = useToast();
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [inputFolder, setInputFolder] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [inputFolderPath, setInputFolderPath] = useState<string | null>(null);
 
   useEffect(() => {
-    const loadUser = async () => {
+    const getUserFolders = async () => {
       const {
         data: { user },
-        error,
       } = await supabase.auth.getUser();
 
-      if (error || !user) {
+      if (!user) {
+        toast({
+          title: "Not signed in",
+          description: "Redirecting to login...",
+          variant: "error",
+        });
         window.location.href = "/login";
         return;
       }
 
-      const token = user?.user_metadata?.dropboxAccessToken ?? null;
-      const folder = user?.user_metadata?.dropboxInputFolder ?? "/Beta7/Images";
+      const { data, error } = await supabase
+        .from("user_settings")
+        .select("input_folder")
+        .eq("user_id", user.id)
+        .single();
 
-      if (!token) {
+      if (error || !data?.input_folder) {
         toast({
-          title: "Dropbox not connected",
-          description: "Please connect Dropbox in your settings.",
-          variant: "destructive",
+          title: "Folder not found",
+          description: "Please select an input folder.",
+          variant: "error",
         });
         return;
       }
 
-      setAccessToken(token);
-      setInputFolder(folder);
-      setLoading(false);
+      setInputFolderPath(data.input_folder);
     };
 
-    loadUser();
+    getUserFolders();
   }, [toast]);
 
-  if (loading || !accessToken || !inputFolder) {
-    return <p className="text-center mt-20 text-zinc-400">Loading Dropbox settings...</p>;
+  if (!inputFolderPath) {
+    return (
+      <div className="p-6 text-center text-zinc-400">
+        Loading input folder...
+      </div>
+    );
   }
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">AI Image Manager</h1>
-      <p className="text-sm text-zinc-400 mb-6">
-        Upload, rename, or delete images before generating your video.
-      </p>
-      <ImageUpload accessToken={accessToken} inputFolder={inputFolder} />
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-4 text-white">Upload Images</h1>
+      <ImageUpload inputFolderPath={inputFolderPath} />
     </div>
   );
 }
