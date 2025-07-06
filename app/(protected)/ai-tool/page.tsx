@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { generateSeedanceVideo } from "./actions/seedance";
-import ImageUpload from "./components/ImageUpload";
-import PromptInput from "./components/PromptInput";
-import VideoResult from "./components/VideoResult";
+import ImageUpload from "@components/ai-tool/ImageUpload";
+import PromptInput from "@components/ai-tool/PromptInput";
+import VideoResult from "@components/ai-tool/VideoResult";
 import NavBar from "components/NavBar";
 import ProgressBar from "components/ProgressBar";
 import { supabase } from "lib/supabaseClient";
