@@ -16,10 +16,14 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["app/components/*"],
-      "@lib/*":        ["lib/*"],
-      "@ui/*":         ["components/ui/*"],
-      "@/*":           ["./*"]
+      "@components/*": [
+        "app/components/*",
+        "app/ai-tool/components/*",
+        "Stivio/components/*"
+      ],
+      "@lib/*": ["lib/*"],
+      "@ui/*": ["components/ui/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -29,7 +33,9 @@
     ".next/types/**/*.ts",
     "app",
     "components",
-    "lib"
+    "lib",
+    "app/ai-tool/components",
+    "Stivio/components"
   ],
   "exclude": [
     "node_modules"
