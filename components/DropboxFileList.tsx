@@ -1,5 +1,3 @@
-// components/DropboxFileList.tsx
-
 "use client";
 import React, { useEffect, useState } from "react";
 
@@ -8,7 +6,10 @@ type DropboxFileListProps = {
   onProcessFile: (file: any) => void;
 };
 
-export default function DropboxFileList({ userId, onProcessFile }: DropboxFileListProps) {
+export default function DropboxFileList({
+  userId,
+  onProcessFile,
+}: DropboxFileListProps) {
   const [files, setFiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,28 +30,31 @@ export default function DropboxFileList({ userId, onProcessFile }: DropboxFileLi
     if (userId) fetchFiles();
   }, [userId]);
 
-  if (loading) return <div>Loading Dropbox files...</div>;
-  if (error) return <div className="text-red-500">{error}</div>;
-  if (!files.length) return <div>No Dropbox files found.</div>;
+  if (loading)
+    return <div className="text-gray-600">Loading Dropbox files...</div>;
+  if (error) return <div className="text-red-600">{error}</div>;
+  if (!files.length)
+    return <div className="text-gray-600">No Dropbox files found.</div>;
 
   return (
-    <div className="flex flex-wrap gap-4 justify-start">
+    <div className="flex flex-wrap gap-4">
       {files
-        .filter(file => file[".tag"] === "file")
-        .map(file => (
+        .filter((file) => file[".tag"] === "file")
+        .map((file) => (
           <div
             key={file.id}
-            className="bg-gray-900 rounded-lg shadow flex flex-col items-center p-4 w-48 min-w-0"
+            className="bg-white border border-gray-200 rounded-lg shadow flex flex-col items-center p-4 w-48"
           >
-            {/* Future: Show image if file is image type and you support previews */}
-            <div className="mb-2 w-full flex items-center justify-center h-6">
-              <span className="text-indigo-300 text-xs truncate max-w-[170px]">{file.name}</span>
+            <div className="mb-3 w-full flex items-center justify-center h-6">
+              <span className="text-gray-900 font-medium text-center truncate">
+                {file.name}
+              </span>
             </div>
             <button
-              className="mt-2 px-4 py-1 bg-sky-600 text-white rounded text-xs font-semibold hover:bg-sky-700 transition"
+              className="mt-2 px-4 py-1 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 transition"
               onClick={() => onProcessFile(file)}
             >
-              Import/Process
+              Import / Process
             </button>
           </div>
         ))}
