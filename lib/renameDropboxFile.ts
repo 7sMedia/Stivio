@@ -1,22 +1,23 @@
-import { Dropbox } from "dropbox";
-
 export async function renameDropboxFile(
   accessToken: string,
   fromPath: string,
   toPath: string
-) {
-  const dbx = new Dropbox({ accessToken });
-
-  try {
-    const res = await dbx.filesMoveV2({
+): Promise<void> {
+  const response = await fetch("https://api.dropboxapi.com/2/files/move_v2", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
       from_path: fromPath,
       to_path: toPath,
       autorename: false,
-    });
+    }),
+  });
 
-    return res.result;
-  } catch (error) {
-    console.error("Error renaming Dropbox file:", error);
-    throw error;
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw errorData;
   }
 }
