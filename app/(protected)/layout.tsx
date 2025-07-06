@@ -26,6 +26,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     return () => listener.subscription.unsubscribe();
   }, [router]);
 
+  useEffect(() => {
+    setSidebarOpen(false); // Auto-close sidebar on route change
+  }, [pathname]);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
   };
@@ -34,12 +38,15 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen flex bg-[#101217] text-[#E6E8EB] relative">
-      {/* Mobile Sidebar Toggle */}
+      {/* Mobile Hamburger Button */}
       <button
-        className="md:hidden absolute top-4 left-4 z-50 text-white"
+        className="md:hidden absolute top-4 left-4 z-50 text-white p-2"
         onClick={() => setSidebarOpen(prev => !prev)}
+        aria-label="Toggle Sidebar"
       >
-        ☰
+        <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
       </button>
 
       {/* Sidebar */}
@@ -49,7 +56,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         }`}
       >
         <div className="p-6 space-y-4">
-          <h2 className="text-xl font-bold">Beta7</h2>
+          <h2 className="text-xl font-bold text-white">Beta7</h2>
           <nav className="space-y-2 text-sm">
             <a
               href="/dashboard"
@@ -87,11 +94,11 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
         <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
-          <h1 className="text-lg font-semibold">Beta7 Dashboard</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-semibold text-white">Beta7 Dashboard</h1>
+          </div>
         </header>
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">
-          {children}
-        </main>
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 w-full max-w-7xl mx-auto">{children}</main>
       </div>
     </div>
   );
