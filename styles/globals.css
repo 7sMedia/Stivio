@@ -16,14 +16,15 @@ html {
 /* Viewport stretch and overflow fix */
 html, body {
   height: 100%;
-  min-height: 100dvh;                /* Modern iOS/Android dynamic viewport */
-  min-height: -webkit-fill-available; /* iOS Safari fallback */
+  min-height: 100dvh;
+  min-height: -webkit-fill-available;
   width: 100vw;
   max-width: 100vw;
   margin: 0;
   padding: 0;
   overflow-x: hidden;
-  background: #000;                   /* Fallback bg; override with Tailwind classes */
+  background: #141518; /* OpusClips dark bg */
+  color: #e7e7ec;      /* Modern SaaS off-white text */
 }
 
 /* Mobile tap highlight removal + safe-area padding */
@@ -32,4 +33,28 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   /* Optional: also for top safe-area, if using a fixed nav at top */
   /* padding-top: env(safe-area-inset-top); */
+}
+
+/* Slick dark mode scrollbars (Webkit/Chromium browsers) */
+::-webkit-scrollbar {
+  width: 10px;
+  background: #23242d;
+}
+::-webkit-scrollbar-thumb {
+  background: #35364a;
+  border-radius: 8px;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #35364a #23242d;
+}
+
+/* Card style for dashboard content blocks */
+.card {
+  background: #181a20;
+  border: 1px solid #23242d;
+  border-radius: 1rem;
+  padding: 2rem;
 }
