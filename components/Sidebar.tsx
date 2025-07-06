@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase"; // Adjust path as needed
+import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/use-toast";
 
 export default function Sidebar() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -20,7 +21,13 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = "/"; // Or use next/router push if needed
+    toast({
+      title: "Logged out",
+      description: "You have been signed out successfully.",
+    });
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1000);
   };
 
   return (
