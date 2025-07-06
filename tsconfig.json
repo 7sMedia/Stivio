@@ -16,10 +16,10 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-      "@components/*": ["components/*"],
-      "@lib/*": ["lib/*"],
-      "@ui/*": ["components/ui/*"],
-      "@/*": ["./*"]
+      "@components/*": ["app/components/*"],
+      "@lib/*":        ["lib/*"],
+      "@ui/*":         ["components/ui/*"],
+      "@/*":           ["./*"]
     }
   },
   "include": [
