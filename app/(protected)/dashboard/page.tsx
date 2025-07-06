@@ -97,22 +97,24 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-8 max-w-[1600px] mx-auto space-y-8">
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+    <div className="w-full px-4 md:px-8 max-w-7xl mx-auto space-y-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Left Side: Welcome + Videos */}
         <motion.div
           initial={{ opacity: 0, scale: 0.97, y: 18 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="card flex flex-col justify-center items-start min-h-[340px] relative overflow-hidden"
+          className="card flex flex-col justify-center items-start min-h-[340px] relative overflow-hidden lg:col-span-2"
         >
           <div className="absolute top-0 right-0 left-0 h-24 bg-gradient-to-br from-[#4339ce22] to-transparent pointer-events-none" />
           <div className="flex items-center gap-4 mb-6 z-10">
             <UserIcon size={44} className="text-[#c3bfff]" />
             <div>
-              <h1 className="text-2xl md:text-3xl font-bold mb-1 tracking-tight text-white">Welcome back!</h1>
+              <h1 className="text-2xl md:text-3xl font-semibold mb-1 tracking-tight text-white">Welcome back!</h1>
               <div className="text-[#b1b2c1] font-medium break-all">{user.email}</div>
             </div>
           </div>
+
           <div className="flex flex-col md:flex-row gap-3 mb-6 z-10">
             {dropboxStatus?.connected ? (
               <span className="flex flex-wrap items-center text-green-400 font-semibold bg-[#232e23] px-3 py-1.5 rounded">
@@ -155,7 +157,8 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        <div className="card flex flex-col items-center">
+        {/* Right Side: Folder Picker */}
+        <div className="card flex flex-col items-center lg:col-span-1">
           <h2 className="text-xl font-bold mb-4 text-white text-center">Dropbox Folder Picker</h2>
           <DropboxFolderPicker
             userId={user.id}
