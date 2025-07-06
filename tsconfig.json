@@ -16,23 +16,11 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
-<<<<<<< HEAD
       "@components/*": ["components/*"],
       "@ui/*":         ["components/ui/*"],
       "@lib/*":        ["lib/*"],
       "styles/*":      ["styles/*"],
       "@/*":           ["./*"]
-=======
-      "styles/*": ["styles/*"],
-      "@components/*": [
-        "app/components/*",
-        "components/*",
-        "app/(protected)/ai-tool/components/*"
-      ],
-      "@lib/*": ["lib/*"],
-      "@ui/*": ["components/ui/*"],
-      "@/*": ["./*"]
->>>>>>> ba9877b5039e9b173cbc9ea0880150628b34b8b1
     }
   },
   "include": [
@@ -47,4 +35,3 @@
   ],
   "exclude": ["node_modules"]
 }
-
