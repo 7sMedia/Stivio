@@ -18,8 +18,8 @@
     "paths": {
       "styles/*": ["styles/*"],
       "@components/*": [
-        "components/*",
         "app/components/*",
+        "components/*",
         "app/(protected)/ai-tool/components/*"
       ],
       "@lib/*": ["lib/*"],
