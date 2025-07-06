@@ -1,5 +1,3 @@
-// Trigger redeploy: Updated layout July 6
-
 "use client";
 
 import React, { ReactNode, useEffect, useState } from "react";
@@ -89,8 +87,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col ml-0 md:ml-64">
-        <header className="flex items-center justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
-          <h1 className="text-lg font-semibold">Beta7 Dashboard v2</h1>
+        <header className="flex flex-wrap items-center gap-4 justify-between px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
+          <h1 className="text-lg font-semibold w-full md:w-auto text-center md:text-left">
+            Beta7 Dashboard
+          </h1>
         </header>
         <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6 w-full max-w-[1600px] mx-auto">
           {children}
@@ -99,4 +99,3 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     </div>
   );
 }
- 
