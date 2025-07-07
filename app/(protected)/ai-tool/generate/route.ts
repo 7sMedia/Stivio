@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@/lib/dropbox";
 import { createClient } from "@supabase/supabase-js";
-import { v4 as uuidv4 } from "uuid";
 import {
   checkRateLimit,
   canStartNewTask,
   markTaskStart,
   markTaskEnd,
 } from "@/lib/seedanceLimiter";
+import { generateOutputPath } from "@/lib/storagePaths";
 
 const SEEDANCE_API_KEY = process.env.SEEDANCE_API_KEY!;
 const SEEDANCE_ENDPOINT = "https://api.wavespeed.ai/v1/endpoint";
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const imageBase64 = Buffer.from(await imageRes.arrayBuffer()).toString("base64");
 
-    // Step 2: Call Seedance AI (timed)
+    // Step 2: Call Seedance API with timing
     const seedanceStart = Date.now();
     const seedanceRes = await fetch(SEEDANCE_ENDPOINT, {
       method: "POST",
@@ -86,9 +86,8 @@ export async function POST(req: NextRequest) {
 
     const videoBuffer = Buffer.from(await videoFileRes.arrayBuffer());
 
-    // Step 4: Upload to Dropbox using UUID
-    const uniqueId = uuidv4();
-    const dropboxUploadPath = `/Apps/Beta7/Outputs/seedance_video_${uniqueId}.mp4`;
+    // Step 4: Upload to Dropbox using generateOutputPath
+    const { fullPath: dropboxUploadPath, filename, folder } = generateOutputPath();
 
     const uploadRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
       method: "POST",
@@ -102,7 +101,7 @@ export async function POST(req: NextRequest) {
           strict_conflict: false,
         }),
         "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="seedance_video_${uniqueId}.mp4"`,
+        "Content-Disposition": `attachment; filename="${filename}"`,
       },
       body: videoBuffer,
     });
@@ -121,8 +120,10 @@ export async function POST(req: NextRequest) {
     const { error: insertError } = await supabaseAdmin.from("generated_videos").insert({
       user_id: userId,
       dropbox_path: dropboxUploadPath,
+      filename,
+      output_folder: folder,
       prompt,
-      uuid: uniqueId,
+      uuid: filename.replace(".mp4", "").replace("seedance_video_", ""),
       duration_ms: seedanceElapsed,
     });
 
