@@ -1,4 +1,3 @@
-// app/api/dropbox/callback/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -43,7 +42,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Exchange code for tokens
+    // 1. Exchange Dropbox code for access + refresh tokens
     const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -79,10 +78,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // --- GET Dropbox Account Info (account_id and email) ---
+    // 2. Retrieve Dropbox user profile (account_id, email)
     const accountRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
       method: "POST",
-      headers: { "Authorization": `Bearer ${data.access_token}` }
+      headers: { Authorization: `Bearer ${data.access_token}` }
     });
 
     let accountData;
@@ -102,13 +101,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Save token (and account_id/email) to Supabase
+    // 3. Save to Supabase
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-    // Remove any previous tokens for this user
     await supabase.from("dropbox_tokens").delete().eq("user_id", state);
 
-    // Save the new token and account_id/email
     const { error: dbError } = await supabase.from("dropbox_tokens").insert([{
       user_id: state,
       access_token: data.access_token,
@@ -127,7 +123,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Close the popup and notify parent (if opened in a popup)
+    // 4. Close popup window and notify frontend
     return new Response(`
       <html>
         <body style="background: #181b24; color: #fff; font-family: sans-serif; text-align: center; padding-top: 4em;">
