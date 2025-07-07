@@ -12,7 +12,7 @@ import {
   UploadCloud as UploadCloudIcon,
   Image as ImageIcon,
 } from "lucide-react";
-import { supabase } from "lib/supabaseClient";
+import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
@@ -116,13 +116,13 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Bring{" "}
+            Bring{' '}
             <span className="bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">
               Still Images
-            </span>{" "}
+            </span>{' '}
             to Life
             <br />
-            with{" "}
+            with{' '}
             <span className="bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">
               AI Video Creation
             </span>
@@ -135,12 +135,8 @@ export default function HomePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
-              Get Started Free
-            </Button>
-            <Button className="text-lg px-6 py-3 border border-text-secondary" onClick={() => setPage("login")}>
-              Login
-            </Button>
+            <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>Get Started Free</Button>
+            <Button className="text-lg px-6 py-3 border border-[var(--color-text-secondary)]" onClick={() => setPage("login")}>Login</Button>
           </motion.div>
 
           {/* Hero Video */}
@@ -150,7 +146,7 @@ export default function HomePage() {
             transition={{ delay: 1.2, duration: 1 }}
             className="mt-14 flex justify-center"
           >
-            <div className="rounded-2xl shadow-md bg-surface-primary border-4 border-accent p-2">
+            <div className="rounded-2xl shadow-md bg-[var(--color-surface-primary)] border-4 border-[var(--color-accent)] p-2">
               <video
                 className="rounded-xl w-[350px] md:w-[560px] max-w-full"
                 src="/hero-demo.mp4"
@@ -164,17 +160,17 @@ export default function HomePage() {
 
           {/* Feature Bubbles */}
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <UploadCloudIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">Upload images</span>
+            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
+              <UploadCloudIcon className="text-[var(--color-accent)]" size={32} />
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">Upload images</span>
             </Card>
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <ImageIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">AI animates</span>
+            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
+              <ImageIcon className="text-[var(--color-accent)]" size={32} />
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">AI animates</span>
             </Card>
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <UserIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">Share anywhere</span>
+            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
+              <UserIcon className="text-[var(--color-accent)]" size={32} />
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">Share anywhere</span>
             </Card>
           </div>
         </motion.div>
@@ -192,27 +188,27 @@ export default function HomePage() {
       >
         <Card>
           <div className="flex flex-col items-center gap-6">
-            <ImageIcon size={32} className="text-text-secondary" />
+            <ImageIcon size={32} className="text-[var(--color-text-secondary)]" />
             <h2 className="text-3xl font-bold mb-2">{page === "signup" ? "Sign Up" : "Login"}</h2>
 
             <div className="w-full flex flex-col gap-4">
-              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
-                <UserIcon size={20} className="text-text-muted" />
+              <div className="flex items-center gap-2 bg-[var(--color-surface-secondary)] rounded-lg px-4 py-2">
+                <UserIcon size={20} className="text-[var(--color-text-muted)]" />
                 <Input
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-transparent placeholder:text-text-muted"
+                  className="bg-transparent placeholder:text-[var(--color-text-muted)]"
                 />
               </div>
-              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
-                <LockIcon size={20} className="text-text-muted" />
+              <div className="flex items-center gap-2 bg-[var(--color-surface-secondary)] rounded-lg px-4 py-2">
+                <LockIcon size={20} className="text-[var(--color-text-muted)]" />
                 <Input
                   placeholder="Password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-transparent placeholder:text-text-muted"
+                  className="bg-transparent placeholder:text-[var(--color-text-muted)]"
                 />
               </div>
             </div>
@@ -224,7 +220,7 @@ export default function HomePage() {
             </Button>
 
             <Button
-              className="w-full py-3 text-text-secondary"
+              className="w-full py-3 text-[var(--color-text-secondary)]"
               onClick={() => setPage(page === "signup" ? "login" : "signup")}
             >
               {page === "signup"
@@ -232,7 +228,7 @@ export default function HomePage() {
                 : "New here? Sign Up"}
             </Button>
 
-            <Button className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
+            <Button className="w-full py-3 text-[var(--color-accent)]" onClick={() => setPage("landing")}>
               ← Back to Home
             </Button>
           </div>
