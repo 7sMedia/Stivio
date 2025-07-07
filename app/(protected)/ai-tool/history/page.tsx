@@ -1,5 +1,4 @@
-// /app/(protected)/ai-tool/history/page.tsx
-
+// app/(protected)/ai-tool/history/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -52,29 +51,29 @@ export default function HistoryPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-10 space-y-6">
-      <h1 className="text-3xl font-bold text-white">Video History</h1>
+      <h1 className="text-3xl font-bold text-text-primary">Video History</h1>
 
       {videos === null ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-[250px] w-full rounded-xl" />
+            <Skeleton key={i} className="h-[250px] w-full rounded-lg" />
           ))}
         </div>
       ) : videos.length === 0 ? (
-        <p className="text-gray-400">No videos generated yet.</p>
+        <p className="text-text-secondary">No videos generated yet.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {videos.map((video) => (
-            <Card key={video.id} className="bg-[#111827]">
+            <Card key={video.id} className="rounded-lg">
               <CardContent className="p-4 space-y-3">
                 <video
                   controls
                   src={`https://www.dropbox.com/home${video.dropbox_path}?raw=1`}
                   className="rounded-md w-full max-h-48 object-cover"
                 />
-                <p className="text-sm text-zinc-400">Prompt:</p>
-                <p className="text-white text-sm line-clamp-2">{video.prompt}</p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-text-secondary">Prompt:</p>
+                <p className="text-text-primary text-sm line-clamp-2">{video.prompt}</p>
+                <p className="text-sm text-text-secondary">
                   Created: {new Date(video.created_at).toLocaleString()}
                 </p>
                 <a
