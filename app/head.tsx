@@ -7,7 +7,7 @@ export default function Head() {
       <meta name="description" content="AI video creation from still images" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-      {/* Dropbox Chooser SDK — this will now appear in every page’s <head> */}
+      {/* Dropbox Chooser SDK */}
       <script
         id="dropbox-chooser"
         src="https://www.dropbox.com/static/api/2/dropins.js"
