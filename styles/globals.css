@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* 1. Define your light-theme defaults under :root */
 :root {
   --color-bg: #f9fafb;
@@ -20,25 +24,54 @@ html.dark {
   --color-accent: #00d8ff;
 }
 
-/* 3. Consume these variables throughout: */
-html, body {
-  background: var(--color-bg);
+/* 3. Consume these variables throughout */
+html, 
+body {
+  background-color: var(--color-bg);
   color: var(--color-text-primary);
 }
 
+/* Form elements */
 input,
 textarea,
 select,
 button {
-  background: var(--color-surface-primary);
+  background-color: var(--color-surface-primary);
   color: var(--color-text-primary);
-  /* … */
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  outline: none;
+  transition: box-shadow 0.2s ease-in-out;
 }
 
+input:focus,
+textarea:focus,
+select:focus,
+button:focus {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Card component fallback styles */
 .card {
-  background: var(--color-surface-primary);
+  background-color: var(--color-surface-primary);
   border: 1px solid var(--color-surface-secondary);
-  /* … */
+  border-radius: 0.5rem;
+  padding: 1.5rem;
 }
 
-/* (Keep the rest of your utility styles as-is) */
+/* Scrollbars (Webkit/Chromium) */
+::-webkit-scrollbar {
+  width: 10px;
+  background: var(--color-surface-secondary);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-primary);
+  border-radius: 8px;
+}
+
+/* Scrollbars (Firefox) */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-surface-primary) var(--color-surface-secondary);
+}
