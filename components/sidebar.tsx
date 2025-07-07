@@ -4,23 +4,22 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { navItems } from "@/app/src/config/nav";
 import { Menu } from "lucide-react";
 
 export default function Sidebar() {
   const { toast } = useToast();
+  const router = useRouter();
+  const path = usePathname() || "";
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const path = usePathname() || "";
 
   useEffect(() => {
     const fetchUser = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
-
       const email = user?.email ?? null;
       if (!email) {
         window.location.href = "/login";
@@ -28,7 +27,6 @@ export default function Sidebar() {
         setUserEmail(email);
       }
     };
-
     fetchUser();
   }, []);
 
@@ -53,11 +51,11 @@ export default function Sidebar() {
           return (
             <Button
               key={item.href}
-              asChild
               variant={active ? "secondary" : "ghost"}
               className="w-full justify-start"
+              onClick={() => router.push(item.href)}
             >
-              <Link href={item.href}>{item.title}</Link>
+              {item.title}
             </Button>
           );
         })}
