@@ -1,9 +1,18 @@
+// app/(protected)/dashboard/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Upload } from "lucide-react";
+import {
+  UploadCloud,
+  Grid,
+  BarChart2,
+  Users,
+  Folder,
+  Calendar,
+  HelpCircle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -13,9 +22,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [outputFolder, setOutputFolder] = useState<string | null>(null);
-  const [uploadedImages, setUploadedImages] = useState<File[]>([]);
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (!data.session) {
@@ -26,70 +33,113 @@ export default function DashboardPage() {
     });
   }, [router]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files).filter((file) => {
-      const ext = file.name.split(".").pop()?.toLowerCase();
-      const isImage = ["jpg", "jpeg", "png"].includes(ext ?? "");
-      const notDuplicate = !uploadedImages.some(
-        (f) => f.name === file.name && f.type === file.type
-      );
-      return isImage && notDuplicate;
-    });
-    setUploadedImages((prev) => [...prev, ...files]);
-  };
-
-  const removeImage = (filename: string) => {
-    setUploadedImages((prev) => prev.filter((f) => f.name !== filename));
-  };
-
   if (loading) {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
 
   return (
-    <main className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-text-primary">Dashboard</h1>
+    <div className="space-y-8 p-6">
+      {/* 1. Top action bar */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex-1 min-w-[200px]">
+          <Input
+            placeholder="Drop a video link or file here"
+            className="w-full bg-surface-secondary"
+          />
+        </div>
+        <div className="flex gap-3">
+          <Button variant="secondary" icon={<UploadCloud />}>
+            Upload (Dropbox)
+          </Button>
+        </div>
+      </div>
 
+      {/* 2. Quick-access tool icons */}
+      <div className="flex flex-wrap gap-4">
+        {[
+          { icon: <Grid />, label: "Long to shorts" },
+          { icon: <BarChart2 />, label: "AI Captions" },
+          { icon: <Grid />, label: "Video editor" },
+          { icon: <Users />, label: "Enhance speech" },
+          { icon: <Folder />, label: "AI Reframe" },
+          { icon: <Calendar />, label: "AI B-Roll" },
+          { icon: <HelpCircle />, label: "AI hook" },
+        ].map((tool) => (
+          <Card
+            key={tool.label}
+            className="flex items-center gap-2 bg-surface-primary p-4 cursor-pointer hover:border-accent border border-surface-secondary transition"
+          >
+            <div className="text-accent">{tool.icon}</div>
+            <span className="text-text-primary font-medium">
+              {tool.label}
+            </span>
+          </Card>
+        ))}
+      </div>
+
+      {/* 3. Projects grid */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-text-primary">All Projects</h2>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm">
+              Saved
+            </Button>
+            <Button variant="ghost" size="sm">
+              Favorites
+            </Button>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card
+              key={i}
+              className="h-32 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
+            >
+              <div className="flex h-full items-center justify-center text-text-secondary">
+                Project {i + 1}
+              </div>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* 4. Dropbox & Upload panels */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        {/* Dropbox Folder Setup */}
         <Card className="bg-surface-primary">
-          <h2 className="text-xl font-semibold mb-4 text-text-primary">
+          <h3 className="text-xl font-semibold mb-4 text-text-primary">
             Dropbox Folder Setup
-          </h2>
+          </h3>
           <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="block text-sm text-text-secondary">
-                Input Folder
-              </label>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {/* open Dropbox chooser */}}
-              >
-                {inputFolder ?? "Select Input Folder"}
-              </Button>
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm text-text-secondary">
-                Output Folder
-              </label>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => {/* open Dropbox chooser */}}
-              >
-                {outputFolder ?? "Select Output Folder"}
-              </Button>
-            </div>
+            <label className="block text-sm text-text-secondary">
+              Input Folder
+            </label>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {}}
+            >
+              {inputFolder ?? "Select Input Folder"}
+            </Button>
+          </div>
+          <div className="space-y-4">
+            <label className="block text-sm text-text-secondary">
+              Output Folder
+            </label>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {}}
+            >
+              {outputFolder ?? "Select Output Folder"}
+            </Button>
           </div>
         </Card>
 
-        {/* Image Upload */}
         <Card className="bg-surface-primary">
-          <h2 className="text-xl font-semibold mb-4 text-text-primary">
+          <h3 className="text-xl font-semibold mb-4 text-text-primary">
             Upload Images
-          </h2>
+          </h3>
           <label
             htmlFor="upload"
             className="
@@ -100,7 +150,7 @@ export default function DashboardPage() {
               text-text-secondary
             "
           >
-            <Upload className="w-6 h-6 text-accent" />
+            <UploadCloud className="w-6 h-6 text-accent" />
             <span>Drag &amp; drop or click to upload .jpg, .jpeg, .png</span>
           </label>
           <Input
@@ -109,36 +159,10 @@ export default function DashboardPage() {
             multiple
             accept=".jpg,.jpeg,.png"
             className="hidden"
-            onChange={handleImageUpload}
+            onChange={() => {}}
           />
-
-          {uploadedImages.length > 0 && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
-              {uploadedImages.map((file) => (
-                <div
-                  key={file.name}
-                  className="relative group border border-surface-secondary rounded-lg overflow-hidden"
-                >
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="object-cover w-full h-32"
-                  />
-                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => removeImage(file.name)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
         </Card>
       </div>
-    </main>
+    </div>
   );
 }
