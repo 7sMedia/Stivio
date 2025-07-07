@@ -49,13 +49,11 @@ export default function DashboardPage() {
       } else {
         const uid = data.session.user.id;
         setUserId(uid);
-
         const { data: row } = await supabase
           .from("dropbox_tokens")
           .select("access_token")
           .eq("user_id", uid)
           .maybeSingle();
-
         if (row?.access_token) {
           setToken(row.access_token);
         }
@@ -185,7 +183,7 @@ export default function DashboardPage() {
           {token ? "Dropbox Connected" : "Connect Your Dropbox"}
         </h2>
         <Button
-          variant={token ? "secondary" : "primary"}
+          variant={token ? "secondary" : "default"}
           className="w-full max-w-xs flex items-center justify-center gap-2"
           onClick={connectDropbox}
         >
