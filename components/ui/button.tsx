@@ -1,19 +1,29 @@
 import React from 'react';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'outline' | 'ghost';
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  size?: 'sm' | 'md' | 'lg';
   className?: string;
 };
 
 export function Button({
   children,
   variant = 'default',
+  size = 'md',
   className = '',
   ...props
 }: ButtonProps) {
-  const baseStyles =
-    'px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent';
+  // Size mappings
+  const sizeStyles = {
+    sm: 'px-2 py-1 text-sm',
+    md: 'px-4 py-2 text-base',
+    lg: 'px-6 py-3 text-lg',
+  };
 
+  // Base styling
+  const baseStyles = `rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-accent ${sizeStyles[size]}`;
+
+  // Variant styling
   let variantStyles = '';
   switch (variant) {
     case 'outline':
@@ -21,6 +31,9 @@ export function Button({
       break;
     case 'ghost':
       variantStyles = 'bg-transparent text-text-secondary hover:bg-surface-primary';
+      break;
+    case 'destructive':
+      variantStyles = 'bg-red-600 text-text-primary hover:bg-red-700';
       break;
     default:
       variantStyles = 'bg-accent text-bg-dark';
