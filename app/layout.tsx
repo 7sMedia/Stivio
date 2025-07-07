@@ -4,7 +4,7 @@ import { ToastProvider } from "@/components/ui/use-toast";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className="antialiased overflow-x-hidden">
+    <html lang="en" className="antialiased overflow-x-hidden dark">
       <head>
         <title>Beta7</title>
         <meta name="description" content="AI video creation from still images" />
