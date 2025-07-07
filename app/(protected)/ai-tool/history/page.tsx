@@ -1,3 +1,5 @@
+// /app/(protected)/ai-tool/history/page.tsx
+
 "use client";
 
 import { useEffect, useState } from "react";
@@ -32,16 +34,16 @@ export default function HistoryPage() {
 
       setUserId(id);
 
-      const { data, error } = await supabase
-        .from("generated_videos")
-        .select("id, prompt, uuid, filename, dropbox_path, created_at")
-        .eq("user_id", id)
-        .order("created_at", { ascending: false });
-
-      if (error) {
-        console.error("Failed to fetch videos:", error);
-      } else {
-        setVideos(data || []);
+      try {
+        const res = await fetch(`/api/history?userId=${id}`);
+        const json = await res.json();
+        if (res.ok) {
+          setVideos(json.data || []);
+        } else {
+          console.error("API error:", json.error);
+        }
+      } catch (err) {
+        console.error("Fetch failed:", err);
       }
     };
 
@@ -92,4 +94,3 @@ export default function HistoryPage() {
     </div>
   );
 }
- 
