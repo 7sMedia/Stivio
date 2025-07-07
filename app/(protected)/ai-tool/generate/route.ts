@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@/lib/dropbox";
 import { createClient } from "@supabase/supabase-js";
+import { v4 as uuidv4 } from "uuid";
 
 const SEEDANCE_API_KEY = process.env.SEEDANCE_API_KEY!;
 const SEEDANCE_ENDPOINT = "https://api.wavespeed.ai/v1/endpoint";
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Dropbox not connected" }, { status: 401 });
   }
 
-  // Step 1: Download the image from Dropbox
+  // Step 1: Download image from Dropbox
   const imageRes = await fetch("https://content.dropboxapi.com/2/files/download", {
     method: "POST",
     headers: {
@@ -37,7 +38,8 @@ export async function POST(req: NextRequest) {
 
   const imageBase64 = Buffer.from(await imageRes.arrayBuffer()).toString("base64");
 
-  // Step 2: Call Seedance AI
+  // Step 2: Call Seedance AI (with timing)
+  const seedanceStart = Date.now();
   const seedanceRes = await fetch(SEEDANCE_ENDPOINT, {
     method: "POST",
     headers: {
@@ -46,6 +48,8 @@ export async function POST(req: NextRequest) {
     },
     body: JSON.stringify({ image: imageBase64, prompt }),
   });
+  const seedanceElapsed = Date.now() - seedanceStart;
+  console.log(`[Seedance] Generation took ${seedanceElapsed}ms`);
 
   if (!seedanceRes.ok) {
     const err = await seedanceRes.text();
@@ -57,7 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "No video URL in Seedance response" }, { status: 500 });
   }
 
-  // Step 3: Download video from Seedance
+  // Step 3: Download video
   const videoFileRes = await fetch(seedanceResult.video_url);
   if (!videoFileRes.ok) {
     return NextResponse.json({ error: "Failed to download video from Seedance" }, { status: 500 });
@@ -65,8 +69,9 @@ export async function POST(req: NextRequest) {
 
   const videoBuffer = Buffer.from(await videoFileRes.arrayBuffer());
 
-  // Step 4: Upload video to Dropbox
-  const dropboxUploadPath = `/Apps/Beta7/Outputs/seedance_video_${Date.now()}.mp4`;
+  // Step 4: Upload to Dropbox using UUID
+  const uniqueId = uuidv4();
+  const dropboxUploadPath = `/Apps/Beta7/Outputs/seedance_video_${uniqueId}.mp4`;
 
   const uploadRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
     method: "POST",
@@ -77,8 +82,10 @@ export async function POST(req: NextRequest) {
         mode: "add",
         autorename: true,
         mute: false,
+        strict_conflict: false,
       }),
       "Content-Type": "application/octet-stream",
+      "Content-Disposition": `attachment; filename="seedance_video_${uniqueId}.mp4"`,
     },
     body: videoBuffer,
   });
@@ -93,11 +100,13 @@ export async function POST(req: NextRequest) {
 
   const uploadResult = await uploadRes.json();
 
-  // Step 5: Store metadata in Supabase
+  // Step 5: Log metadata in Supabase
   const { error: insertError } = await supabaseAdmin.from("generated_videos").insert({
     user_id: userId,
     dropbox_path: dropboxUploadPath,
     prompt,
+    uuid: uniqueId,
+    duration_ms: seedanceElapsed,
   });
 
   if (insertError) {
@@ -111,5 +120,6 @@ export async function POST(req: NextRequest) {
     dropbox_video_path: dropboxUploadPath,
     dropbox_metadata: uploadResult,
     seedance_metadata: seedanceResult,
+    duration_ms: seedanceElapsed,
   });
 }
