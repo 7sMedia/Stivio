@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
+const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID!;
 const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
-const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
+const DROPBOX_REDIRECT_URI = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 
@@ -33,16 +33,16 @@ function errorHtml(message: string) {
 export async function GET(req: NextRequest) {
   try {
     const code = req.nextUrl.searchParams.get("code");
-    const state = req.nextUrl.searchParams.get("state"); // user_id
+    const state = req.nextUrl.searchParams.get("state"); // should carry your user_id
 
     if (!code || !state) {
       return new Response(errorHtml("Missing Dropbox code or user ID."), {
         status: 400,
-        headers: { "Content-Type": "text/html" }
+        headers: { "Content-Type": "text/html" },
       });
     }
 
-    // 1. Exchange Dropbox code for access + refresh tokens
+    // 1) Exchange authorization code for tokens
     const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -54,77 +54,65 @@ export async function GET(req: NextRequest) {
         redirect_uri: DROPBOX_REDIRECT_URI,
       }),
     });
+    const tokenData = await tokenRes.json();
 
-    let data;
-    try {
-      data = await tokenRes.json();
-    } catch (e) {
-      return new Response(errorHtml("Dropbox token exchange failed (invalid response)."), {
-        status: 500,
-        headers: { "Content-Type": "text/html" }
-      });
-    }
-
-    if (!data.access_token) {
+    if (!tokenData.access_token) {
       let msg = "Could not connect to Dropbox.";
-      if (data.error === "invalid_grant") {
-        msg = "This Dropbox sign-in link has expired or already been used. Please try connecting again.";
-      } else if (data.error_description) {
-        msg = data.error_description;
+      if (tokenData.error === "invalid_grant") {
+        msg = "This Dropbox link has expired or already been used. Please try again.";
+      } else if (tokenData.error_description) {
+        msg = tokenData.error_description;
       }
       return new Response(errorHtml(msg), {
         status: 400,
-        headers: { "Content-Type": "text/html" }
+        headers: { "Content-Type": "text/html" },
       });
     }
 
-    // 2. Retrieve Dropbox user profile (account_id, email)
+    // 2) Fetch Dropbox account info
     const accountRes = await fetch("https://api.dropboxapi.com/2/users/get_current_account", {
       method: "POST",
-      headers: { Authorization: `Bearer ${data.access_token}` }
+      headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
-
-    let accountData;
-    try {
-      accountData = await accountRes.json();
-    } catch (e) {
-      return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
-        status: 400,
-        headers: { "Content-Type": "text/html" }
-      });
-    }
+    const accountData = await accountRes.json();
 
     if (!accountData.account_id) {
-      return new Response(errorHtml("Could not retrieve your Dropbox account info."), {
+      return new Response(errorHtml("Could not retrieve Dropbox account info."), {
         status: 400,
-        headers: { "Content-Type": "text/html" }
+        headers: { "Content-Type": "text/html" },
       });
     }
 
-    // 3. Save to Supabase
+    // 3) Save tokens to Supabase
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    await supabase.from("dropbox_tokens").delete().eq("user_id", state);
 
-    const { error: dbError } = await supabase.from("dropbox_tokens").insert([{
-      user_id: state,
-      access_token: data.access_token,
-      refresh_token: data.refresh_token || null,
-      expires_at: data.expires_in
-        ? new Date(Date.now() + data.expires_in * 1000).toISOString()
-        : null,
-      account_id: accountData.account_id,
-      dropbox_email: accountData.email || null,
-    }]);
+    // Upsert into table keyed by user_id
+    const { error: dbError } = await supabase
+      .from("dropbox_tokens")
+      .upsert(
+        {
+          user_id: state,
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token || null,
+          expires_at: tokenData.expires_in
+            ? new Date(Date.now() + tokenData.expires_in * 1000).toISOString()
+            : null,
+          account_id: accountData.account_id,
+          dropbox_email: accountData.email || null,
+        },
+        { onConflict: "user_id" }
+      );
 
     if (dbError) {
       return new Response(errorHtml("Failed to save Dropbox token. Please try again."), {
         status: 500,
-        headers: { "Content-Type": "text/html" }
+        headers: { "Content-Type": "text/html" },
       });
     }
 
-    // 4. Close popup window and notify frontend
-    return new Response(`
+    // 4) Notify parent window and close
+    return new Response(
+      `
       <html>
         <body style="background: #181b24; color: #fff; font-family: sans-serif; text-align: center; padding-top: 4em;">
           <div style="background: #23263b; border-radius: 16px; display: inline-block; padding: 2.5em 3.5em;">
@@ -137,14 +125,16 @@ export async function GET(req: NextRequest) {
           </script>
         </body>
       </html>
-    `, {
-      status: 200,
-      headers: { "Content-Type": "text/html" },
-    });
-  } catch (err: any) {
+    `,
+      {
+        status: 200,
+        headers: { "Content-Type": "text/html" },
+      }
+    );
+  } catch (err) {
     return new Response(errorHtml("An unexpected error occurred. Please try again or contact support."), {
       status: 500,
-      headers: { "Content-Type": "text/html" }
+      headers: { "Content-Type": "text/html" },
     });
   }
 }
