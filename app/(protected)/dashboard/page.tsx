@@ -1,4 +1,3 @@
-// app/(protected)/dashboard/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -25,11 +24,8 @@ export default function DashboardPage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        router.replace("/login");
-      } else {
-        setLoading(false);
-      }
+      if (!data.session) router.replace("/login");
+      else setLoading(false);
     });
   }, [router]);
 
@@ -48,8 +44,9 @@ export default function DashboardPage() {
           />
         </div>
         <div className="flex gap-3">
-          <Button variant="secondary" icon={<UploadCloud />}>
-            Upload (Dropbox)
+          <Button variant="secondary" className="flex items-center gap-2">
+            <UploadCloud className="w-5 h-5" />
+            <span>Upload (Dropbox)</span>
           </Button>
         </div>
       </div>
@@ -59,7 +56,6 @@ export default function DashboardPage() {
         {[
           { icon: <Grid />, label: "Long to shorts" },
           { icon: <BarChart2 />, label: "AI Captions" },
-          { icon: <Grid />, label: "Video editor" },
           { icon: <Users />, label: "Enhance speech" },
           { icon: <Folder />, label: "AI Reframe" },
           { icon: <Calendar />, label: "AI B-Roll" },
@@ -114,11 +110,7 @@ export default function DashboardPage() {
             <label className="block text-sm text-text-secondary">
               Input Folder
             </label>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {}}
-            >
+            <Button variant="outline" className="w-full" onClick={() => {}}>
               {inputFolder ?? "Select Input Folder"}
             </Button>
           </div>
@@ -126,11 +118,7 @@ export default function DashboardPage() {
             <label className="block text-sm text-text-secondary">
               Output Folder
             </label>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {}}
-            >
+            <Button variant="outline" className="w-full" onClick={() => {}}>
               {outputFolder ?? "Select Output Folder"}
             </Button>
           </div>
