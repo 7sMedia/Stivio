@@ -1,28 +1,27 @@
-// app/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Button } from "components/ui/button";
-import { Card, CardContent } from "components/ui/card";
-import { Input } from "components/ui/input";
-import { User, Lock, UploadCloud, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/Button";
+import { Card } from "@/components/ui/Card";
+import { Input } from "@/components/ui/Input";
+import {
+  User as UserIcon,
+  Lock as LockIcon,
+  UploadCloud as UploadCloudIcon,
+  Image as ImageIcon,
+} from "lucide-react";
 import { supabase } from "lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
     <div
       className="
-        min-h-screen min-h-[100dvh] w-full flex flex-col items-center justify-center
+        min-h-screen w-full flex flex-col items-center justify-center
         bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative
-        pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]
-        sm:pt-0 sm:pb-0
+        pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]
       "
-      style={{
-        paddingTop: "max(env(safe-area-inset-top, 0px), 1.5rem)",
-        paddingBottom: "env(safe-area-inset-bottom, 0px)",
-      }}
     >
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
@@ -79,7 +78,7 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* Glowing, animated background shape & logo */}
+          {/* Logo & Title */}
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
               animate={{
@@ -112,7 +111,7 @@ export default function HomePage() {
 
           {/* Headline */}
           <motion.h1
-            className="text-4xl md:text-6xl font-bold mt-10 text-center text-white leading-tight font-display drop-shadow-xl"
+            className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
@@ -131,27 +130,27 @@ export default function HomePage() {
 
           {/* Buttons */}
           <motion.div
-            className="mt-10 flex flex-col sm:flex-row gap-6 justify-center items-center"
+            className="mt-10 flex flex-col sm:flex-row gap-6 justify-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            <Button size="lg" onClick={() => setPage("signup")}>
+            <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
               Get Started Free
             </Button>
-            <Button variant="outline" onClick={() => setPage("login")}>
+            <Button className="text-lg px-6 py-3 border border-text-secondary" onClick={() => setPage("login")}>
               Login
             </Button>
           </motion.div>
 
-          {/* Hero video */}
+          {/* Hero Video */}
           <motion.div
             initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 1 }}
             className="mt-14 flex justify-center"
           >
-            <div className="rounded-2xl shadow-2xl bg-black/40 border-4 border-indigo-600/40 p-2">
+            <div className="rounded-2xl shadow-md bg-surface-primary border-4 border-accent p-2">
               <video
                 className="rounded-xl w-[350px] md:w-[560px] max-w-full"
                 src="/hero-demo.mp4"
@@ -163,20 +162,20 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Feature bubbles */}
-          <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center items-center">
-            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-              <UploadCloud className="text-sky-400" size={32} />
-              <span className="text-lg text-indigo-100 font-semibold">Upload images</span>
-            </div>
-            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-              <ImageIcon className="text-pink-400" size={32} />
-              <span className="text-lg text-indigo-100 font-semibold">AI animates</span>
-            </div>
-            <div className="bg-indigo-800/70 rounded-2xl p-6 flex items-center gap-4 shadow-xl">
-              <User className="text-green-400" size={32} />
-              <span className="text-lg text-indigo-100 font-semibold">Share anywhere</span>
-            </div>
+          {/* Feature Bubbles */}
+          <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <UploadCloudIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">Upload images</span>
+            </Card>
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <ImageIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">AI animates</span>
+            </Card>
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <UserIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">Share anywhere</span>
+            </Card>
           </div>
         </motion.div>
       </GradientBackground>
@@ -191,63 +190,54 @@ export default function HomePage() {
         animate={{ scale: 1, opacity: 1 }}
         className="w-full max-w-md mx-auto mt-24"
       >
-        <Card className="p-8 rounded-2xl shadow-2xl bg-indigo-900/90 border-0">
-          <CardContent>
-            <div className="flex flex-col items-center gap-4">
-              <ImageIcon size={32} className="text-indigo-100" />
-              <h2 className="text-3xl font-bold text-white mb-2">
-                {page === "signup" ? "Sign Up" : "Login"}
-              </h2>
-              <div className="w-full flex flex-col gap-4">
-                <div className="flex items-center gap-2 bg-indigo-800/60 px-4 rounded-xl">
-                  <User size={20} className="text-indigo-300" />
-                  <Input
-                    placeholder="Email"
-                    className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-                <div className="flex items-center gap-2 bg-indigo-800/60 px-4 rounded-xl">
-                  <Lock size={20} className="text-indigo-300" />
-                  <Input
-                    placeholder="Password"
-                    type="password"
-                    className="bg-transparent border-0 text-indigo-100 placeholder:text-indigo-300"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
+        <Card>
+          <div className="flex flex-col items-center gap-6">
+            <ImageIcon size={32} className="text-text-secondary" />
+            <h2 className="text-3xl font-bold mb-2">{page === "signup" ? "Sign Up" : "Login"}</h2>
+
+            <div className="w-full flex flex-col gap-4">
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <UserIcon size={20} className="text-text-muted" />
+                <Input
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-transparent placeholder:text-text-muted"
+                />
               </div>
-
-              {error && <div className="text-pink-300 text-sm mt-2">{error}</div>}
-
-              <Button onClick={page === "signup" ? handleSignup : handleLogin}>
-                {page === "signup" ? "Create Account" : "Login"}
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="text-indigo-300 mt-2"
-                onClick={() => setPage(page === "signup" ? "login" : "signup")}
-              >
-                {page === "signup"
-                  ? "Already have an account? Login"
-                  : "New here? Sign Up"}
-              </Button>
-
-              <Button
-                variant="ghost"
-                className="text-indigo-400 mt-2"
-                onClick={() => setPage("landing")}
-              >
-                ← Back to Home
-              </Button>
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <LockIcon size={20} className="text-text-muted" />
+                <Input
+                  placeholder="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-transparent placeholder:text-text-muted"
+                />
+              </div>
             </div>
-          </CardContent>
+
+            {error && <div className="text-pink-300 text-sm">{error}</div>}
+
+            <Button className="w-full py-3" onClick={page === "signup" ? handleSignup : handleLogin}>
+              {page === "signup" ? "Create Account" : "Login"}
+            </Button>
+
+            <Button
+              className="w-full py-3 text-text-secondary"
+              onClick={() => setPage(page === "signup" ? "login" : "signup")}
+            >
+              {page === "signup"
+                ? "Already have an account? Login"
+                : "New here? Sign Up"}
+            </Button>
+
+            <Button className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
+              ← Back to Home
+            </Button>
+          </div>
         </Card>
       </motion.div>
     </GradientBackground>
   );
 }
- 
