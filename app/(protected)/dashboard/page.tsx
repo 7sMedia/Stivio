@@ -28,30 +28,30 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [chooserReady, setChooserReady] = useState(false);
 
-  // 1) Load Dropbox Chooser SDK
+  // 1) Dynamically load the Dropbox Chooser SDK with the correct key
   useEffect(() => {
-    const scriptId = "dropbox-chooser";
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://www.dropbox.com/static/api/2/dropins.js";
-      // this was previously undefined
-      script.dataset.appKey = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
-      document.body.appendChild(script);
+    const APP_KEY = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
+    if (!APP_KEY) {
+      console.error("Missing NEXT_PUBLIC_DROPBOX_APP_KEY");
+      return;
     }
+
+    // Remove any existing script
+    const existing = document.getElementById("dropbox-chooser");
+    if (existing) existing.remove();
+
+    const script = document.createElement("script");
+    script.id = "dropbox-chooser";
+    script.src = "https://www.dropbox.com/static/api/2/dropins.js";
+    script.setAttribute("data-app-key", APP_KEY);
+    script.onload = () => setChooserReady(true);
+    script.onerror = () => console.error("Failed to load Dropbox Chooser SDK");
+    document.body.appendChild(script);
   }, []);
 
-  // 2) Quick client-side patch: ensure the data-app-key is correct at runtime
-  useEffect(() => {
-    const key = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY;
-    const chooserScript = document.getElementById("dropbox-chooser");
-    if (chooserScript && key) {
-      chooserScript.setAttribute("data-app-key", key);
-    }
-  }, []);
-
-  // 3) Authenticate & fetch stored Dropbox token
+  // 2) Authenticate & fetch stored Dropbox token
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
@@ -59,13 +59,11 @@ export default function DashboardPage() {
       } else {
         const uid = data.session.user.id;
         setUserId(uid);
-
         const { data: row } = await supabase
           .from("dropbox_tokens")
           .select("access_token")
           .eq("user_id", uid)
           .maybeSingle();
-
         if (row?.access_token) {
           setToken(row.access_token);
         }
@@ -78,7 +76,7 @@ export default function DashboardPage() {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
 
-  // OAuth popup
+  // 3) OAuth popup
   const connectDropbox = () => {
     if (!userId) return;
     window.open(
@@ -88,18 +86,20 @@ export default function DashboardPage() {
     );
   };
 
-  // Folder chooser
+  // 4) Folder chooser (only if SDK loaded)
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
-    if (window.Dropbox) {
+    if (chooserReady && window.Dropbox) {
       window.Dropbox.choose({
         folderselect: true,
         multiselect: false,
         success: ([folder]: any) => setter(folder.path_display),
       });
+    } else {
+      console.warn("Dropbox Chooser not ready yet");
     }
   };
 
-  // Handle file selection
+  // 5) Handle file selection & upload to Dropbox...
   const handleFiles = (files: FileList | null) => {
     if (!files || !token || !inputFolder) return;
     const newUploads: UploadFile[] = Array.from(files).map((file) => ({
@@ -113,7 +113,6 @@ export default function DashboardPage() {
     newUploads.forEach(uploadToDropbox);
   };
 
-  // Upload to Dropbox with progress
   const uploadToDropbox = (upload: UploadFile) => {
     if (!token || !inputFolder) return;
     const dropboxPath = `${inputFolder}/${upload.file.name}`;
@@ -162,12 +161,11 @@ export default function DashboardPage() {
     xhr.send(upload.file);
   };
 
-  // Remove a file
   const removeFile = (id: string) => {
     setUploadFiles((prev) => prev.filter((u) => u.id !== id));
   };
 
-  // Generate Video
+  // 6) Generate Video
   const handleGenerate = async () => {
     if (!userId) return;
     const imageUrls = uploadFiles.filter((u) => u.url).map((u) => u.url!) as string[];
@@ -239,7 +237,6 @@ export default function DashboardPage() {
             <span>Drag & drop or click to upload images</span>
           </label>
 
-          {/* Progress List */}
           {uploadFiles.map((u) => (
             <div key={u.id} className="mt-4 flex items-center space-x-4">
               <div className="flex-1">
@@ -267,7 +264,6 @@ export default function DashboardPage() {
             </div>
           ))}
 
-          {/* Thumbnails */}
           {hasImages && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
               {uploadFiles
@@ -290,7 +286,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Generate Video */}
           <Button
             variant="secondary"
             className="mt-4"
