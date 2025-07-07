@@ -1,16 +1,19 @@
-// components/sidebar.tsx
 "use client";
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { navItems } from "@/app/src/config/nav";
 import { Menu } from "lucide-react";
 
 export default function Sidebar() {
   const { toast } = useToast();
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [isOpen, setIsOpen] = useState(false);
+  const path = usePathname() || "";
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -44,13 +47,20 @@ export default function Sidebar() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full border-r border-zinc-800 p-6 bg-zinc-950 w-64">
       <h1 className="text-2xl font-bold tracking-tight mb-4">Beta7</h1>
-      <nav className="space-y-2">
-        <Button variant="secondary" className="w-full justify-start">
-          Dashboard
-        </Button>
-        <Button variant="ghost" className="w-full justify-start">
-          AI Tool
-        </Button>
+      <nav className="flex-1 space-y-2">
+        {navItems.map((item) => {
+          const active = path === item.href;
+          return (
+            <Button
+              key={item.href}
+              asChild
+              variant={active ? "secondary" : "ghost"}
+              className="w-full justify-start"
+            >
+              <Link href={item.href}>{item.title}</Link>
+            </Button>
+          );
+        })}
       </nav>
       <div className="mt-auto pt-6 text-sm text-muted-foreground">
         <p className="mb-2">{userEmail ?? "Loading..."}</p>
