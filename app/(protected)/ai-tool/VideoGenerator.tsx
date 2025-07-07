@@ -24,7 +24,6 @@ export default function VideoGenerator() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const inputFolderPath = localStorage.getItem("dropbox_input_folder_path") || "";
-
   const userId =
     typeof window !== "undefined"
       ? localStorage.getItem("supabase_user_id") || ""
@@ -62,7 +61,7 @@ export default function VideoGenerator() {
       fromDropbox: false,
       fileObj: file,
     };
-    setUploadedImages(prev => [...prev, imgObj]);
+    setUploadedImages((prev) => [...prev, imgObj]);
     setSelectedImageIdx(uploadedImages.length);
   }
 
@@ -87,7 +86,7 @@ export default function VideoGenerator() {
       setError("Some images were skipped because they’re already uploaded.");
     }
 
-    setUploadedImages(prev => [...prev, ...uniqueDropboxImages]);
+    setUploadedImages((prev) => [...prev, ...uniqueDropboxImages]);
     if (uniqueDropboxImages.length > 0) setSelectedImageIdx(uploadedImages.length);
   }
 
@@ -109,6 +108,7 @@ export default function VideoGenerator() {
       setError("User not authenticated.");
       return;
     }
+
     setLoading(true);
 
     try {
@@ -157,34 +157,50 @@ export default function VideoGenerator() {
   }
 
   return (
-    <div className="max-w-lg mx-auto flex flex-col gap-6 mt-8 relative">
+    <div className="max-w-4xl mx-auto flex flex-col gap-6 mt-8 relative px-4">
       {showSuccess && (
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-30">
           <CheckCircle size={80} className="text-green-500 mb-4" />
           <div className="text-2xl font-bold text-green-400 mb-2">Video Ready!</div>
         </div>
       )}
+
       <ImageUpload
         inputFolderPath={inputFolderPath}
         onChange={handleImageUpload}
         onDropbox={handleDropboxFiles}
       />
+
       {uploadedImages.length > 0 && (
-        <div className="flex gap-2 flex-wrap">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
           {uploadedImages.map((img, idx) => (
-            <button
+            <div
               key={idx}
-              className={`w-20 h-20 rounded overflow-hidden border-2 ${
-                idx === selectedImageIdx ? "border-indigo-500" : "border-gray-400"
+              className={`relative rounded-xl overflow-hidden border-2 group cursor-pointer transition-all duration-200 ${
+                idx === selectedImageIdx ? "border-indigo-500" : "border-zinc-700"
               }`}
               onClick={() => setSelectedImageIdx(idx)}
-              type="button"
             >
-              <img src={img.url} alt={img.name} className="w-full h-full object-cover" />
+              <img
+                src={img.url}
+                alt={img.name}
+                className="w-full h-32 object-cover group-hover:opacity-90 transition"
+              />
               {img.fromDropbox && (
-                <span className="block text-[10px] text-blue-400">Dropbox</span>
+                <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded-full">
+                  Dropbox
+                </div>
               )}
-            </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setUploadedImages((prev) => prev.filter((_, i) => i !== idx));
+                }}
+                className="absolute top-2 right-2 bg-black bg-opacity-60 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition"
+              >
+                ✕
+              </button>
+            </div>
           ))}
         </div>
       )}
@@ -196,7 +212,7 @@ export default function VideoGenerator() {
           className="w-full px-4 py-2 border rounded text-black bg-yellow-50 font-semibold"
           placeholder="Enter the text to appear in your video"
           value={overlayText}
-          onChange={e => setOverlayText(e.target.value)}
+          onChange={(e) => setOverlayText(e.target.value)}
         />
       )}
 
@@ -204,12 +220,13 @@ export default function VideoGenerator() {
         className="w-full px-4 py-2 border rounded text-black"
         placeholder="Describe how you want the image to animate..."
         value={finalPrompt}
-        onChange={e => {
+        onChange={(e) => {
           setPrompt(e.target.value);
           if (!e.target.value.includes("{text}")) setOverlayText("");
         }}
         rows={2}
       />
+
       <button
         className="bg-indigo-600 text-white px-6 py-3 rounded font-semibold hover:bg-indigo-700 transition disabled:opacity-60"
         onClick={handleGenerateVideo}
@@ -225,6 +242,7 @@ export default function VideoGenerator() {
           "Generate Video"
         )}
       </button>
+
       {error && <div className="text-red-400">{error}</div>}
 
       {loading && (
