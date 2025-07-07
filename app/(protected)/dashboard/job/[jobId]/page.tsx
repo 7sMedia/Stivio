@@ -25,13 +25,13 @@ export default function JobPage() {
       if (res.ok) {
         const data: JobStatus = await res.json();
         setStatus(data);
+
         if (data.state === "completed") {
           clearInterval(interval);
-          toast({ title: "Video ready!", description: "Your AI video is complete." });
-        }
-        if (data.state === "failed") {
+          toast({ title: "Video ready!", description: "Your AI video is complete.", variant: "success" });
+        } else if (data.state === "failed") {
           clearInterval(interval);
-          toast({ title: "Generation failed", variant: "destructive" });
+          toast({ title: "Generation failed", variant: "error" });
         }
       }
     }, 3000);
@@ -60,6 +60,7 @@ export default function JobPage() {
             {status.state}
           </span>
         </p>
+
         {status.state === "completed" && status.resultUrl && (
           <div className="mt-6">
             <video
@@ -67,14 +68,12 @@ export default function JobPage() {
               controls
               className="w-full max-w-md mx-auto rounded-lg shadow-md"
             />
-            <Button
-              className="mt-4"
-              onClick={() => router.push("/dashboard")}
-            >
+            <Button className="mt-4" onClick={() => router.push("/dashboard")}>
               ← Back to Dashboard
             </Button>
           </div>
         )}
+
         {status.state !== "completed" && status.state !== "failed" && (
           <p className="text-text-secondary mt-4">Please wait while we generate your video…</p>
         )}
