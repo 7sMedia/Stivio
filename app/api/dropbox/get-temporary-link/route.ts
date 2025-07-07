@@ -2,22 +2,39 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@/lib/dropbox";
 
 export async function POST(req: NextRequest) {
-  const { userId, path } = await req.json();
-  const dropboxToken = await getValidDropboxToken(userId);
-  if (!dropboxToken) {
-    return NextResponse.json({ error: "Dropbox not connected" }, { status: 401 });
+  try {
+    const { userId, path } = await req.json();
+
+    if (!userId || !path) {
+      return NextResponse.json({ error: "Missing userId or path" }, { status: 400 });
+    }
+
+    const accessToken = await getValidDropboxToken(userId);
+    if (!accessToken) {
+      return NextResponse.json({ error: "Dropbox not connected" }, { status: 401 });
+    }
+
+    const res = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ path }),
+    });
+
+    if (!res.ok) {
+      const err = await res.text();
+      return NextResponse.json({ error: "Failed to get temporary link", details: err }, { status: 400 });
+    }
+
+    const data = await res.json();
+    return NextResponse.json({ link: data.link });
+  } catch (error: any) {
+    console.error("Error in get-temporary-link:", error);
+    return NextResponse.json(
+      { error: error?.message || "Server error while generating temporary link" },
+      { status: 500 }
+    );
   }
-  const resp = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${dropboxToken}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ path }),
-  });
-  const data = await resp.json();
-  if (!resp.ok) {
-    return NextResponse.json({ error: data.error_summary || "Dropbox link error" }, { status: 400 });
-  }
-  return NextResponse.json({ link: data.link });
 }
