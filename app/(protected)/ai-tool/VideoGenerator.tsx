@@ -1,3 +1,4 @@
+// app/(protected)/ai-tool/VideoGenerator.tsx
 "use client";
 
 import React, { useState } from "react";
@@ -6,6 +7,7 @@ import { CheckCircle } from "lucide-react";
 import PromptTemplatePicker from "./PromptTemplatePicker";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { v4 as uuidv4 } from "uuid";
 
 type UploadedImage = {
   name: string;
@@ -26,7 +28,137 @@ export default function VideoGenerator() {
   const [error, setError] = useState<string | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Assume inputFolderPath, userId, handlers (handleImageUpload, handleDropboxFiles, handleGenerateVideo, etc.) remain unchanged
+  // Restore these definitions
+  const inputFolderPath =
+    typeof window !== "undefined"
+      ? localStorage.getItem("dropbox_input_folder_path") || ""
+      : "";
+  const userId =
+    typeof window !== "undefined"
+      ? localStorage.getItem("supabase_user_id") || ""
+      : "";
+
+  function handleTemplatePrompt(templatePrompt: string) {
+    setOverlayText("");
+    setPrompt(templatePrompt.includes("{text}") ? templatePrompt : templatePrompt);
+  }
+
+  const finalPrompt = prompt.includes("{text}")
+    ? prompt.replace("{text}", overlayText || "Your text here")
+    : prompt;
+
+  function handleImageUpload(file: File | null) {
+    if (!file) return;
+
+    const isDuplicate = uploadedImages.some(
+      (img) => img.name.toLowerCase() === file.name.toLowerCase()
+    );
+    if (isDuplicate) {
+      setError("This image has already been uploaded.");
+      return;
+    }
+
+    const url = URL.createObjectURL(file);
+    const imgObj: UploadedImage = {
+      name: file.name,
+      url,
+      fromDropbox: false,
+      fileObj: file,
+    };
+    setUploadedImages((prev) => [...prev, imgObj]);
+    setSelectedImageIdx(uploadedImages.length);
+  }
+
+  function handleDropboxFiles(files: any[]) {
+    const uniqueDropboxImages: UploadedImage[] = [];
+
+    for (const file of files) {
+      const isDuplicate = uploadedImages.some(
+        (img) => img.name.toLowerCase() === file.name.toLowerCase()
+      );
+      if (!isDuplicate) {
+        uniqueDropboxImages.push({
+          name: file.name,
+          url: file.link,
+          dropboxPath: file.path_lower || file.path_display,
+          fromDropbox: true,
+        });
+      }
+    }
+
+    if (uniqueDropboxImages.length !== files.length) {
+      setError("Some images were skipped because they’re already uploaded.");
+    }
+
+    setUploadedImages((prev) => [...prev, ...uniqueDropboxImages]);
+    if (uniqueDropboxImages.length > 0) setSelectedImageIdx(uploadedImages.length);
+  }
+
+  async function handleGenerateVideo() {
+    setError(null);
+    setDropboxVideoPath(null);
+    setDropboxPreviewUrl(null);
+    setShowSuccess(false);
+
+    if (selectedImageIdx === null || !uploadedImages[selectedImageIdx]) {
+      setError("Please select an image.");
+      return;
+    }
+    if (!finalPrompt.trim()) {
+      setError("Please enter an animation prompt.");
+      return;
+    }
+    if (!userId) {
+      setError("User not authenticated.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const imageObj = uploadedImages[selectedImageIdx];
+      let backendDropboxPath: string | undefined = imageObj.dropboxPath;
+      if (!imageObj.fromDropbox || !backendDropboxPath) {
+        setError("Please select an image from your Dropbox account.");
+        setLoading(false);
+        return;
+      }
+
+      const res = await fetch("/api/ai-tool/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          dropboxPath: backendDropboxPath,
+          prompt: finalPrompt,
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Video generation failed.");
+
+      setDropboxVideoPath(data.dropbox_video_path);
+
+      const previewRes = await fetch("/api/dropbox/get-temporary-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId,
+          path: data.dropbox_video_path,
+        }),
+      });
+      const previewData = await previewRes.json();
+      if (previewRes.ok && previewData.link) {
+        setDropboxPreviewUrl(previewData.link);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 4000);
+      }
+    } catch (err: any) {
+      setError(err.message || "Error generating video.");
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-6 mt-8 relative px-4">
