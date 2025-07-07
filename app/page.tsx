@@ -45,7 +45,6 @@ export default function HomePage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  // Redirect if already signed in
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       if (data.session) router.replace("/dashboard");
@@ -78,7 +77,6 @@ export default function HomePage() {
           animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 1 }}
         >
-          {/* Logo & Title */}
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
               animate={{
@@ -109,7 +107,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Headline */}
           <motion.h1
             className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl"
             initial={{ opacity: 0, y: 40 }}
@@ -128,7 +125,6 @@ export default function HomePage() {
             </span>
           </motion.h1>
 
-          {/* Buttons */}
           <motion.div
             className="mt-10 flex flex-col sm:flex-row gap-6 justify-center"
             initial={{ opacity: 0 }}
@@ -139,21 +135,20 @@ export default function HomePage() {
               Get Started Free
             </Button>
             <Button
-              className="text-lg px-6 py-3 border border-[var(--color-text-secondary)]"
+              className="text-lg px-6 py-3 border border-text-secondary"
               onClick={() => setPage("login")}
             >
               Login
             </Button>
           </motion.div>
 
-          {/* Hero Video */}
           <motion.div
             initial={{ opacity: 0, y: 80 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 1 }}
             className="mt-14 flex justify-center"
           >
-            <div className="rounded-2xl shadow-md bg-[var(--color-surface-primary)] border-4 border-[var(--color-accent)] p-2">
+            <div className="rounded-2xl shadow-md bg-surface-primary border-4 border-accent p-2">
               <video
                 className="rounded-xl w-[350px] md:w-[560px] max-w-full"
                 src="/hero-demo.mp4"
@@ -165,23 +160,22 @@ export default function HomePage() {
             </div>
           </motion.div>
 
-          {/* Feature Bubbles */}
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
-            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
-              <UploadCloudIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <UploadCloudIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">
                 Upload images
               </span>
             </Card>
-            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
-              <ImageIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <ImageIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">
                 AI animates
               </span>
             </Card>
-            <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
-              <UserIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
+              <UserIcon className="text-accent" size={32} />
+              <span className="text-base text-text-secondary font-semibold">
                 Share anywhere
               </span>
             </Card>
@@ -191,7 +185,6 @@ export default function HomePage() {
     );
   }
 
-  // Signup/Login forms
   return (
     <GradientBackground>
       <motion.div
@@ -201,44 +194,41 @@ export default function HomePage() {
       >
         <Card>
           <div className="flex flex-col items-center gap-6">
-            <ImageIcon size={32} className="text-[var(--color-text-secondary)]" />
+            <ImageIcon size={32} className="text-text-secondary" />
             <h2 className="text-3xl font-bold mb-2">
               {page === "signup" ? "Sign Up" : "Login"}
             </h2>
 
             <div className="w-full flex flex-col gap-4">
-              <div className="flex items-center gap-2 bg-[var(--color-surface-secondary)] rounded-lg px-4 py-2">
-                <UserIcon size={20} className="text-[var(--color-text-muted)]" />
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <UserIcon size={20} className="text-text-muted" />
                 <Input
                   placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-transparent placeholder:text-[var(--color-text-muted)]"
+                  className="bg-transparent placeholder:text-text-muted"
                 />
               </div>
-              <div className="flex items-center gap-2 bg-[var(--color-surface-secondary)] rounded-lg px-4 py-2">
-                <LockIcon size={20} className="text-[var(--color-text-muted)]" />
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <LockIcon size={20} className="text-text-muted" />
                 <Input
                   placeholder="Password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="bg-transparent placeholder:text-[var(--color-text-muted)]"
+                  className="bg-transparent placeholder:text-text-muted"
                 />
               </div>
             </div>
 
             {error && <div className="text-pink-300 text-sm">{error}</div>}
 
-            <Button
-              className="w-full py-3"
-              onClick={page === "signup" ? handleSignup : handleLogin}
-            >
+            <Button className="w-full py-3" onClick={page === "signup" ? handleSignup : handleLogin}>
               {page === "signup" ? "Create Account" : "Login"}
             </Button>
 
             <Button
-              className="w-full py-3 text-[var(--color-text-secondary)]"
+              className="w-full py-3 text-text-secondary"
               onClick={() => setPage(page === "signup" ? "login" : "signup")}
             >
               {page === "signup"
@@ -246,10 +236,7 @@ export default function HomePage() {
                 : "New here? Sign Up"}
             </Button>
 
-            <Button
-              className="w-full py-3 text-[var(--color-accent)]"
-              onClick={() => setPage("landing")}
-            >
+            <Button className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
               ← Back to Home
             </Button>
           </div>
