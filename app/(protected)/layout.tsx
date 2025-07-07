@@ -4,6 +4,7 @@ import React, { ReactNode, useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
+import BottomNav from "@/components/ui/BottomNav";
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -37,7 +38,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       <div className="md:hidden fixed top-4 left-4 z-50">
         <button
           className="text-white text-3xl focus:outline-none"
-          onClick={() => setSidebarOpen(prev => !prev)}
+          onClick={() => setSidebarOpen((prev) => !prev)}
         >
           ☰
         </button>
@@ -72,6 +73,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
             >
               AI Tool
             </a>
+            <a
+              href="/templates"
+              className={`block px-2 py-1 rounded ${
+                pathname === "/templates"
+                  ? "bg-[#0EC9DB]/20 text-white"
+                  : "text-[#b1b2c1] hover:text-white"
+              }`}
+            >
+              Templates
+            </a>
           </nav>
         </div>
         <div className="p-6 border-t border-[#2A2C33] text-sm">
@@ -85,14 +96,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      {/* Main Layout */}
+      {/* Main Content */}
       <div className="flex-1 flex flex-col md:ml-64">
         <header className="flex items-center px-4 sm:px-6 lg:px-8 py-4 bg-[#1B1D25] border-b border-[#2A2C33]">
           <h1 className="text-lg font-semibold">Beta7 Dashboard</h1>
         </header>
-        <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6 w-full max-w-[1600px] mx-auto">
+        <main className="flex-1 px-4 sm:px-6 lg:px-12 py-6 w-full max-w-[1600px] mx-auto pb-20">
           {children}
         </main>
+        {/* Mobile bottom navigation */}
+        <BottomNav />
       </div>
     </div>
   );
