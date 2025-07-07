@@ -38,15 +38,26 @@ export default function DashboardPage() {
     <div className="space-y-8 p-6">
       {/* 1. Top action bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        {/* Make the input fill 100% width, dark background */}
-        <Input
-          placeholder="Drop a video link or file here"
-          className="flex-1 bg-surface-secondary text-text-primary placeholder:text-text-muted px-4 py-2 rounded-md"
-        />
+        <div className="w-full">
+          <Input
+            placeholder="Drop a video link or file here"
+            className="
+              w-full 
+              bg-surface-secondary 
+              text-text-primary 
+              placeholder:text-text-muted 
+              px-4 py-3 
+              rounded-md 
+              border border-surface-secondary
+              focus:border-accent
+              transition
+            "
+          />
+        </div>
 
         <Button
           variant="secondary"
-          className="flex-shrink-0 flex items-center gap-2"
+          className="flex-shrink-0 flex items-center gap-2 px-4 py-3"
         >
           <UploadCloud className="w-5 h-5" />
           <span>Upload (Dropbox)</span>
@@ -65,7 +76,14 @@ export default function DashboardPage() {
         ].map((tool) => (
           <Card
             key={tool.label}
-            className="flex items-center gap-2 bg-surface-primary p-4 cursor-pointer hover:border-accent border border-surface-secondary transition"
+            className="
+              flex items-center gap-2 
+              bg-surface-primary p-4 
+              cursor-pointer 
+              hover:border-accent 
+              border border-surface-secondary 
+              transition
+            "
           >
             <div className="text-accent">{tool.icon}</div>
             <span className="text-text-primary font-medium">
@@ -92,7 +110,13 @@ export default function DashboardPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <Card
               key={i}
-              className="h-32 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
+              className="
+                h-32 bg-surface-secondary 
+                cursor-pointer 
+                hover:border-accent 
+                border border-surface-secondary 
+                transition
+              "
             >
               <div className="flex h-full items-center justify-center text-text-secondary">
                 Project {i + 1}
@@ -112,7 +136,7 @@ export default function DashboardPage() {
             <label className="block text-sm text-text-secondary">
               Input Folder
             </label>
-            <Button variant="outline" className="w-full" onClick={() => {}}>
+            <Button variant="outline" className="w-full">
               {inputFolder ?? "Select Input Folder"}
             </Button>
           </div>
@@ -120,7 +144,7 @@ export default function DashboardPage() {
             <label className="block text-sm text-text-secondary">
               Output Folder
             </label>
-            <Button variant="outline" className="w-full" onClick={() => {}}>
+            <Button variant="outline" className="w-full">
               {outputFolder ?? "Select Output Folder"}
             </Button>
           </div>
@@ -149,7 +173,6 @@ export default function DashboardPage() {
             multiple
             accept=".jpg,.jpeg,.png"
             className="hidden"
-            onChange={() => {}}
           />
         </Card>
       </div>
