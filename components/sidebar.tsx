@@ -7,6 +7,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { useRouter, usePathname } from "next/navigation";
 import { navItems } from "@/app/src/config/nav";
 import { Menu } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Sidebar() {
   const { toast } = useToast();
@@ -44,7 +45,10 @@ export default function Sidebar() {
 
   const SidebarContent = () => (
     <div className="flex flex-col h-full border-r border-zinc-800 p-6 bg-zinc-950 w-64">
-      <h1 className="text-2xl font-bold tracking-tight mb-4">Beta7</h1>
+      <h1 className="text-2xl font-bold tracking-tight mb-4 flex items-center justify-between">
+        <span>Beta7</span>
+        <ThemeToggle />
+      </h1>
       <nav className="flex-1 space-y-2">
         {navItems.map((item) => {
           const active = path === item.href;
@@ -76,7 +80,10 @@ export default function Sidebar() {
 
       {/* Mobile Topbar + Sidebar Drawer */}
       <div className="md:hidden flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-950">
-        <h1 className="text-xl font-bold">Beta7</h1>
+        <div className="flex items-center space-x-2">
+          <h1 className="text-xl font-bold">Beta7</h1>
+          <ThemeToggle />
+        </div>
         <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
           <Menu className="h-6 w-6" />
         </Button>
