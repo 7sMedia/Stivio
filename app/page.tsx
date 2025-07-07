@@ -116,13 +116,13 @@ export default function HomePage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Bring{' '}
+            Bring{" "}
             <span className="bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">
               Still Images
-            </span>{' '}
+            </span>{" "}
             to Life
             <br />
-            with{' '}
+            with{" "}
             <span className="bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">
               AI Video Creation
             </span>
@@ -135,8 +135,15 @@ export default function HomePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>Get Started Free</Button>
-            <Button className="text-lg px-6 py-3 border border-[var(--color-text-secondary)]" onClick={() => setPage("login")}>Login</Button>
+            <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
+              Get Started Free
+            </Button>
+            <Button
+              className="text-lg px-6 py-3 border border-[var(--color-text-secondary)]"
+              onClick={() => setPage("login")}
+            >
+              Login
+            </Button>
           </motion.div>
 
           {/* Hero Video */}
@@ -162,15 +169,21 @@ export default function HomePage() {
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
             <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
               <UploadCloudIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">Upload images</span>
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+                Upload images
+              </span>
             </Card>
             <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
               <ImageIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">AI animates</span>
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+                AI animates
+              </span>
             </Card>
             <Card className="flex items-center gap-4 bg-[var(--color-surface-secondary)] p-6">
               <UserIcon className="text-[var(--color-accent)]" size={32} />
-              <span className="text-base text-[var(--color-text-secondary)] font-semibold">Share anywhere</span>
+              <span className="text-base text-[var(--color-text-secondary)] font-semibold">
+                Share anywhere
+              </span>
             </Card>
           </div>
         </motion.div>
@@ -189,7 +202,9 @@ export default function HomePage() {
         <Card>
           <div className="flex flex-col items-center gap-6">
             <ImageIcon size={32} className="text-[var(--color-text-secondary)]" />
-            <h2 className="text-3xl font-bold mb-2">{page === "signup" ? "Sign Up" : "Login"}</h2>
+            <h2 className="text-3xl font-bold mb-2">
+              {page === "signup" ? "Sign Up" : "Login"}
+            </h2>
 
             <div className="w-full flex flex-col gap-4">
               <div className="flex items-center gap-2 bg-[var(--color-surface-secondary)] rounded-lg px-4 py-2">
@@ -215,7 +230,10 @@ export default function HomePage() {
 
             {error && <div className="text-pink-300 text-sm">{error}</div>}
 
-            <Button className="w-full py-3" onClick={page === "signup" ? handleSignup : handleLogin}>
+            <Button
+              className="w-full py-3"
+              onClick={page === "signup" ? handleSignup : handleLogin}
+            >
               {page === "signup" ? "Create Account" : "Login"}
             </Button>
 
@@ -228,7 +246,10 @@ export default function HomePage() {
                 : "New here? Sign Up"}
             </Button>
 
-            <Button className="w-full py-3 text-[var(--color-accent)]" onClick={() => setPage("landing")}>
+            <Button
+              className="w-full py-3 text-[var(--color-accent)]"
+              onClick={() => setPage("landing")}
+            >
               ← Back to Home
             </Button>
           </div>
