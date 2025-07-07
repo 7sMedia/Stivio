@@ -29,19 +29,29 @@ export default function DashboardPage() {
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
 
-  // Load Dropbox Chooser SDK
+  // 1) Load Dropbox Chooser SDK
   useEffect(() => {
     const scriptId = "dropbox-chooser";
     if (!document.getElementById(scriptId)) {
       const script = document.createElement("script");
       script.id = scriptId;
       script.src = "https://www.dropbox.com/static/api/2/dropins.js";
+      // this was previously undefined
       script.dataset.appKey = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
       document.body.appendChild(script);
     }
   }, []);
 
-  // Auth + Dropbox token fetch
+  // 2) Quick client-side patch: ensure the data-app-key is correct at runtime
+  useEffect(() => {
+    const key = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY;
+    const chooserScript = document.getElementById("dropbox-chooser");
+    if (chooserScript && key) {
+      chooserScript.setAttribute("data-app-key", key);
+    }
+  }, []);
+
+  // 3) Authenticate & fetch stored Dropbox token
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
@@ -49,11 +59,13 @@ export default function DashboardPage() {
       } else {
         const uid = data.session.user.id;
         setUserId(uid);
+
         const { data: row } = await supabase
           .from("dropbox_tokens")
           .select("access_token")
           .eq("user_id", uid)
           .maybeSingle();
+
         if (row?.access_token) {
           setToken(row.access_token);
         }
