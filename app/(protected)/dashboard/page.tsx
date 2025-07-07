@@ -1,3 +1,4 @@
+// app/(protected)/dashboard/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -36,19 +37,20 @@ export default function DashboardPage() {
   return (
     <div className="space-y-8 p-6">
       {/* 1. Top action bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex-1 min-w-[200px]">
-          <Input
-            placeholder="Drop a video link or file here"
-            className="w-full bg-surface-secondary"
-          />
-        </div>
-        <div className="flex gap-3">
-          <Button variant="secondary" className="flex items-center gap-2">
-            <UploadCloud className="w-5 h-5" />
-            <span>Upload (Dropbox)</span>
-          </Button>
-        </div>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+        {/* Make the input fill 100% width, dark background */}
+        <Input
+          placeholder="Drop a video link or file here"
+          className="flex-1 bg-surface-secondary text-text-primary placeholder:text-text-muted px-4 py-2 rounded-md"
+        />
+
+        <Button
+          variant="secondary"
+          className="flex-shrink-0 flex items-center gap-2"
+        >
+          <UploadCloud className="w-5 h-5" />
+          <span>Upload (Dropbox)</span>
+        </Button>
       </div>
 
       {/* 2. Quick-access tool icons */}
