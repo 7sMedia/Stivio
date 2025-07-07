@@ -29,7 +29,7 @@ export default function ImageUpload({
       toast({
         title: "Duplicate image",
         description: `You've already uploaded ${file.name}.`,
-        variant: "destructive",
+        variant: "error", // ✅ FIXED: "destructive" → "error"
       });
       return;
     }
@@ -44,7 +44,7 @@ export default function ImageUpload({
       toast({
         title: "Upload failed",
         description: error.message,
-        variant: "destructive",
+        variant: "error", // ✅ FIXED
       });
     }
   };
