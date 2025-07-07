@@ -1,4 +1,3 @@
-// app/(protected)/dashboard/page.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -38,22 +37,17 @@ export default function DashboardPage() {
     <div className="space-y-8 p-6">
       {/* 1. Top action bar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <div className="w-full">
-          <Input
-            placeholder="Drop a video link or file here"
-            className="
-              w-full 
-              bg-surface-secondary 
-              text-text-primary 
-              placeholder:text-text-muted 
-              px-4 py-3 
-              rounded-md 
-              border border-surface-secondary
-              focus:border-accent
-              transition
-            "
-          />
-        </div>
+        <Input
+          placeholder="Drop a video link or file here"
+          className="
+            w-full
+            px-4 py-3 rounded-md
+            !bg-surface-secondary !text-text-primary
+            placeholder:!text-text-muted
+            border border-surface-secondary focus:border-accent
+            transition
+          "
+        />
 
         <Button
           variant="secondary"
@@ -76,19 +70,10 @@ export default function DashboardPage() {
         ].map((tool) => (
           <Card
             key={tool.label}
-            className="
-              flex items-center gap-2 
-              bg-surface-primary p-4 
-              cursor-pointer 
-              hover:border-accent 
-              border border-surface-secondary 
-              transition
-            "
+            className="flex items-center gap-2 bg-surface-primary p-4 cursor-pointer hover:border-accent border border-surface-secondary transition"
           >
             <div className="text-accent">{tool.icon}</div>
-            <span className="text-text-primary font-medium">
-              {tool.label}
-            </span>
+            <span className="text-text-primary font-medium">{tool.label}</span>
           </Card>
         ))}
       </div>
@@ -110,13 +95,7 @@ export default function DashboardPage() {
           {Array.from({ length: 6 }).map((_, i) => (
             <Card
               key={i}
-              className="
-                h-32 bg-surface-secondary 
-                cursor-pointer 
-                hover:border-accent 
-                border border-surface-secondary 
-                transition
-              "
+              className="h-32 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
             >
               <div className="flex h-full items-center justify-center text-text-secondary">
                 Project {i + 1}
@@ -133,17 +112,13 @@ export default function DashboardPage() {
             Dropbox Folder Setup
           </h3>
           <div className="space-y-4">
-            <label className="block text-sm text-text-secondary">
-              Input Folder
-            </label>
+            <label className="block text-sm text-text-secondary">Input Folder</label>
             <Button variant="outline" className="w-full">
               {inputFolder ?? "Select Input Folder"}
             </Button>
           </div>
           <div className="space-y-4">
-            <label className="block text-sm text-text-secondary">
-              Output Folder
-            </label>
+            <label className="block text-sm text-text-secondary">Output Folder</label>
             <Button variant="outline" className="w-full">
               {outputFolder ?? "Select Output Folder"}
             </Button>
@@ -156,24 +131,12 @@ export default function DashboardPage() {
           </h3>
           <label
             htmlFor="upload"
-            className="
-              flex flex-col items-center justify-center gap-2
-              border-2 border-dashed border-surface-secondary
-              rounded-lg p-6 cursor-pointer
-              hover:border-accent transition
-              text-text-secondary
-            "
+            className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-surface-secondary rounded-lg p-6 cursor-pointer hover:border-accent transition text-text-secondary"
           >
             <UploadCloud className="w-6 h-6 text-accent" />
             <span>Drag &amp; drop or click to upload .jpg, .jpeg, .png</span>
           </label>
-          <Input
-            id="upload"
-            type="file"
-            multiple
-            accept=".jpg,.jpeg,.png"
-            className="hidden"
-          />
+          <Input id="upload" type="file" multiple accept=".jpg,.jpeg,.png" className="hidden" />
         </Card>
       </div>
     </div>
