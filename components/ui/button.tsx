@@ -2,7 +2,7 @@ import React from 'react';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: 'default' | 'outline' | 'ghost' | 'destructive';
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'icon' | 'sm' | 'md' | 'lg';
   className?: string;
 };
 
@@ -14,7 +14,8 @@ export function Button({
   ...props
 }: ButtonProps) {
   // Size mappings
-  const sizeStyles = {
+  const sizeStyles: Record<string, string> = {
+    icon: 'p-0',
     sm: 'px-2 py-1 text-sm',
     md: 'px-4 py-2 text-base',
     lg: 'px-6 py-3 text-lg',
