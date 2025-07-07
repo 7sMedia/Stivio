@@ -13,8 +13,15 @@ import {
   HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+
+interface UploadFile {
+  id: string;
+  file: File;
+  progress: number;
+  url: string | null;
+  error: boolean;
+}
 
 declare global {
   interface Window {
@@ -26,9 +33,10 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [connected, setConnected] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
   const [inputFolder, setInputFolder] = useState<string | null>(null);
-  const [outputFolder, setOutputFolder] = useState<string | null>(null);
+  const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [connected, setConnected] = useState(false);
 
   // Load Dropbox Chooser SDK
   useEffect(() => {
@@ -42,7 +50,7 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Auth & token check
+  // Auth + token fetch
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
@@ -55,22 +63,14 @@ export default function DashboardPage() {
           .select("access_token")
           .eq("user_id", uid)
           .maybeSingle();
-        setConnected(!!row?.access_token);
+        if (row?.access_token) {
+          setToken(row.access_token);
+          setConnected(true);
+        }
         setLoading(false);
       }
     });
   }, [router]);
-
-  // Listen for OAuth popup success
-  useEffect(() => {
-    const onMessage = (e: MessageEvent) => {
-      if (e.data?.type === "dropbox-connected") {
-        setConnected(true);
-      }
-    };
-    window.addEventListener("message", onMessage);
-    return () => window.removeEventListener("message", onMessage);
-  }, []);
 
   if (loading) {
     return <div className="p-10 text-text-secondary">Loading...</div>;
@@ -92,95 +92,101 @@ export default function DashboardPage() {
       window.Dropbox.choose({
         folderselect: true,
         multiselect: false,
-        success: ([folder]: any) => setter(folder.name),
+        success: ([folder]: any) => setter(folder.path_display),
       });
     }
   };
 
-  // Create folder via API
-  const createFolder = async (
-    which: "input" | "output",
-    setter: React.Dispatch<React.SetStateAction<string | null>>
-  ) => {
-    const name = prompt(`New ${which} folder name?`);
-    if (!name || !userId) return;
-    const folderPath = `/${name}`;
-    const res = await fetch("/api/dropbox/create-folder", {
+  // Handle file selection & start upload to Dropbox
+  const handleFiles = (files: FileList | null) => {
+    if (!files || !token || !inputFolder) return;
+    const newUploads: UploadFile[] = Array.from(files).map((file) => ({
+      id: `${file.name}-${Date.now()}`,
+      file,
+      progress: 0,
+      url: null,
+      error: false,
+    }));
+    setUploadFiles((prev) => [...prev, ...newUploads]);
+    newUploads.forEach(uploadToDropbox);
+  };
+
+  // Upload each file via Dropbox API with progress
+  const uploadToDropbox = (upload: UploadFile) => {
+    if (!token || !inputFolder) return;
+    const dropboxPath = `${inputFolder}/${upload.file.name}`;
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", "https://content.dropboxapi.com/2/files/upload");
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
+    xhr.setRequestHeader(
+      "Dropbox-API-Arg",
+      JSON.stringify({ path: dropboxPath, mode: "add", autorename: true, mute: false })
+    );
+    xhr.upload.onprogress = (e) => {
+      const pct = Math.round((e.loaded / e.total) * 100);
+      setUploadFiles((prev) =>
+        prev.map((u) => (u.id === upload.id ? { ...u, progress: pct } : u))
+      );
+    };
+    xhr.onload = async () => {
+      if (xhr.status === 200) {
+        const info = JSON.parse(xhr.responseText);
+        // Fetch temporary link
+        const res = await fetch("https://api.dropboxapi.com/2/files/get_temporary_link", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ path: info.path_display }),
+        });
+        const data = await res.json();
+        setUploadFiles((prev) =>
+          prev.map((u) =>
+            u.id === upload.id ? { ...u, url: data.link, progress: 100 } : u
+          )
+        );
+      } else {
+        setUploadFiles((prev) =>
+          prev.map((u) => (u.id === upload.id ? { ...u, error: true } : u))
+        );
+      }
+    };
+    xhr.onerror = () => {
+      setUploadFiles((prev) =>
+        prev.map((u) => (u.id === upload.id ? { ...u, error: true } : u))
+      );
+    };
+    xhr.send(upload.file);
+  };
+
+  const removeFile = (id: string) => {
+    setUploadFiles((prev) => prev.filter((u) => u.id !== id));
+  };
+
+  // Generate Video
+  const handleGenerate = async () => {
+    if (!userId) return;
+    const imageUrls = uploadFiles.filter((u) => u.url).map((u) => u.url!) as string[];
+    const res = await fetch("/api/seedance/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, folderPath }),
+      body: JSON.stringify({ userId, imageUrls }),
     });
-    const data = await res.json();
-    if (data.folder) {
-      alert(`Created folder “${data.folder.name}”`);
-      setter(data.folder.name);
-    } else {
-      alert(`Error: ${data.error || data.details}`);
+    if (!res.ok) {
+      alert("Failed to generate video.");
+      return;
     }
+    const { jobId } = await res.json();
+    router.push(`/dashboard/job/${jobId}`);
   };
+
+  const hasImages = uploadFiles.some((u) => u.url);
 
   return (
     <div className="space-y-8 p-6">
-      {/* 1. Top action bar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-        <Input
-          placeholder="Drop a video link or file here"
-          className="w-full px-4 py-3 bg-surface-secondary text-text-primary placeholder:text-text-muted border border-surface-secondary rounded-md focus:border-accent transition"
-        />
-        <Button variant="secondary" className="flex-shrink-0 flex items-center gap-2 px-4 py-3">
-          <UploadCloud className="w-5 h-5" />
-          <span>Upload (Dropbox)</span>
-        </Button>
-      </div>
-
-      {/* 2. Quick-access tool icons */}
-      <div className="flex overflow-x-auto space-x-4 pb-2">
-        {[
-          { icon: <Grid />, label: "Long to shorts" },
-          { icon: <BarChart2 />, label: "AI Captions" },
-          { icon: <Users />, label: "Enhance speech" },
-          { icon: <Folder />, label: "AI Reframe" },
-          { icon: <Calendar />, label: "AI B-Roll" },
-          { icon: <HelpCircle />, label: "AI hook" },
-        ].map((tool) => (
-          <Card
-            key={tool.label}
-            className="inline-flex items-center gap-2 bg-surface-primary p-3 cursor-pointer hover:border-accent border border-surface-secondary transition"
-          >
-            <div className="text-accent">{tool.icon}</div>
-            <span className="text-text-primary font-medium">{tool.label}</span>
-          </Card>
-        ))}
-      </div>
-
-      {/* 3. Projects carousel */}
-      <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-text-primary">All Projects</h2>
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
-              Saved
-            </Button>
-            <Button variant="ghost" size="sm">
-              Favorites
-            </Button>
-          </div>
-        </div>
-        <div className="flex overflow-x-auto space-x-4 pb-2">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card
-              key={i}
-              className="flex-shrink-0 w-40 h-24 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
-            >
-              <div className="flex h-full items-center justify-center text-text-secondary">
-                Project {i + 1}
-              </div>
-            </Card>
-          ))}
-        </div>
-      </section>
-
-      {/* 4. Folder setup */}
+      {/* Folder Setup & Connect */}
       <Card className="bg-surface-primary p-6 space-y-4">
         <Button variant={connected ? "secondary" : "default"} className="w-full" onClick={connectDropbox}>
           {connected ? "Re-connect Dropbox" : "Connect Dropbox"}
@@ -196,33 +202,81 @@ export default function DashboardPage() {
             >
               {inputFolder ?? "Select Input Folder"}
             </Button>
-            <button
-              className="mt-2 text-xs text-accent hover:underline disabled:opacity-50"
-              disabled={!connected}
-              onClick={() => createFolder("input", setInputFolder)}
-            >
-              + New folder
-            </button>
-          </div>
-          <div>
-            <label className="block text-sm text-text-secondary mb-1">Output Folder</label>
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              onClick={() => chooseFolder(setOutputFolder)}
-              disabled={!connected}
-            >
-              {outputFolder ?? "Select Output Folder"}
-            </Button>
-            <button
-              className="mt-2 text-xs text-accent hover:underline disabled:opacity-50"
-              disabled={!connected}
-              onClick={() => createFolder("output", setOutputFolder)}
-            >
-              + New folder
-            </button>
           </div>
         </div>
+      </Card>
+
+      {/* Upload Panel */}
+      <Card className="bg-surface-primary p-6 space-y-4">
+        <label
+          htmlFor="upload"
+          className="
+            flex flex-col items-center justify-center
+            border-2 border-dashed border-surface-secondary
+            rounded-lg p-6 cursor-pointer
+            hover:border-accent transition text-text-secondary
+          "
+        >
+          <input
+            id="upload"
+            type="file"
+            multiple
+            accept=".jpg,.jpeg,.png"
+            className="hidden"
+            onChange={(e) => handleFiles(e.target.files)}
+            disabled={!inputFolder}
+          />
+          <span>Drag & drop or click to upload images</span>
+        </label>
+
+        {/* Upload Progress */}
+        {uploadFiles.map((u) => (
+          <div key={u.id} className="mt-4 flex items-center space-x-4">
+            <div className="flex-1">
+              <div className="text-sm text-text-primary">{u.file.name}</div>
+              <div className="w-full bg-surface-secondary rounded h-2 overflow-hidden mt-1">
+                <div
+                  className={`h-full ${u.error ? "bg-red-500" : "bg-accent"}`}
+                  style={{ width: `${u.progress}%` }}
+                />
+              </div>
+            </div>
+            {u.error ? (
+              <span className="text-red-500 text-sm">Error</span>
+            ) : u.progress === 100 && u.url ? (
+              <span className="text-green-400 text-sm">✔</span>
+            ) : (
+              <span className="text-text-secondary text-sm">{u.progress}%</span>
+            )}
+            <button onClick={() => removeFile(u.id)} className="text-text-secondary hover:text-red-400">
+              ✕
+            </button>
+          </div>
+        ))}
+
+        {/* Thumbnails */}
+        {hasImages && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+            {uploadFiles
+              .filter((u) => u.url)
+              .map((u) => (
+                <div key={u.id} className="relative group">
+                  <img src={u.url!} alt={u.file.name} className="object-cover w-full h-32 rounded" />
+                  <button
+                    onClick={() => removeFile(u.id)}
+                    className="absolute top-1 right-1 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+          </div>
+        )}
+
+        {/* Generate Video */}
+        <Button variant="secondary" className="mt-6" disabled={!hasImages} onClick={handleGenerate}>
+          Generate Video
+        </Button>
       </Card>
     </div>
   );
