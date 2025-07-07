@@ -1,4 +1,5 @@
 // app/layout.tsx
+
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import { ToastProvider } from "@/components/ui/use-toast";
