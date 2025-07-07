@@ -1,4 +1,5 @@
 import { Dropbox } from "dropbox";
+import { fetchWithDropboxRetry } from "@/lib/dropboxLimiter";
 
 export async function uploadToDropbox({
   file,
@@ -12,7 +13,8 @@ export async function uploadToDropbox({
     throw new Error("Dropbox not authenticated.");
   }
 
-  const dbx = new Dropbox({ accessToken, fetch });
+  // Use rate-limit safe fetch
+  const dbx = new Dropbox({ accessToken, fetch: fetchWithDropboxRetry });
 
   const fileName = file.name;
   const dropboxPath = `${folderPath}/${fileName}`;
