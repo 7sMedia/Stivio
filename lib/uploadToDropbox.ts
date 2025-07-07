@@ -16,26 +16,31 @@ export async function uploadToDropbox({
 
   const fileName = file.name;
   const dropboxPath = `${folderPath}/${fileName}`;
-
   const fileBuffer = await file.arrayBuffer();
 
-  const uploadResult = await dbx.filesUpload({
-    path: dropboxPath,
-    contents: fileBuffer,
-    mode: { ".tag": "add" },
-    autorename: true,
-  });
+  try {
+    const uploadResult = await dbx.filesUpload({
+      path: dropboxPath,
+      contents: fileBuffer,
+      mode: { ".tag": "add" },
+      autorename: true,
+      mute: true,
+    });
 
-  const sharedLink = await dbx.sharingCreateSharedLinkWithSettings({
-    path: uploadResult.result.path_lower!,
-  });
+    const sharedLink = await dbx.sharingCreateSharedLinkWithSettings({
+      path: uploadResult.result.path_lower!,
+    });
 
-  const rawLink = sharedLink.result.url.replace("?dl=0", "?raw=1");
+    const rawLink = sharedLink.result.url.replace("?dl=0", "?raw=1");
 
-  return {
-    name: fileName,
-    url: rawLink,
-    dropboxPath: uploadResult.result.path_lower,
-    fromDropbox: true,
-  };
+    return {
+      name: fileName,
+      url: rawLink,
+      dropboxPath: uploadResult.result.path_lower,
+      fromDropbox: true,
+    };
+  } catch (error: any) {
+    console.error("Dropbox upload failed:", error);
+    throw new Error(error?.message || "Dropbox upload failed.");
+  }
 }
