@@ -16,22 +16,88 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 
+declare global {
+  interface Window {
+    Dropbox: any;
+  }
+}
+
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [connected, setConnected] = useState(false);
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [outputFolder, setOutputFolder] = useState<string | null>(null);
 
+  // Load Dropbox Chooser SDK
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) router.replace("/login");
-      else setLoading(false);
+    const scriptId = "dropbox-chooser";
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://www.dropbox.com/static/api/2/dropins.js";
+      script.dataset.appKey = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  // On mount: auth check + token lookup
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      if (!data.session) {
+        router.replace("/login");
+      } else {
+        const uid = data.session.user.id;
+        setUserId(uid);
+        // check existing token
+        const { data: rows } = await supabase
+          .from("dropbox_tokens")
+          .select("access_token")
+          .eq("user_id", uid)
+          .limit(1);
+        setConnected(Array.isArray(rows) && rows.length > 0);
+        setLoading(false);
+      }
     });
   }, [router]);
+
+  // Listen for popup success message
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type === "dropbox-connected") {
+        setConnected(true);
+      }
+    };
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, []);
 
   if (loading) {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
+
+  // Start OAuth popup
+  const connectDropbox = () => {
+    if (!userId) return;
+    window.open(
+      `/api/dropbox/oauth?state=${encodeURIComponent(userId)}`,
+      "dropboxAuth",
+      "width=600,height=700"
+    );
+  };
+
+  // Folder chooser wrapper
+  const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
+    if (window.Dropbox) {
+      window.Dropbox.choose({
+        folderselect: true,
+        multiselect: false,
+        success: ([folder]: any) => setter(folder.name),
+        cancel: () => {},
+      });
+    }
+  };
 
   return (
     <div className="space-y-8 p-6">
@@ -39,28 +105,17 @@ export default function DashboardPage() {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <Input
           placeholder="Drop a video link or file here"
-          className="
-            w-full
-            px-4 py-3 rounded-md
-            !bg-surface-secondary !text-text-primary
-            placeholder:!text-text-muted
-            border border-surface-secondary focus:border-accent
-            transition
-          "
+          className="w-full px-4 py-3 bg-surface-secondary text-text-primary placeholder:text-text-muted border border-surface-secondary rounded-md focus:border-accent transition"
         />
-
-        <Button
-          variant="secondary"
-          className="flex-shrink-0 flex items-center gap-2 px-4 py-3"
-        >
+        <Button variant="secondary" className="flex-shrink-0 flex items-center gap-2 px-4 py-3">
           <UploadCloud className="w-5 h-5" />
           <span>Upload (Dropbox)</span>
         </Button>
       </div>
 
       {/* 2. Quick-access tool icons */}
-      <div className="flex flex-wrap gap-4">
-        {[
+      <div className="flex overflow-x-auto space-x-4 pb-2">
+        {[ 
           { icon: <Grid />, label: "Long to shorts" },
           { icon: <BarChart2 />, label: "AI Captions" },
           { icon: <Users />, label: "Enhance speech" },
@@ -70,7 +125,7 @@ export default function DashboardPage() {
         ].map((tool) => (
           <Card
             key={tool.label}
-            className="flex items-center gap-2 bg-surface-primary p-4 cursor-pointer hover:border-accent border border-surface-secondary transition"
+            className="inline-flex items-center gap-2 bg-surface-primary p-3 cursor-pointer hover:border-accent border border-surface-secondary transition"
           >
             <div className="text-accent">{tool.icon}</div>
             <span className="text-text-primary font-medium">{tool.label}</span>
@@ -78,24 +133,20 @@ export default function DashboardPage() {
         ))}
       </div>
 
-      {/* 3. Projects grid */}
+      {/* 3. Projects carousel placeholder */}
       <section className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-semibold text-text-primary">All Projects</h2>
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm">
-              Saved
-            </Button>
-            <Button variant="ghost" size="sm">
-              Favorites
-            </Button>
+            <Button variant="ghost" size="sm">Saved</Button>
+            <Button variant="ghost" size="sm">Favorites</Button>
           </div>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="flex overflow-x-auto space-x-4 pb-2">
           {Array.from({ length: 6 }).map((_, i) => (
             <Card
               key={i}
-              className="h-32 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
+              className="flex-shrink-0 w-40 h-24 bg-surface-secondary cursor-pointer hover:border-accent border border-surface-secondary transition"
             >
               <div className="flex h-full items-center justify-center text-text-secondary">
                 Project {i + 1}
@@ -105,40 +156,40 @@ export default function DashboardPage() {
         </div>
       </section>
 
-      {/* 4. Dropbox & Upload panels */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <Card className="bg-surface-primary">
-          <h3 className="text-xl font-semibold mb-4 text-text-primary">
-            Dropbox Folder Setup
-          </h3>
-          <div className="space-y-4">
-            <label className="block text-sm text-text-secondary">Input Folder</label>
-            <Button variant="outline" className="w-full">
+      {/* 4. Dropbox Folder Setup */}
+      <Card className="bg-surface-primary p-6 space-y-4">
+        <Button
+          variant={connected ? "secondary" : "default"}
+          className="w-full"
+          onClick={connectDropbox}
+        >
+          {connected ? "Re-connect Dropbox" : "Connect Dropbox"}
+        </Button>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm text-text-secondary mb-1">Input Folder</label>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => chooseFolder(setInputFolder)}
+              disabled={!connected}
+            >
               {inputFolder ?? "Select Input Folder"}
             </Button>
           </div>
-          <div className="space-y-4">
-            <label className="block text-sm text-text-secondary">Output Folder</label>
-            <Button variant="outline" className="w-full">
+          <div>
+            <label className="block text-sm text-text-secondary mb-1">Output Folder</label>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={() => chooseFolder(setOutputFolder)}
+              disabled={!connected}
+            >
               {outputFolder ?? "Select Output Folder"}
             </Button>
           </div>
-        </Card>
-
-        <Card className="bg-surface-primary">
-          <h3 className="text-xl font-semibold mb-4 text-text-primary">
-            Upload Images
-          </h3>
-          <label
-            htmlFor="upload"
-            className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-surface-secondary rounded-lg p-6 cursor-pointer hover:border-accent transition text-text-secondary"
-          >
-            <UploadCloud className="w-6 h-6 text-accent" />
-            <span>Drag &amp; drop or click to upload .jpg, .jpeg, .png</span>
-          </label>
-          <Input id="upload" type="file" multiple accept=".jpg,.jpeg,.png" className="hidden" />
-        </Card>
-      </div>
+        </div>
+      </Card>
     </div>
   );
 }
