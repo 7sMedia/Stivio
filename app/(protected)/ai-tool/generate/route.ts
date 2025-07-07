@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
 
     const videoBuffer = Buffer.from(await videoFileRes.arrayBuffer());
 
-    // Step 4: Upload to Dropbox using generateOutputPath
+    // Step 4: Upload to Dropbox using structured path
     const { fullPath: dropboxUploadPath, filename, folder } = generateOutputPath();
 
     const uploadRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
