@@ -1,6 +1,6 @@
-// src/config/nav.ts
+// app/src/config/nav.ts
 export const navItems = [
-  { title: "Dashboard", href: "/app/(protected)/dashboard" },
-  { title: "AI Tool",   href: "/app/(protected)/ai-tool" },
-  { title: "Templates", href: "/app/(protected)/templates" },
+  { title: "Dashboard", href: "/dashboard" },
+  { title: "AI Tool",   href: "/ai-tool"   },
+  { title: "Templates", href: "/templates" },
 ];
