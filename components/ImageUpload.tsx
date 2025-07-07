@@ -21,8 +21,11 @@ export default function ImageUpload({
   const [uploading, setUploading] = useState(false);
   const [uploadedNames, setUploadedNames] = useState<Set<string>>(new Set());
 
+  const normalize = (name: string) => name.trim().toLowerCase();
+
   const handleUpload = async (file: File) => {
-    if (uploadedNames.has(file.name)) {
+    const normalized = normalize(file.name);
+    if (uploadedNames.has(normalized)) {
       toast({
         title: "Duplicate image",
         description: `You've already uploaded ${file.name}.`,
@@ -31,63 +34,54 @@ export default function ImageUpload({
       return;
     }
 
-    const result = await uploadToDropbox({ file, folderPath: inputFolderPath });
-    onDropbox?.([result]);
-    setUploadedNames(prev => new Set(prev).add(file.name));
-    onChange?.(file);
+    try {
+      const dropboxMeta = await uploadToDropbox({ file, folderPath: inputFolderPath });
+      onDropbox?.([dropboxMeta]);
+      onChange?.(file);
+      setUploadedNames(prev => new Set(prev).add(normalized));
+    } catch (error: any) {
+      console.error("Upload failed", error);
+      toast({
+        title: "Upload failed",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (!acceptedFiles.length) return;
       setUploading(true);
-      try {
-        for (const file of acceptedFiles) {
-          await handleUpload(file);
-        }
-      } catch (error: any) {
-        console.error(error);
-        toast({
-          title: "Upload failed",
-          description: error.message,
-          variant: "destructive",
-        });
-      } finally {
-        setUploading(false);
+      for (const file of acceptedFiles) {
+        await handleUpload(file);
       }
+      setUploading(false);
     },
-    [inputFolderPath, uploadedNames]
+    [uploadedNames, inputFolderPath]
   );
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setUploading(true);
-    try {
-      await handleUpload(file);
-    } catch (error: any) {
-      console.error(error);
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setUploading(false);
-    }
+    await handleUpload(file);
+    setUploading(false);
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: { "image/*": [".jpg", ".jpeg", ".png"] },
+    accept: {
+      "image/jpeg": [".jpg", ".jpeg"],
+      "image/png": [".png"],
+    },
     maxFiles: 1,
   });
 
   return (
     <div
-      className="border-2 border-dashed border-zinc-600 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-400 transition-colors"
       {...getRootProps()}
+      className="border-2 border-dashed border-zinc-600 rounded-xl p-6 text-center cursor-pointer hover:border-zinc-400 transition-colors"
     >
       <input {...getInputProps()} />
       <input
@@ -97,6 +91,7 @@ export default function ImageUpload({
         hidden
         onChange={handleFileSelect}
       />
+
       {uploading ? (
         <p className="text-sm text-muted-foreground">Uploading...</p>
       ) : isDragActive ? (
