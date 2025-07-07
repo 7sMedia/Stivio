@@ -1,4 +1,3 @@
-// lib/dropbox.ts
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -8,27 +7,36 @@ const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
+type DropboxTokenRow = {
+  access_token: string;
+  refresh_token: string;
+  expires_at: string;
+};
+
 export async function getValidDropboxToken(userId: string): Promise<string | null> {
   const { data, error } = await supabase
     .from("dropbox_tokens")
     .select("*")
     .eq("user_id", userId);
 
-  if (error || !data || data.length === 0) return null;
+  if (error || !data || data.length === 0) {
+    console.error("Failed to retrieve Dropbox token row", error);
+    return null;
+  }
 
-  const row = data[0];
+  const row = data[0] as DropboxTokenRow;
 
-  // 2. Check if access token is about to expire (within 5 minutes)
-  const expiresAt = new Date(row.expires_at).getTime();
+  // 1. Check expiration
   const now = Date.now();
   const fiveMinutes = 5 * 60 * 1000;
+  const expiresAt = row.expires_at ? new Date(row.expires_at).getTime() : 0;
 
   if (expiresAt - now > fiveMinutes) {
-    // Token is still valid
     return row.access_token;
   }
 
-  // 3. Token expired or about to expire, refresh it!
+  // 2. Token expired or near expiry — refresh it
+  const start = Date.now();
   const params = new URLSearchParams();
   params.append("grant_type", "refresh_token");
   params.append("refresh_token", row.refresh_token);
@@ -45,25 +53,36 @@ export async function getValidDropboxToken(userId: string): Promise<string | nul
   });
 
   if (!response.ok) {
-    console.error("Failed to refresh Dropbox token");
+    const errText = await response.text();
+    console.error("Failed to refresh Dropbox token", errText);
     return null;
   }
 
-  const json = await response.json();
+  const json: {
+    access_token: string;
+    expires_in: number;
+    token_type: string;
+    scope?: string;
+    account_id?: string;
+  } = await response.json();
 
-  // Save the new token and expiry in DB
   const newAccessToken = json.access_token;
-  const expiresIn = json.expires_in; // seconds
+  const newExpiresAt = new Date(Date.now() + json.expires_in * 1000).toISOString();
 
-  const newExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
-
-  await supabase
+  const { error: updateError } = await supabase
     .from("dropbox_tokens")
     .update({
       access_token: newAccessToken,
       expires_at: newExpiresAt,
     })
     .eq("user_id", userId);
+
+  if (updateError) {
+    console.error("Failed to update Supabase with new token", updateError);
+  }
+
+  const duration = Date.now() - start;
+  console.log(`[Dropbox] Token refreshed in ${duration}ms`);
 
   return newAccessToken;
 }
