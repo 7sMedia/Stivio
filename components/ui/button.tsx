@@ -1,7 +1,7 @@
 import React from 'react';
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'default' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'default' | 'outline' | 'ghost' | 'destructive' | 'secondary';
   size?: 'icon' | 'sm' | 'md' | 'lg';
   className?: string;
 };
@@ -36,6 +36,9 @@ export function Button({
     case 'destructive':
       variantStyles = 'bg-red-600 text-text-primary hover:bg-red-700';
       break;
+    case 'secondary':
+      variantStyles = 'bg-surface-secondary text-text-primary hover:bg-surface-primary';
+      break;
     default:
       variantStyles = 'bg-accent text-bg-dark';
       break;
@@ -50,3 +53,4 @@ export function Button({
     </button>
   );
 }
+```
