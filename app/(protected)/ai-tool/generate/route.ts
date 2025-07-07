@@ -1,3 +1,5 @@
+// app/(protected)/ai-tool/generate/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { getValidDropboxToken } from "@/lib/dropbox";
 import { createClient } from "@supabase/supabase-js";
@@ -8,6 +10,7 @@ import {
   markTaskEnd,
 } from "@/lib/seedanceLimiter";
 import { generateOutputPath } from "@/lib/storagePaths";
+import { uploadToDropboxWithRateLimit } from "@/lib/uploadToDropboxWithRateLimit";
 
 const SEEDANCE_API_KEY = process.env.SEEDANCE_API_KEY!;
 const SEEDANCE_ENDPOINT = "https://api.wavespeed.ai/v1/endpoint";
@@ -55,7 +58,7 @@ export async function POST(req: NextRequest) {
 
     const imageBase64 = Buffer.from(await imageRes.arrayBuffer()).toString("base64");
 
-    // Step 2: Call Seedance API with timing
+    // Step 2: Call Seedance API
     const seedanceStart = Date.now();
     const seedanceRes = await fetch(SEEDANCE_ENDPOINT, {
       method: "POST",
@@ -78,48 +81,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No video URL in Seedance response" }, { status: 500 });
     }
 
-    // Step 3: Download video
+    // Step 3: Download generated video
     const videoFileRes = await fetch(seedanceResult.video_url);
     if (!videoFileRes.ok) {
       return NextResponse.json({ error: "Failed to download video from Seedance" }, { status: 500 });
     }
 
-    const videoBuffer = Buffer.from(await videoFileRes.arrayBuffer());
+    const videoBlob = await videoFileRes.blob();
+    const file = new File([videoBlob], "video.mp4", { type: "video/mp4" });
 
-    // Step 4: Upload to Dropbox using structured path
+    // Step 4: Upload to Dropbox using rate-limited uploader
     const { fullPath: dropboxUploadPath, filename, folder } = generateOutputPath();
 
-    const uploadRes = await fetch("https://content.dropboxapi.com/2/files/upload", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${dropboxToken}`,
-        "Dropbox-API-Arg": JSON.stringify({
-          path: dropboxUploadPath,
-          mode: "add",
-          autorename: true,
-          mute: false,
-          strict_conflict: false,
-        }),
-        "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="${filename}"`,
-      },
-      body: videoBuffer,
+    const uploadResult = await uploadToDropboxWithRateLimit({
+      file,
+      filename,
+      accessToken: dropboxToken,
+      folderPath: folder,
     });
 
-    if (!uploadRes.ok) {
-      const err = await uploadRes.text();
-      return NextResponse.json(
-        { error: "Failed to upload video to Dropbox", details: err },
-        { status: 500 }
-      );
-    }
-
-    const uploadResult = await uploadRes.json();
-
-    // Step 5: Log metadata in Supabase
+    // Step 5: Log metadata to Supabase
     const { error: insertError } = await supabaseAdmin.from("generated_videos").insert({
       user_id: userId,
-      dropbox_path: dropboxUploadPath,
+      dropbox_path: uploadResult.dropboxPath,
       filename,
       output_folder: folder,
       prompt,
@@ -135,7 +119,7 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json({
-      dropbox_video_path: dropboxUploadPath,
+      dropbox_video_path: uploadResult.dropboxPath,
       dropbox_metadata: uploadResult,
       seedance_metadata: seedanceResult,
       duration_ms: seedanceElapsed,
