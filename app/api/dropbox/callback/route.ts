@@ -4,15 +4,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import validator from "validator";
 
+// ✅ Environment Variables
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
-const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_APP_SECRET!;
-const DROPBOX_REDIRECT_URI = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!;
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
+const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
+const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://beta7mvp.vercel.app";
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
+// ✅ Utility: error HTML for user-facing failures
 function errorHtml(message: string): string {
   return `
     <html>
@@ -37,13 +37,14 @@ export async function GET(request: NextRequest) {
   }
 
   if (!code) {
-    return new NextResponse(errorHtml("Missing Dropbox code"), {
+    return new NextResponse(errorHtml("Missing Dropbox authorization code"), {
       status: 400,
       headers: { "Content-Type": "text/html" },
     });
   }
 
   try {
+    // Exchange authorization code for access token
     const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
       method: "POST",
       headers: {
@@ -69,10 +70,22 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    await supabase
-      .from("users")
-      .update({ dropbox_token: tokenJson.access_token })
-      .eq("id", userId);
+    // Save the access token to Supabase
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const { error: dbError } = await supabase
+      .from("dropbox_tokens")
+      .upsert({
+        user_id: userId,
+        access_token: tokenJson.access_token,
+      });
+
+    if (dbError) {
+      console.error("Supabase upsert error:", dbError);
+      return new NextResponse(errorHtml("Failed to save Dropbox token"), {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
+    }
 
     return NextResponse.redirect(`${SITE_URL}/dashboard`);
   } catch (err) {
