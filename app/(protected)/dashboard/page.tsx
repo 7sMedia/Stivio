@@ -14,24 +14,27 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUserAndToken = async () => {
+    const getSession = async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (!session?.user?.id) {
         router.push("/login");
         return;
       }
 
-      setUserId(user.id);
+      const id = session.user.id;
+      setUserId(id);
 
-      const { data, error } = await supabase
+      const { data, error: tokenError } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
-        .eq("user_id", user.id)
+        .eq("user_id", id)
         .single();
 
-      if (error || !data) {
+      if (tokenError || !data) {
         console.warn("No Dropbox token found.");
         setToken(null);
       } else {
@@ -41,7 +44,7 @@ export default function DashboardPage() {
       setLoading(false);
     };
 
-    getUserAndToken();
+    getSession();
   }, [router]);
 
   if (loading) {
@@ -58,7 +61,9 @@ export default function DashboardPage() {
             <p className="mb-4">Connect your Dropbox account to continue.</p>
             <Button
               onClick={() => {
-                window.location.href = `/api/dropbox/auth`;
+                if (userId) {
+                  window.location.href = `/api/dropbox/auth?user_id=${userId}`;
+                }
               }}
             >
               Connect Dropbox
@@ -66,15 +71,12 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
       ) : (
-        <>
-          {/* ✅ Step 3: Render DropboxImageUploader */}
-          <Card className="mb-6">
-            <CardContent className="p-4">
-              <h2 className="text-xl font-semibold mb-2">Upload Images</h2>
-              <DropboxImageUploader accessToken={token} />
-            </CardContent>
-          </Card>
-        </>
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <h2 className="text-xl font-semibold mb-2">Upload Images</h2>
+            <DropboxImageUploader accessToken={token} />
+          </CardContent>
+        </Card>
       )}
     </div>
   );
