@@ -7,19 +7,20 @@ export default function DropboxConnectButton() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getUser();
       if (data?.user?.id) {
         setUserId(data.user.id);
       }
-    });
+    };
+    fetchUser();
   }, []);
 
   const handleConnect = () => {
     if (!userId) {
-      alert("Not authenticated");
+      alert("User not authenticated.");
       return;
     }
-
     const url = `/api/dropbox/auth?user_id=${userId}`;
     window.location.href = url;
   };
