@@ -12,12 +12,12 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
     const init = async () => {
       const {
         data: { session },
-        error,
       } = await supabase.auth.getSession();
 
       if (!session?.user?.id) {
@@ -36,10 +36,7 @@ export default function DashboardPage() {
         .limit(1)
         .single();
 
-      if (tokenError || !data?.access_token) {
-        console.warn("No Dropbox token found for this user.");
-        setToken(null);
-      } else {
+      if (!tokenError && data?.access_token) {
         setToken(data.access_token);
       }
 
@@ -49,33 +46,59 @@ export default function DashboardPage() {
     init();
   }, [router]);
 
-  if (loading) {
-    return <div className="text-center p-4">Loading...</div>;
-  }
+  if (loading) return <div className="text-center text-white p-10">Loading...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto p-6 text-white">
-      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
+    <div className="min-h-screen bg-black text-white py-10 px-6 md:px-10">
+      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
       {!token ? (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <p className="mb-4">Connect your Dropbox account to continue.</p>
-            {/* ✅ Updated Button: Redirects to full-screen connect flow */}
+        <Card className="mb-6 bg-[#1c1c1c]">
+          <CardContent className="p-6">
+            <p className="mb-4 text-lg">Connect your Dropbox account to continue.</p>
             <Button
               onClick={() => router.push("/connect-dropbox")}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
             >
               Connect Dropbox
             </Button>
           </CardContent>
         </Card>
       ) : (
-        <Card className="mb-6">
-          <CardContent className="p-4">
-            <h2 className="text-xl font-semibold mb-2">Upload Images</h2>
-            <DropboxImageUploader accessToken={token} />
-          </CardContent>
-        </Card>
+        <>
+          {/* Upload Panel */}
+          <Card className="mb-6 bg-[#1c1c1c]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-3">Upload Images</h2>
+              <DropboxImageUploader accessToken={token} />
+            </CardContent>
+          </Card>
+
+          {/* Prompt Input */}
+          <Card className="mb-6 bg-[#1c1c1c]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-3">Describe Your Video</h2>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={4}
+                placeholder="e.g. Create a fast-paced ad for a beach resort with upbeat music."
+                className="w-full p-4 rounded-md text-black"
+              />
+              <Button className="mt-4 bg-green-500 hover:bg-green-600 text-white">
+                Generate Video
+              </Button>
+            </CardContent>
+          </Card>
+
+          {/* Recent Jobs (Placeholder) */}
+          <Card className="mb-6 bg-[#1c1c1c]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-3">Recent Jobs</h2>
+              <p className="text-gray-400">Coming soon...</p>
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );
