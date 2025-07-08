@@ -38,7 +38,6 @@ export default function DashboardPage() {
       return;
     }
 
-    // Remove any existing script
     const existing = document.getElementById("dropbox-chooser");
     if (existing) existing.remove();
 
@@ -99,7 +98,7 @@ export default function DashboardPage() {
     }
   };
 
-  // 5) Handle file selection & upload to Dropbox...
+  // 5) Handle file selection & upload to Dropbox
   const handleFiles = (files: FileList | null) => {
     if (!files || !token || !inputFolder) return;
     const newUploads: UploadFile[] = Array.from(files).map((file) => ({
@@ -165,7 +164,6 @@ export default function DashboardPage() {
     setUploadFiles((prev) => prev.filter((u) => u.id !== id));
   };
 
-  // 6) Generate Video
   const handleGenerate = async () => {
     if (!userId) return;
     const imageUrls = uploadFiles.filter((u) => u.url).map((u) => u.url!) as string[];
@@ -186,7 +184,6 @@ export default function DashboardPage() {
 
   return (
     <main className="p-6 space-y-8 max-w-[900px] mx-auto">
-      {/* Dropbox Connect Card */}
       <Card className="flex flex-col items-center space-y-4 p-8 bg-surface-primary">
         <img src="/dropbox-logo.svg" alt="Dropbox" className="h-12 w-12" />
         <h2 className="text-2xl font-semibold text-text-primary">
@@ -199,6 +196,7 @@ export default function DashboardPage() {
         >
           {token ? "Re-connect Dropbox" : "Connect Dropbox"}
         </Button>
+
         {token && (
           <div className="w-full max-w-xs text-left">
             <label className="block text-sm text-text-secondary mb-1">Input Folder</label>
@@ -213,17 +211,11 @@ export default function DashboardPage() {
         )}
       </Card>
 
-      {/* Upload Panel */}
       {token && inputFolder && (
         <Card className="bg-surface-primary p-6 space-y-4">
           <label
             htmlFor="upload"
-            className="
-              flex flex-col items-center justify-center
-              border-2 border-dashed border-surface-secondary
-              rounded-lg p-6 cursor-pointer
-              hover:border-accent transition text-text-secondary
-            "
+            className="flex flex-col items-center justify-center border-2 border-dashed border-surface-secondary rounded-lg p-6 cursor-pointer hover:border-accent transition text-text-secondary"
           >
             <input
               id="upload"
