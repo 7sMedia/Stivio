@@ -32,7 +32,7 @@ export default function DashboardPage() {
       }
 
       setUserId(user.id);
-      setUserEmail(user.email);
+      setUserEmail(user.email ?? null); // ✅ TS-safe assignment
       setLoading(false);
     };
 
@@ -58,9 +58,11 @@ export default function DashboardPage() {
     <div className="p-6 space-y-4">
       <Card className="p-4">
         <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-        <p className="text-sm text-gray-400">
-          Logged in as: <span className="font-medium">{userEmail}</span>
-        </p>
+        {userEmail && (
+          <p className="text-sm text-gray-400">
+            Logged in as: <span className="font-medium">{userEmail}</span>
+          </p>
+        )}
       </Card>
 
       <Card className="p-4">
