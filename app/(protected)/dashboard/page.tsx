@@ -1,100 +1,69 @@
-File: `app/(protected)/dashboard/page.tsx`
-
-```tsx
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxFileList from "@/components/DropboxFileList";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [email, setEmail] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserInfo = async () => {
       const {
         data: { user },
-        error,
       } = await supabase.auth.getUser();
 
       if (user) {
         setUserId(user.id);
-        setEmail(user.email ?? null);
-      } else {
-        console.error("User not found:", error);
-        router.push("/login");
-      }
-    };
 
-    getUser();
-  }, [router]);
+        const { data, error } = await supabase
+          .from("dropbox_tokens")
+          .select("access_token")
+          .eq("user_id", user.id)
+          .single();
 
-  useEffect(() => {
-    const fetchDropboxToken = async () => {
-      if (!userId) return;
-
-      const { data, error } = await supabase
-        .from("dropbox_tokens")
-        .select("access_token")
-        .eq("user_id", userId)
-        .single();
-
-      if (data && data.access_token) {
-        setToken(data.access_token);
-      } else {
-        setToken(null);
-        if (error) {
-          console.warn("Dropbox token not found:", error.message);
+        if (data && data.access_token) {
+          setAccessToken(data.access_token);
         }
       }
     };
 
-    fetchDropboxToken();
-  }, [userId]);
+    getUserInfo();
+  }, []);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="p-4 space-y-8">
       <Card>
         <CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Welcome</h2>
-          <p className="text-muted-foreground text-sm mb-2">
-            User ID: <span className="text-foreground font-mono">{userId ?? "-"}</span>
-          </p>
-          <p className="text-muted-foreground text-sm mb-2">
-            Email: <span className="text-foreground font-mono">{email ?? "-"}</span>
-          </p>
-          <div className="mt-4">
-            <DropboxConnectButton />
-          </div>
+          <p>Your email: {userId}</p>
+          <DropboxConnectButton />
         </CardContent>
       </Card>
 
-      {token && (
+      {accessToken && (
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
-            <DropboxFolderPicker accessToken={token} />
+            <DropboxFolderPicker accessToken={accessToken} />
           </CardContent>
         </Card>
       )}
 
-      {userId && (
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
-            <DropboxFileList userId={userId} onProcessFile={() => {}} />
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
+          <DropboxFileList
+            userId={userId ?? ""}
+            onProcessFile={() => {}}
+          />
+        </CardContent>
+      </Card>
     </div>
   );
 }
-```
