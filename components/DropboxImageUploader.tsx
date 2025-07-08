@@ -1,67 +1,69 @@
+// File: components/DropboxImageUploader.tsx
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
+import { Dropbox } from "dropbox";
+import { useSession } from "@/hooks/useSession";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  token: string;
-  folderPath: string;
+  accessToken: string;
+  selectedFolderPath: string;
 }
 
-export default function DropboxImageUploader({ token, folderPath }: Props) {
+export default function DropboxImageUploader({ accessToken, selectedFolderPath }: Props) {
+  const { session } = useSession();
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || !accessToken || !selectedFolderPath) return;
 
     setUploading(true);
+    setError(null);
+    setSuccess(false);
 
-    const uploadPromises = Array.from(files).map(async (file) => {
-      const arrayBuffer = await file.arrayBuffer();
+    try {
+      const dbx = new Dropbox({ accessToken });
 
-      const res = await fetch("https://content.dropboxapi.com/2/files/upload", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Dropbox-API-Arg": JSON.stringify({
-            path: `${folderPath}/${file.name}`,
-            mode: "add",
-            autorename: true,
-            mute: false
-          }),
-          "Content-Type": "application/octet-stream"
-        },
-        body: arrayBuffer
-      });
+      for (const file of Array.from(files)) {
+        const path = `${selectedFolderPath}/${file.name}`;
+        const contents = await file.arrayBuffer();
 
-      if (!res.ok) {
-        const error = await res.json();
-        console.error(`Failed to upload ${file.name}:`, error);
+        await dbx.filesUpload({
+          path,
+          contents,
+          mode: { ".tag": "add" },
+          autorename: true
+        });
       }
-    });
 
-    await Promise.all(uploadPromises);
-    alert("Upload complete.");
-    setUploading(false);
-  };
+      setSuccess(true);
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      setError("Failed to upload to Dropbox");
+    } finally {
+      setUploading(false);
+    }
+  }, [accessToken, selectedFolderPath]);
 
   return (
-    <div className="w-full flex flex-col items-center gap-4">
-      <label className="text-lg font-semibold text-white">
-        Upload images to: <code>{folderPath}</code>
-      </label>
+    <div className="flex flex-col gap-2">
       <input
         type="file"
-        accept="image/*"
         multiple
+        accept="image/*"
         onChange={handleUpload}
         disabled={uploading}
-        className="block text-white"
+        className="text-white"
       />
-      <Button disabled={uploading}>
-        {uploading ? "Uploading..." : "Upload Images"}
-      </Button>
+      {uploading && <span className="text-yellow-300">Uploading...</span>}
+      {error && <span className="text-red-500">{error}</span>}
+      {success && <span className="text-green-400">Upload successful!</span>}
     </div>
   );
 }
