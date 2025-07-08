@@ -69,10 +69,16 @@ export default function DashboardPage() {
     });
   }, [router]);
 
+  if (loading) {
+    return <div className="p-10 text-text-secondary">Loading...</div>;
+  }
+
   const connectDropbox = () => {
-    if (!userId) return;
-    console.log("🔗 Redirecting to Dropbox OAuth...");
-    window.location.href = `/api/dropbox/auth?user_id=${userId}`;
+    console.log("✅ Redirecting to Dropbox OAuth...");
+
+    // Debug mode: hardcoded URL to verify button actually redirects
+    window.location.href =
+      "https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=lr6natwkwztr41w&redirect_uri=https://beta7mvp.vercel.app/api/dropbox/callback&state=testuser123";
   };
 
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
@@ -170,10 +176,6 @@ export default function DashboardPage() {
 
   const hasImages = uploadFiles.some((u) => u.url);
 
-  if (loading) {
-    return <div className="p-10 text-text-secondary">Loading...</div>;
-  }
-
   return (
     <main className="p-6 space-y-8 max-w-[900px] mx-auto">
       <Card className="flex flex-col items-center space-y-4 p-8 bg-surface-primary">
@@ -203,7 +205,83 @@ export default function DashboardPage() {
         )}
       </Card>
 
-      {/* Image Upload + Preview section stays unchanged */}
+      {token && inputFolder && (
+        <Card className="bg-surface-primary p-6 space-y-4">
+          <label
+            htmlFor="upload"
+            className="flex flex-col items-center justify-center border-2 border-dashed border-surface-secondary rounded-lg p-6 cursor-pointer hover:border-accent transition text-text-secondary"
+          >
+            <input
+              id="upload"
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png"
+              className="hidden"
+              onChange={(e) => handleFiles(e.target.files)}
+            />
+            <UploadCloud size={32} className="mb-2 text-accent" />
+            <span>Drag & drop or click to upload images</span>
+          </label>
+
+          {uploadFiles.map((u) => (
+            <div key={u.id} className="mt-4 flex items-center space-x-4">
+              <div className="flex-1">
+                <div className="text-sm text-text-primary">{u.file.name}</div>
+                <div className="w-full bg-surface-secondary rounded h-2 overflow-hidden mt-1">
+                  <div
+                    className={`h-full ${u.error ? "bg-red-500" : "bg-accent"}`}
+                    style={{ width: `${u.progress}%` }}
+                  />
+                </div>
+              </div>
+              {u.error ? (
+                <span className="text-red-500 text-sm">Error</span>
+              ) : u.progress === 100 && u.url ? (
+                <span className="text-green-400 text-sm">✔</span>
+              ) : (
+                <span className="text-text-secondary text-sm">{u.progress}%</span>
+              )}
+              <button
+                onClick={() => removeFile(u.id)}
+                className="text-text-secondary hover:text-red-400"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+
+          {hasImages && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-6">
+              {uploadFiles
+                .filter((u) => u.url)
+                .map((u) => (
+                  <div key={u.id} className="relative group">
+                    <img
+                      src={u.url!}
+                      alt={u.file.name}
+                      className="object-cover w-full h-32 rounded"
+                    />
+                    <button
+                      onClick={() => removeFile(u.id)}
+                      className="absolute top-1 right-1 p-1 bg-black/50 rounded-full opacity-0 group-hover:opacity-100"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+            </div>
+          )}
+
+          <Button
+            variant="secondary"
+            className="mt-4"
+            disabled={!hasImages}
+            onClick={handleGenerate}
+          >
+            Generate Video
+          </Button>
+        </Card>
+      )}
     </main>
   );
 }
