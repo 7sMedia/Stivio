@@ -30,7 +30,6 @@ export default function DashboardPage() {
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
   const [chooserReady, setChooserReady] = useState(false);
 
-  // 1) Dynamically load the Dropbox Chooser SDK with the correct key
   useEffect(() => {
     const APP_KEY = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
     if (!APP_KEY) {
@@ -50,7 +49,6 @@ export default function DashboardPage() {
     document.body.appendChild(script);
   }, []);
 
-  // 2) Authenticate & fetch stored Dropbox token
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
@@ -75,17 +73,11 @@ export default function DashboardPage() {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
 
-  // 3) OAuth popup
   const connectDropbox = () => {
     if (!userId) return;
-    window.open(
-      `/api/dropbox/oauth?state=${encodeURIComponent(userId)}`,
-      "dropboxAuth",
-      "width=600,height=700"
-    );
+    window.location.href = `/api/dropbox/auth?user_id=${userId}`;
   };
 
-  // 4) Folder chooser (only if SDK loaded)
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (chooserReady && window.Dropbox) {
       window.Dropbox.choose({
@@ -98,7 +90,6 @@ export default function DashboardPage() {
     }
   };
 
-  // 5) Handle file selection & upload to Dropbox
   const handleFiles = (files: FileList | null) => {
     if (!files || !token || !inputFolder) return;
     const newUploads: UploadFile[] = Array.from(files).map((file) => ({
