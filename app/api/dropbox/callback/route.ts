@@ -47,14 +47,16 @@ export async function GET(request: NextRequest) {
 
     const { access_token, refresh_token, expires_in, account_id } = tokenData;
 
+    const expiresAt = new Date(Date.now() + expires_in * 1000).toISOString();
+
     const { error: dbxError } = await supabase
       .from("dropbox_tokens")
       .upsert({
         user_id: userId,
         access_token,
         refresh_token,
-        expires_in,
-        dropbox_account_id: account_id
+        account_id,
+        expires_at: expiresAt
       });
 
     if (dbxError) {
