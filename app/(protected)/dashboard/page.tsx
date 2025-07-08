@@ -175,14 +175,17 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-semibold text-text-primary">
           {token ? "Dropbox Connected" : "Connect Your Dropbox"}
         </h2>
-
-        <a
-          href={`/api/dropbox/auth?user_id=${userId}`}
-          className="w-full max-w-xs flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded text-center"
-        >
-          {token ? "Re-connect Dropbox" : "Connect Dropbox"}
-        </a>
-
+        <Button
+  variant={token ? "secondary" : "default"}
+  className="w-full max-w-xs flex items-center justify-center gap-2"
+  onClick={() => {
+    if (userId) {
+      window.location.href = `/api/dropbox/auth?user_id=${userId}`;
+    }
+  }}
+>
+  {token ? "Re-connect Dropbox" : "Connect Dropbox"}
+</Button>
         {token && (
           <div className="w-full max-w-xs text-left">
             <label className="block text-sm text-text-secondary mb-1">Input Folder</label>
