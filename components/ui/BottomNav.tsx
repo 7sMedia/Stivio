@@ -2,42 +2,36 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home as HomeIcon,
-  Grid as ProjectsIcon,
-  Settings as ToolsIcon,
-  User as AccountIcon,
-} from "lucide-react";
+import { Home, Wand2 } from "lucide-react";
 
 export default function BottomNav() {
-  const path = usePathname();
-  const tabs = [
-    { href: "/dashboard",    label: "Home",     icon: <HomeIcon /> },
-    { href: "/projects",     label: "Projects", icon: <ProjectsIcon /> },
-    { href: "/tools",        label: "Tools",    icon: <ToolsIcon /> },
-    { href: "/account",      label: "Account",  icon: <AccountIcon /> },
-  ];
+  const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-surface-primary border-t border-surface-secondary md:hidden">
-      <ul className="flex justify-around">
-        {tabs.map((tab) => {
-          const active = path?.startsWith(tab.href);
-          return (
-            <li key={tab.href}>
-              <Link
-                href={tab.href}
-                className={`
-                  flex flex-col items-center py-2 text-xs
-                  ${active ? "text-accent" : "text-text-secondary hover:text-text-primary"}
-                `}
-              >
-                <div className="h-6 w-6 mb-1">{tab.icon}</div>
-                {tab.label}
-              </Link>
-            </li>
-          );
-        })}
+    <nav className="fixed bottom-0 w-full border-t border-[#2A2C33] bg-[#16181f] md:hidden z-50">
+      <ul className="flex justify-around items-center text-sm text-white">
+        <li>
+          <Link
+            href="/dashboard"
+            className={`flex flex-col items-center p-2 ${
+              pathname === "/dashboard" ? "text-accent" : "text-gray-400"
+            }`}
+          >
+            <Home className="w-5 h-5" />
+            <span>Dashboard</span>
+          </Link>
+        </li>
+        <li>
+          <Link
+            href="/ai-tool"
+            className={`flex flex-col items-center p-2 ${
+              pathname === "/ai-tool" ? "text-accent" : "text-gray-400"
+            }`}
+          >
+            <Wand2 className="w-5 h-5" />
+            <span>AI Tool</span>
+          </Link>
+        </li>
       </ul>
     </nav>
   );
