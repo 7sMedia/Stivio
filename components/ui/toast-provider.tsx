@@ -1,5 +1,3 @@
-// components/ui/toast-provider.tsx
-
 "use client";
 
 import * as React from "react";
