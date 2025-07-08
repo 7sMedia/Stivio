@@ -3,7 +3,7 @@
 "use client";
 
 import * as React from "react";
-import { Toaster } from "sonner";
+import { Toaster } from "sonner"; // Assumes "sonner" is now in your package.json
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
