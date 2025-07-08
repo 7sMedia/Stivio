@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import DropboxConnectButton from "@/components/DropboxConnectButton";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -34,17 +35,6 @@ export default function DashboardPage() {
     });
   }, [router]);
 
-  const connectDropbox = () => {
-    if (!userId) {
-      alert("User ID not loaded yet");
-      return;
-    }
-
-    const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
-    console.log("🌐 Redirecting to Dropbox:", url);
-    window.location.href = url;
-  };
-
   if (loading) {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
@@ -56,12 +46,7 @@ export default function DashboardPage() {
         {token ? "Dropbox Connected" : "Connect Your Dropbox"}
       </h2>
 
-      <button
-        onClick={connectDropbox}
-        className="bg-blue-600 text-white px-6 py-3 rounded shadow hover:bg-blue-700"
-      >
-        {token ? "Re-connect Dropbox" : "Connect Dropbox"}
-      </button>
+      <DropboxConnectButton />
     </main>
   );
 }
