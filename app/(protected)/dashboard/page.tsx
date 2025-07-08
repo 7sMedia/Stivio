@@ -17,12 +17,20 @@ export default function DashboardPage() {
   const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      if (!data.session) {
-        router.replace("/");
-      } else {
+    let active = true;
+
+    const loadUser = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        if (error || !data.session) {
+          router.replace("/");
+          return;
+        }
+
         const uid = data.session.user.id;
         console.log("✅ Loaded Supabase user ID:", uid);
+        if (!active) return;
+
         setUserId(uid);
 
         const { data: row } = await supabase
@@ -34,10 +42,19 @@ export default function DashboardPage() {
         if (row?.access_token) {
           setToken(row.access_token);
         }
-
-        setLoading(false);
+      } catch (err) {
+        console.error("🔴 Supabase auth load failed:", err);
+        router.replace("/");
+      } finally {
+        if (active) setLoading(false);
       }
-    });
+    };
+
+    loadUser();
+
+    return () => {
+      active = false;
+    };
   }, [router]);
 
   const handleLogout = async () => {
@@ -58,45 +75,45 @@ export default function DashboardPage() {
 
     setDisconnecting(false);
     if (res.ok) {
-      alert("Disconnected Dropbox.");
+      alert("✅ Disconnected Dropbox.");
       setToken(null);
     } else {
-      alert("Failed to disconnect Dropbox.");
+      alert("❌ Failed to disconnect Dropbox.");
     }
   };
 
   if (loading) {
-    return <div className="p-10 text-text-secondary">Loading...</div>;
+    return <div className="p-10 text-text-secondary">Loading dashboard...</div>;
   }
 
   return (
-    <main className="p-6 max-w-[600px] mx-auto space-y-6 text-center">
-      <img src="/dropbox-logo.svg" alt="Dropbox" className="h-12 w-12 mx-auto" />
-      <h2 className="text-2xl font-semibold">
-        {token ? "Dropbox Connected" : "Connect Your Dropbox"}
-      </h2>
+    <main className="p-6 max-w-3xl mx-auto">
+      <h2 className="text-2xl font-bold mb-6 text-text-primary">Welcome to Beta7 Dashboard</h2>
 
       <DropboxConnectButton userId={userId} />
 
       {token && (
-        <Button
-          variant="destructive"
-          onClick={handleDropboxDisconnect}
-          disabled={disconnecting}
-          className="w-full"
-        >
-          {disconnecting ? "Disconnecting..." : "Disconnect Dropbox"}
-        </Button>
+        <div className="mt-6 flex flex-col gap-4">
+          <Button
+            className="bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleDropboxDisconnect}
+            disabled={disconnecting}
+          >
+            {disconnecting ? "Disconnecting..." : "Disconnect Dropbox"}
+          </Button>
+        </div>
       )}
 
-      <Button
-        variant="secondary"
-        onClick={handleLogout}
-        disabled={loggingOut}
-        className="w-full"
-      >
-        {loggingOut ? "Logging out..." : "Logout"}
-      </Button>
+      <div className="mt-8">
+        <Button
+          variant="outline"
+          className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
+          onClick={handleLogout}
+          disabled={loggingOut}
+        >
+          {loggingOut ? "Logging out..." : "Logout"}
+        </Button>
+      </div>
     </main>
   );
 }
