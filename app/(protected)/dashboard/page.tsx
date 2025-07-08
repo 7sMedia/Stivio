@@ -73,6 +73,16 @@ export default function DashboardPage() {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
 
+  const connectDropbox = async () => {
+    const { data } = await supabase.auth.getSession();
+    const uid = data?.session?.user?.id;
+    if (!uid) {
+      console.error("No user session");
+      return;
+    }
+    window.location.href = `/api/dropbox/auth?user_id=${uid}`;
+  };
+
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (chooserReady && window.Dropbox) {
       window.Dropbox.choose({
@@ -176,16 +186,13 @@ export default function DashboardPage() {
           {token ? "Dropbox Connected" : "Connect Your Dropbox"}
         </h2>
         <Button
-  variant={token ? "secondary" : "default"}
-  className="w-full max-w-xs flex items-center justify-center gap-2"
-  onClick={() => {
-    if (userId) {
-      window.location.href = `/api/dropbox/auth?user_id=${userId}`;
-    }
-  }}
->
-  {token ? "Re-connect Dropbox" : "Connect Dropbox"}
-</Button>
+          variant={token ? "secondary" : "default"}
+          className="w-full max-w-xs flex items-center justify-center gap-2"
+          onClick={connectDropbox}
+        >
+          {token ? "Re-connect Dropbox" : "Connect Dropbox"}
+        </Button>
+
         {token && (
           <div className="w-full max-w-xs text-left">
             <label className="block text-sm text-text-secondary mb-1">Input Folder</label>
