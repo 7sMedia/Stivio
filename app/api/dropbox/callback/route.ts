@@ -12,21 +12,12 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 
 function errorHtml(message: string) {
   return `
-    <html>
-      <head>
-        <title>Dropbox Connection Error</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <style>
-          body { background: #111927; color: #dbeafe; font-family: sans-serif; padding: 2rem; }
-          a { color: #38bdf8; text-decoration: underline; }
-        </style>
-      </head>
-      <body>
-        <h1>Could not connect your Dropbox account</h1>
-        <p>${message}</p>
-        <p><a href="/dashboard">← Go back and try again</a></p>
-      </body>
-    </html>
+    <html><head><title>Error</title></head>
+    <body style="background:#111;color:#fff;padding:2rem;font-family:sans-serif">
+      <h2>Could not connect your Dropbox account</h2>
+      <p>${message}</p>
+      <p><a href="/dashboard" style="color:#0ec9db">← Go back and try again</a></p>
+    </body></html>
   `;
 }
 
@@ -48,7 +39,6 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  // Exchange code for access token
   const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -64,13 +54,10 @@ export async function GET(req: NextRequest) {
   const tokenData = await tokenRes.json();
 
   if (!tokenData.access_token) {
-    return new NextResponse(
-      errorHtml(`Could not authenticate with Dropbox: ${tokenData.error_description || "Unknown error"}`),
-      {
-        status: 400,
-        headers: { "Content-Type": "text/html" },
-      }
-    );
+    return new NextResponse(errorHtml(tokenData.error_description || "Unknown Dropbox error"), {
+      status: 400,
+      headers: { "Content-Type": "text/html" },
+    });
   }
 
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
