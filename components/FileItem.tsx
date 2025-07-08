@@ -3,101 +3,64 @@
 import { useState } from "react";
 import { Trash2, Pencil, Check } from "lucide-react";
 import { renameDropboxFile } from "@/lib/renameDropboxFile";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 interface FileItemProps {
   file: {
-    id: string;
     name: string;
     path: string;
-    thumbnail: string;
   };
-  accessToken: string;
-  onRename: (oldPath: string, newPath: string, newName: string) => void;
   onDelete: (path: string) => void;
+  onRename: (oldPath: string, newPath: string) => void;
 }
 
-export default function FileItem({
-  file,
-  accessToken,
-  onRename,
-  onDelete,
-}: FileItemProps) {
-  const { toast } = useToast();
-  const [editing, setEditing] = useState(false);
+export default function FileItem({ file, onDelete, onRename }: FileItemProps) {
+  const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(file.name);
 
   const handleRename = async () => {
-    if (!newName || newName === file.name) {
-      setEditing(false);
+    if (newName === file.name) {
+      setRenaming(false);
       return;
     }
-
-    const toPath = file.path.replace(file.name, newName);
-
     try {
-      await renameDropboxFile(accessToken, file.path, toPath);
-      onRename(file.path, toPath, newName);
-      toast({ title: "File renamed", variant: "success" });
-    } catch (err: any) {
-      console.error(err);
-      toast({
-        title: "Rename failed",
-        description: err?.error_summary || "An unexpected error occurred",
-        variant: "error",
-      });
+      await renameDropboxFile(file.path, newName);
+      onRename(file.path, newName);
+      toast.success("File renamed.");
+    } catch (error: any) {
+      console.error("Rename failed", error);
+      toast.error(error.message || "Rename failed.");
     } finally {
-      setEditing(false);
+      setRenaming(false);
     }
   };
 
   return (
-    <div className="border border-zinc-700 rounded-lg p-2 flex items-center gap-4 bg-zinc-900">
-      <img
-        src={file.thumbnail}
-        alt={file.name}
-        className="w-16 h-16 object-cover rounded"
-      />
-
-      <div className="flex-1">
-        {editing ? (
-          <input
-            className="bg-zinc-800 px-2 py-1 rounded w-full text-white text-sm"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            onBlur={handleRename}
-            onKeyDown={(e) => e.key === "Enter" && handleRename()}
-            autoFocus
-          />
-        ) : (
-          <p
-            className="text-white text-sm cursor-pointer"
-            onClick={() => setEditing(true)}
-            title="Click to rename"
-          >
-            {file.name}
-          </p>
-        )}
-      </div>
-
-      {editing ? (
-        <button onClick={handleRename} title="Confirm rename">
-          <Check size={18} className="text-green-400" />
-        </button>
+    <div className="flex items-center justify-between border-b border-zinc-800 py-2">
+      {renaming ? (
+        <input
+          className="bg-transparent text-white border border-zinc-600 rounded px-2 py-1"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+        />
       ) : (
-        <>
-          <button onClick={() => setEditing(true)} title="Rename">
-            <Pencil size={18} className="text-blue-400" />
-          </button>
-          <button
-            onClick={() => onDelete(file.path)}
-            className="ml-2"
-            title="Delete"
-          >
-            <Trash2 size={18} className="text-red-400" />
-          </button>
-        </>
+        <span className="text-sm text-white">{file.name}</span>
       )}
+
+      <div className="flex gap-2">
+        {renaming ? (
+          <button onClick={handleRename}>
+            <Check className="text-green-400 w-4 h-4" />
+          </button>
+        ) : (
+          <button onClick={() => setRenaming(true)}>
+            <Pencil className="text-blue-400 w-4 h-4" />
+          </button>
+        )}
+        <button onClick={() => onDelete(file.path)}>
+          <Trash2 className="text-red-400 w-4 h-4" />
+        </button>
+      </div>
     </div>
   );
 }
