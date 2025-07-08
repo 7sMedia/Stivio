@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic"; // 👈 ADD THIS TO FIX REDIRECT ON VERCEL
+export const dynamic = "force-dynamic"; // MUST BE FIRST
 
 import { NextRequest, NextResponse } from "next/server";
 
