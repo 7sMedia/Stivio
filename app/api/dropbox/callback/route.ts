@@ -16,13 +16,14 @@ export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state");
 
   if (!code || !state) {
+    console.error("❌ Missing `code` or `state` in callback URL", { code, state });
     return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
   }
 
   const userId = state;
 
   try {
-    // Exchange code for access token
+    // Step 1: Exchange code for Dropbox tokens
     const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
       method: "POST",
       headers: {
@@ -46,26 +47,34 @@ export async function GET(request: NextRequest) {
 
     const { access_token, refresh_token, expires_in, account_id } = tokenData;
 
-    // ✅ Store token in dropbox_tokens table
+    // Step 2: Log what we’re about to insert
+    const tokenInsertPayload = {
+      user_id: userId,
+      access_token,
+      refresh_token,
+      expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
+      dropbox_account_id: account_id
+    };
+
+    console.log("ℹ️ Saving Dropbox token to Supabase:", tokenInsertPayload);
+
+    // Step 3: Save to dropbox_tokens table
     const { error: upsertError } = await supabase
       .from("dropbox_tokens")
-      .upsert({
-        user_id: userId,
-        access_token,
-        refresh_token,
-        expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
-        dropbox_account_id: account_id
-      });
+      .upsert(tokenInsertPayload);
 
     if (upsertError) {
       console.error("❌ Failed to store Dropbox token:", upsertError);
-      return NextResponse.json({ error: "Failed to save Dropbox token" }, { status: 500 });
+      return NextResponse.json(
+        { error: upsertError.message || "Failed to save Dropbox token" },
+        { status: 500 }
+      );
     }
 
-    // ✅ Redirect user back to dashboard
+    console.log("✅ Dropbox token saved successfully for user:", userId);
     return NextResponse.redirect("https://beta7mvp.vercel.app/dashboard");
   } catch (err) {
-    console.error("❌ Unexpected error:", err);
+    console.error("❌ Unexpected server error during Dropbox callback:", err);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }
