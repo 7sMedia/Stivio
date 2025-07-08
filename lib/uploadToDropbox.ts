@@ -8,14 +8,17 @@ export async function uploadToDropbox({
   file: File;
   folderPath: string;
 }) {
+  // ✅ Move localStorage access inside function
+  if (typeof window === "undefined") {
+    throw new Error("Dropbox upload can only run in the browser.");
+  }
+
   const accessToken = localStorage.getItem("dropbox_access_token");
   if (!accessToken) {
     throw new Error("Dropbox not authenticated.");
   }
 
-  // Use rate-limit safe fetch
   const dbx = new Dropbox({ accessToken, fetch: fetchWithDropboxRetry });
-
   const fileName = file.name;
   const dropboxPath = `${folderPath}/${fileName}`;
   const fileBuffer = await file.arrayBuffer();
