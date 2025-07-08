@@ -1,23 +1,38 @@
-export const dynamic = "force-dynamic"; // MUST BE FIRST
+export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
+import { supabase } from "@/lib/supabaseClient";
 
-const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
+const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
 const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
 
-export async function GET(request: NextRequest) {
-  const userId = request.nextUrl.searchParams.get("user_id");
+export async function GET(req: NextRequest) {
+  const userId = req.nextUrl.searchParams.get("user_id");
 
   if (!userId) {
-    return NextResponse.json({ error: "Missing user_id" }, { status: 400 });
+    return NextResponse.json({ error: "Missing user ID" }, { status: 400 });
   }
 
-  const dropboxAuthUrl = new URL("https://www.dropbox.com/oauth2/authorize");
-  dropboxAuthUrl.searchParams.set("response_type", "code");
-  dropboxAuthUrl.searchParams.set("client_id", DROPBOX_CLIENT_ID);
-  dropboxAuthUrl.searchParams.set("redirect_uri", DROPBOX_REDIRECT_URI);
-  dropboxAuthUrl.searchParams.set("state", userId);
+  try {
+    const { data: existing } = await supabase
+      .from("dropbox_tokens")
+      .select("access_token")
+      .eq("user_id", userId)
+      .single();
 
-  console.log("🌐 Redirecting to Dropbox:", dropboxAuthUrl.toString());
-  return NextResponse.redirect(dropboxAuthUrl.toString());
+    if (existing?.access_token) {
+      return NextResponse.redirect("https://beta7mvp.vercel.app/dashboard");
+    }
+
+    const authUrl = new URL("https://www.dropbox.com/oauth2/authorize");
+    authUrl.searchParams.set("client_id", DROPBOX_CLIENT_ID);
+    authUrl.searchParams.set("redirect_uri", DROPBOX_REDIRECT_URI);
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("state", userId);
+
+    return NextResponse.redirect(authUrl.toString());
+  } catch (error) {
+    console.error("Error starting Dropbox auth flow:", error);
+    return NextResponse.json({ error: "Failed to initiate Dropbox OAuth" }, { status: 500 });
+  }
 }
