@@ -1,17 +1,11 @@
 export const dynamic = "force-dynamic";
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+import { supabase } from "@/lib/supabaseClient";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
 const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-  auth: { autoRefreshToken: false, persistSession: false }
-});
 
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -46,7 +40,6 @@ export async function GET(request: NextRequest) {
     }
 
     const { access_token, refresh_token, expires_in, account_id } = tokenData;
-
     const expiresAt = new Date(Date.now() + expires_in * 1000).toISOString();
 
     const { error: dbxError } = await supabase
