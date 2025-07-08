@@ -3,14 +3,13 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useRouter, usePathname } from "next/navigation";
 import { navItems } from "@/app/src/config/nav";
 import { Menu } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 
 export default function Sidebar() {
-  const { toast } = useToast();
   const router = useRouter();
   const path = usePathname() || "";
   const [userEmail, setUserEmail] = useState<string | null>(null);
@@ -33,11 +32,7 @@ export default function Sidebar() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    toast({
-      title: "Logged out",
-      description: "You have been signed out successfully.",
-      variant: "success",
-    });
+    toast.success("You have been signed out successfully.");
     setTimeout(() => {
       window.location.href = "/login";
     }, 1500);
