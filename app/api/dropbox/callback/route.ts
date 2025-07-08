@@ -1,82 +1,70 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import validator from "validator";
 
+const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
+const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
+const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
-const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_APP_SECRET!;
-const DROPBOX_REDIRECT_URI = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-function errorHtml(message: string): string {
-  return `
-    <html>
-      <body style="font-family:sans-serif;text-align:center;padding:40px;">
-        <h1>Could not connect your Dropbox account</h1>
-        <p style="color:red;">${message}</p>
-        <a href="/dashboard">← Go back and try again</a>
-      </body>
-    </html>
-  `;
-}
+export async function GET(req: NextRequest) {
+  const code = req.nextUrl.searchParams.get("code");
+  const state = req.nextUrl.searchParams.get("state");
 
-export async function GET(request: NextRequest) {
-  const code = request.nextUrl.searchParams.get("code");
-  const userId = request.nextUrl.searchParams.get("state");
-
-  if (!userId || !validator.isUUID(userId)) {
-    return new NextResponse(errorHtml("Invalid user ID format"), {
-      status: 400,
-      headers: { "Content-Type": "text/html" },
-    });
-  }
-
-  if (!code) {
-    return new NextResponse(errorHtml("Missing Dropbox code"), {
-      status: 400,
-      headers: { "Content-Type": "text/html" },
-    });
+  if (!code || !state) {
+    return new Response("Missing code or state", { status: 400 });
   }
 
   try {
-    const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
+    console.log("📩 Received Dropbox OAuth code:", code);
+    console.log("🔒 Using redirect URI:", DROPBOX_REDIRECT_URI);
+
+    const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
       method: "POST",
       headers: {
-        Authorization:
-          "Basic " +
-          Buffer.from(`${DROPBOX_CLIENT_ID}:${DROPBOX_CLIENT_SECRET}`).toString("base64"),
         "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams({
         code,
         grant_type: "authorization_code",
+        client_id: DROPBOX_CLIENT_ID,
+        client_secret: DROPBOX_CLIENT_SECRET,
         redirect_uri: DROPBOX_REDIRECT_URI,
-      }),
+      }).toString(),
     });
 
-    const tokenJson = await tokenRes.json();
-
-    if (!tokenJson.access_token) {
-      console.error("Dropbox token response:", tokenJson);
-      return new NextResponse(errorHtml("Failed to retrieve Dropbox token"), {
-        status: 400,
-        headers: { "Content-Type": "text/html" },
-      });
+    if (!tokenRes.ok) {
+      const error = await tokenRes.text();
+      console.error("❌ Failed to get Dropbox token:", error);
+      return new Response("Failed to retrieve Dropbox token", { status: 400 });
     }
 
-    await supabase
-      .from("users")
-      .update({ dropbox_token: tokenJson.access_token })
-      .eq("id", userId);
+    const tokenData = await tokenRes.json();
+    console.log("✅ Dropbox token received:", tokenData);
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
+    const { access_token, refresh_token, uid, account_id } = tokenData;
+
+    const { error } = await supabase
+      .from("dropbox_tokens")
+      .upsert({
+        user_id: state,
+        access_token,
+        refresh_token,
+        account_id,
+        uid,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error("❌ Supabase upsert error:", error);
+      return new Response("Failed to save token", { status: 500 });
+    }
+
+    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
   } catch (err) {
-    console.error("Dropbox OAuth error:", err);
-    return new NextResponse(errorHtml("Unexpected error occurred"), {
-      status: 500,
-      headers: { "Content-Type": "text/html" },
-    });
+    console.error("❌ Error in Dropbox callback:", err);
+    return new Response("Internal server error", { status: 500 });
   }
 }
