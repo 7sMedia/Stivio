@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "sonner"; // ✅ now from sonner
+import { toast } from "sonner";
 
 interface JobStatus {
   id: string;
@@ -15,7 +15,6 @@ interface JobStatus {
 export default function JobPage() {
   const { jobId } = useParams();
   const router = useRouter();
-  const toast = useToast(); // ✅ not destructured
   const [status, setStatus] = useState<JobStatus | null>(null);
 
   useEffect(() => {
@@ -36,7 +35,7 @@ export default function JobPage() {
       }
     }, 3000);
     return () => clearInterval(interval);
-  }, [jobId, toast]);
+  }, [jobId]);
 
   if (!status) {
     return <div className="p-6">Loading job status…</div>;
