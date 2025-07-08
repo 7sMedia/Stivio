@@ -60,7 +60,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Your Generated Videos */}
-       <UserGeneratedVideos userId={userId} />
+       {userId && <UserGeneratedVideos userId={userId} />}
       </div>
 
       {/* Right column */}
