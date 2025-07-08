@@ -28,7 +28,8 @@
     "dropbox": "^10.34.0",
     "uuid": "^9.0.0",
     "encoding": "^0.1.13",
-    "sonner": "^1.0.0"
+    "sonner": "^1.0.0",
+    "validator": "^13.9.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
