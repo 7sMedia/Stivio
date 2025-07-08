@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { supabase } from "lib/supabaseClient";
 import type { User } from "@supabase/supabase-js";
 import BottomNav from "@/components/ui/BottomNav";
-import { ToastProvider } from "@/components/ui/toast-provider"; // ✅ Add this
+import { ToastProvider } from "@/components/ui/toast-provider"; // ✅ ADDED
 
 export default function ProtectedLayout({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
