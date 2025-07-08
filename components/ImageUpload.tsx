@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { uploadToDropbox } from "@/lib/uploadToDropbox";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "sonner"; // ✅ Use sonner, not custom
 import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
@@ -17,7 +17,7 @@ export default function ImageUpload({
   onChange,
   onDropbox,
 }: ImageUploadProps) {
-  const { toast } = useToast();
+  const toast = useToast(); // ✅ no destructure
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedNames, setUploadedNames] = useState<Set<string>>(new Set());
@@ -38,11 +38,7 @@ export default function ImageUpload({
   const handleUpload = async (file: File) => {
     const normalized = normalize(file.name);
     if (uploadedNames.has(normalized)) {
-      toast({
-        title: "Duplicate image",
-        description: `You've already uploaded ${file.name}.`,
-        variant: "error",
-      });
+      toast.error(`You’ve already uploaded ${file.name}.`);
       return;
     }
 
@@ -51,13 +47,10 @@ export default function ImageUpload({
       onDropbox?.([dropboxMeta]);
       onChange?.(file);
       setUploadedNames((prev) => new Set(prev).add(normalized));
+      toast.success(`${file.name} uploaded to Dropbox`);
     } catch (error: any) {
       console.error("Upload failed", error);
-      toast({
-        title: "Upload failed",
-        description: error.message,
-        variant: "error",
-      });
+      toast.error(error?.message || "Upload failed.");
     }
   };
 
@@ -83,11 +76,7 @@ export default function ImageUpload({
 
   const handleDropboxPicker = () => {
     if (!window.Dropbox) {
-      toast({
-        title: "Dropbox not ready",
-        description: "Dropbox SDK is not loaded.",
-        variant: "error",
-      });
+      toast.error("Dropbox SDK not loaded.");
       return;
     }
 
@@ -95,6 +84,7 @@ export default function ImageUpload({
       success: (files: any[]) => {
         console.log("Dropbox files selected:", files);
         onDropbox?.(files);
+        toast.success(`${files.length} image(s) selected`);
       },
       cancel: () => {
         console.log("Dropbox picker canceled");
