@@ -42,7 +42,7 @@ export default function DashboardPage() {
         <CardContent className="p-6">
           <h2 className="text-lg font-semibold mb-4">Welcome</h2>
           <p>Your email: {userId}</p>
-          <DropboxConnectButton />
+          <DropboxConnectButton userId={userId ?? ""} />
         </CardContent>
       </Card>
 
