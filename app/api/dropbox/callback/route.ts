@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { validate as validateUUID } from "uuid";
 
 const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
 const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
@@ -23,7 +24,7 @@ function errorHtml(message: string) {
       <body>
         <h1>Could not connect your Dropbox account</h1>
         <p>${message}</p>
-        <a href="/dashboard">← Go back and try again</a>
+        <p><a href="/dashboard">← Go back and try again</a></p>
       </body>
     </html>
   `;
@@ -31,10 +32,17 @@ function errorHtml(message: string) {
 
 export async function GET(req: NextRequest) {
   const code = req.nextUrl.searchParams.get("code");
-  const state = req.nextUrl.searchParams.get("state");
+  const userId = req.nextUrl.searchParams.get("state");
 
-  if (!code || !state) {
-    return new Response(errorHtml("Missing authorization code or state."), {
+  if (!code || !userId) {
+    return new NextResponse(errorHtml("Missing code or user ID"), {
+      status: 400,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+
+  if (!validateUUID(userId)) {
+    return new NextResponse(errorHtml("Invalid user ID format"), {
       status: 400,
       headers: { "Content-Type": "text/html" },
     });
@@ -56,8 +64,8 @@ export async function GET(req: NextRequest) {
   const tokenData = await tokenRes.json();
 
   if (!tokenData.access_token) {
-    return new Response(
-      errorHtml("Failed to get access token: " + JSON.stringify(tokenData)),
+    return new NextResponse(
+      errorHtml(`Could not authenticate with Dropbox: ${tokenData.error_description || "Unknown error"}`),
       {
         status: 400,
         headers: { "Content-Type": "text/html" },
@@ -65,23 +73,18 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Save token to Supabase
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  const { error } = await supabase
-    .from("dropbox_tokens")
-    .upsert({
-      user_id: state,
-      access_token: tokenData.access_token,
-    })
-    .eq("user_id", state);
+  const { error } = await supabase.from("dropbox_tokens").upsert({
+    user_id: userId,
+    access_token: tokenData.access_token,
+  });
 
   if (error) {
-    return new Response(errorHtml("Supabase write error: " + error.message), {
+    return new NextResponse(errorHtml(`Supabase write error: ${error.message}`), {
       status: 500,
       headers: { "Content-Type": "text/html" },
     });
   }
 
-  // ✅ Redirect to dashboard
-  return NextResponse.redirect(new URL("/dashboard", req.url));
+  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
 }
