@@ -2,7 +2,7 @@
 
 import "@/styles/globals.css";
 import { ReactNode } from "react";
-import ToastProvider from "@/components/ui/toast-provider";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
