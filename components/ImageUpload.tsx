@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { uploadToDropbox } from "@/lib/uploadToDropbox";
-import { useToast } from "sonner"; // ✅ Use sonner, not custom
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 
 interface ImageUploadProps {
@@ -17,7 +17,6 @@ export default function ImageUpload({
   onChange,
   onDropbox,
 }: ImageUploadProps) {
-  const toast = useToast(); // ✅ no destructure
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadedNames, setUploadedNames] = useState<Set<string>>(new Set());
