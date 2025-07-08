@@ -1,3 +1,4 @@
+// app/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -38,29 +39,15 @@ export default function HomePage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
     supabase.auth.getSession().then(({ data }) => {
-      if (!mounted) return;
-      if (data.session) {
-        router.replace("/dashboard");
-      } else {
-        setHasCheckedSession(true);
-      }
+      if (data.session) router.replace("/dashboard");
     });
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        router.replace("/dashboard");
-      }
+    const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
+      if (session) router.replace("/dashboard");
     });
-
-    return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
-    };
+    return () => sub.subscription.unsubscribe();
   }, [router]);
 
   const handleLogin = async () => {
@@ -77,23 +64,13 @@ export default function HomePage() {
     else router.replace("/dashboard");
   };
 
-  if (!hasCheckedSession) return null;
-
   if (page === "landing") {
     return (
       <GradientBackground>
-        <motion.div
-          initial={{ y: 30, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 1 }}
-        >
+        <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 1 }}>
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.08, 1],
-                opacity: [0.8, 1, 0.8],
-              }}
+              animate={{ rotate: [0, 360], scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
               transition={{ repeat: Infinity, duration: 16, ease: "linear" }}
               className="absolute -top-24 left-1/2 -translate-x-1/2 z-0"
               style={{ width: 380, height: 380 }}
@@ -144,10 +121,7 @@ export default function HomePage() {
             <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
               Get Started Free
             </Button>
-            <Button
-              className="text-lg px-6 py-3 border border-text-secondary"
-              onClick={() => setPage("login")}
-            >
+            <Button className="text-lg px-6 py-3 border border-text-secondary" onClick={() => setPage("login")}>
               Login
             </Button>
           </motion.div>
@@ -199,9 +173,7 @@ export default function HomePage() {
         <Card>
           <div className="flex flex-col items-center gap-6">
             <ImageIcon size={32} className="text-text-secondary" />
-            <h2 className="text-3xl font-bold mb-2">
-              {page === "signup" ? "Sign Up" : "Login"}
-            </h2>
+            <h2 className="text-3xl font-bold mb-2">{page === "signup" ? "Sign Up" : "Login"}</h2>
 
             <div className="w-full flex flex-col gap-4">
               <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
@@ -235,9 +207,7 @@ export default function HomePage() {
               className="w-full py-3 text-text-secondary"
               onClick={() => setPage(page === "signup" ? "login" : "signup")}
             >
-              {page === "signup"
-                ? "Already have an account? Login"
-                : "New here? Sign Up"}
+              {page === "signup" ? "Already have an account? Login" : "New here? Sign Up"}
             </Button>
 
             <Button className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
