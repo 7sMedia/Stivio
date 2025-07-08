@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   dropboxAuthUrl.searchParams.set("response_type", "code");
   dropboxAuthUrl.searchParams.set("client_id", DROPBOX_CLIENT_ID);
   dropboxAuthUrl.searchParams.set("redirect_uri", DROPBOX_REDIRECT_URI);
-  dropboxAuthUrl.searchParams.set("state", userId);
+  dropboxAuthUrl.searchParams.set("state", userId); // must be a valid UUID
 
   return NextResponse.redirect(dropboxAuthUrl.toString());
 }
