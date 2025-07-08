@@ -1,25 +1,33 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 
 export default function DropboxConnectButton() {
-  const dropboxClientId = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID;
-  const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.id) {
+        setUserId(data.user.id);
+      }
+    });
+  }, []);
 
   const handleConnect = () => {
-    if (!dropboxClientId || !redirectUri) {
-      alert("Dropbox config missing in .env");
+    if (!userId) {
+      alert("Not authenticated");
       return;
     }
 
-    const authUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${dropboxClientId}&response_type=code&token_access_type=offline&redirect_uri=${redirectUri}`;
-    window.location.href = authUrl;
+    const url = `/api/dropbox/auth?user_id=${userId}`;
+    window.location.href = url;
   };
 
   return (
     <button
       onClick={handleConnect}
-      className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow"
+      className="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700"
     >
       Connect Dropbox
     </button>
