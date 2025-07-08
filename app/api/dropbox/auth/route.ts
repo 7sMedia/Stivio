@@ -1,4 +1,6 @@
 // /app/api/dropbox/auth/route.ts
+// ✅ Force Node.js runtime
+export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 
