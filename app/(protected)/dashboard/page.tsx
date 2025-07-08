@@ -32,7 +32,7 @@ export default function DashboardPage() {
       }
 
       setUserId(user.id);
-      setUserEmail(user.email ?? null); // ✅ TS-safe assignment
+      setUserEmail(user.email ?? null);
       setLoading(false);
     };
 
@@ -40,13 +40,26 @@ export default function DashboardPage() {
   }, [router]);
 
   const handleConnectDropbox = () => {
+    console.log("📦 Connect Dropbox button clicked");
+
     if (!userId) {
+      console.warn("⛔ userId is null — Supabase not ready yet");
       alert("User not loaded yet. Please wait...");
       return;
     }
 
-    const dropboxAuthUrl = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_DROPBOX_APP_KEY}&redirect_uri=${encodeURIComponent(process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!)}&state=${userId}`;
+    const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
+    const appKey = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY;
 
+    if (!redirectUri || !appKey) {
+      console.error("⛔ Missing env vars:", { appKey, redirectUri });
+      alert("Dropbox redirect URI or App Key is missing.");
+      return;
+    }
+
+    const dropboxAuthUrl = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${appKey}&redirect_uri=${encodeURIComponent(redirectUri)}&state=${userId}`;
+
+    console.log("✅ Redirecting to Dropbox OAuth:", dropboxAuthUrl);
     window.location.href = dropboxAuthUrl;
   };
 
