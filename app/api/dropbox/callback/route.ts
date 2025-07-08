@@ -46,21 +46,23 @@ export async function GET(request: NextRequest) {
 
     const { access_token, refresh_token, expires_in, account_id } = tokenData;
 
-    // Store token data in user_metadata
-    const updateRes = await supabase.auth.admin.updateUserById(userId, {
-      user_metadata: {
-        dropbox_access_token: access_token,
-        dropbox_refresh_token: refresh_token,
-        dropbox_token_expires_in: expires_in,
+    // ✅ Store token in dropbox_tokens table
+    const { error: upsertError } = await supabase
+      .from("dropbox_tokens")
+      .upsert({
+        user_id: userId,
+        access_token,
+        refresh_token,
+        expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
         dropbox_account_id: account_id
-      }
-    });
+      });
 
-    if (updateRes.error) {
-      console.error("❌ Supabase update failed:", updateRes.error);
-      return NextResponse.json({ error: "Failed to save token to Supabase" }, { status: 500 });
+    if (upsertError) {
+      console.error("❌ Failed to store Dropbox token:", upsertError);
+      return NextResponse.json({ error: "Failed to save Dropbox token" }, { status: 500 });
     }
 
+    // ✅ Redirect user back to dashboard
     return NextResponse.redirect("https://beta7mvp.vercel.app/dashboard");
   } catch (err) {
     console.error("❌ Unexpected error:", err);
