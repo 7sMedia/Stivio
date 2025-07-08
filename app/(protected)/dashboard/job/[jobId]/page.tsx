@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "sonner"; // ✅ now from sonner
 
 interface JobStatus {
   id: string;
@@ -15,7 +15,7 @@ interface JobStatus {
 export default function JobPage() {
   const { jobId } = useParams();
   const router = useRouter();
-  const { toast } = useToast();
+  const toast = useToast(); // ✅ not destructured
   const [status, setStatus] = useState<JobStatus | null>(null);
 
   useEffect(() => {
@@ -28,10 +28,10 @@ export default function JobPage() {
 
         if (data.state === "completed") {
           clearInterval(interval);
-          toast({ title: "Video ready!", description: "Your AI video is complete.", variant: "success" });
+          toast.success("Your AI video is complete.");
         } else if (data.state === "failed") {
           clearInterval(interval);
-          toast({ title: "Generation failed", variant: "error" });
+          toast.error("Generation failed.");
         }
       }
     }, 3000);
@@ -75,7 +75,9 @@ export default function JobPage() {
         )}
 
         {status.state !== "completed" && status.state !== "failed" && (
-          <p className="text-text-secondary mt-4">Please wait while we generate your video…</p>
+          <p className="text-text-secondary mt-4">
+            Please wait while we generate your video…
+          </p>
         )}
       </Card>
     </main>
