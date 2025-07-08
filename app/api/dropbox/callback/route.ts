@@ -34,29 +34,28 @@ export async function GET(req: NextRequest) {
   const state = req.nextUrl.searchParams.get("state");
 
   if (!code || !state) {
-    return new Response(errorHtml("Missing code or user_id"), {
+    return new Response(errorHtml("Missing Dropbox code or user ID."), {
       headers: { "Content-Type": "text/html" },
       status: 400,
     });
   }
 
-  const body = new URLSearchParams();
-  body.append("code", code);
-  body.append("grant_type", "authorization_code");
-  body.append("client_id", DROPBOX_CLIENT_ID);
-  body.append("client_secret", DROPBOX_CLIENT_SECRET);
-  body.append("redirect_uri", DROPBOX_REDIRECT_URI);
-
   try {
     const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
+      body: new URLSearchParams({
+        code,
+        grant_type: "authorization_code",
+        client_id: DROPBOX_CLIENT_ID,
+        client_secret: DROPBOX_CLIENT_SECRET,
+        redirect_uri: DROPBOX_REDIRECT_URI,
+      }),
     });
 
     if (!tokenRes.ok) {
       const errText = await tokenRes.text();
-      return new Response(errorHtml("Token exchange failed: " + errText), {
+      return new Response(errorHtml("Dropbox token exchange failed: " + errText), {
         headers: { "Content-Type": "text/html" },
         status: 500,
       });
@@ -66,10 +65,17 @@ export async function GET(req: NextRequest) {
     const accessToken = tokenJson.access_token;
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    await supabase.from("dropbox_tokens").upsert({
+    const { error } = await supabase.from("dropbox_tokens").upsert({
       user_id: state,
       access_token: accessToken,
     });
+
+    if (error) {
+      return new Response(errorHtml("Failed to save token to Supabase: " + error.message), {
+        headers: { "Content-Type": "text/html" },
+        status: 500,
+      });
+    }
 
     return NextResponse.redirect(new URL("/dashboard", req.url));
   } catch (err: any) {
