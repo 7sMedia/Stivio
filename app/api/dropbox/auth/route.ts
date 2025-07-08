@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic"; // 👈 ADD THIS TO FIX REDIRECT ON VERCEL
+
 import { NextRequest, NextResponse } from "next/server";
 
 const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
