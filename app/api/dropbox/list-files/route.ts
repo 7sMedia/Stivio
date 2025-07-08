@@ -1,4 +1,4 @@
-// app/api/dropbox/list-files/route.ts
+// Path: app/api/dropbox/list-files/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -16,21 +16,24 @@ export async function GET(req: NextRequest) {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    const { data: tokenRow } = await supabase
+    const { data: tokenRow, error: tokenError } = await supabase
       .from("dropbox_tokens")
       .select("access_token")
       .eq("user_id", userId)
       .maybeSingle();
 
-    if (!tokenRow?.access_token) {
-      return NextResponse.json({ error: "No Dropbox token for user" }, { status: 404 });
+    if (tokenError || !tokenRow?.access_token) {
+      return NextResponse.json(
+        { error: "No Dropbox token for user" },
+        { status: 404 }
+      );
     }
 
     const res = await fetch("https://api.dropboxapi.com/2/files/list_folder", {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${tokenRow.access_token}`,
-        "Content-Type": "application/json"
+        Authorization: `Bearer ${tokenRow.access_token}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         path: folderPath,
@@ -43,18 +46,22 @@ export async function GET(req: NextRequest) {
       }),
     });
 
-    let files;
-    if (res.ok) {
-      files = await res.json();
-    } else {
+    if (!res.ok) {
       const errText = await res.text();
       console.error("[Dropbox list_folder error]", errText);
-      return NextResponse.json({ error: "Dropbox API error", details: errText }, { status: res.status });
+      return NextResponse.json(
+        { error: "Dropbox API error", details: errText },
+        { status: res.status }
+      );
     }
 
+    const files = await res.json();
     return NextResponse.json({ files });
   } catch (err) {
     console.error("[Dropbox List Files] Unexpected error:", err);
-    return NextResponse.json({ error: "Unexpected error", details: String(err) }, { status: 500 });
+    return NextResponse.json(
+      { error: "Unexpected error", details: String(err) },
+      { status: 500 }
+    );
   }
 }
