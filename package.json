@@ -27,7 +27,8 @@
     "@radix-ui/react-toast": "^1.0.4",
     "dropbox": "^10.34.0",
     "uuid": "^9.0.0",
-    "encoding": "^0.1.13"
+    "encoding": "^0.1.13",
+    "sonner": "^1.0.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",
