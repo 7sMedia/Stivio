@@ -8,11 +8,12 @@ export default function DropboxConnectButton() {
 
   useEffect(() => {
     const fetchUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      const uid = data?.session?.user?.id;
-      if (uid) {
-        console.log("✅ Supabase user ID:", uid);
-        setUserId(uid);
+      const { data } = await supabase.auth.getUser();
+      console.log("✅ Supabase user ID:", data?.user?.id);
+      if (data?.user?.id) {
+        setUserId(data.user.id);
+      } else {
+        console.warn("❌ No user ID returned by Supabase");
       }
     };
     fetchUser();
@@ -20,12 +21,19 @@ export default function DropboxConnectButton() {
 
   const handleConnect = () => {
     if (!userId) {
-      alert("User not authenticated.");
+      alert("User not authenticated. Please log in.");
+      console.warn("❌ userId is null");
       return;
     }
-    const redirectUrl = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
-    console.log("🌐 Redirecting to:", redirectUrl);
-    window.location.href = redirectUrl;
+
+    const redirectUrl = `/api/dropbox/auth?user_id=${userId}`;
+    console.log("➡️ Redirecting to:", redirectUrl);
+
+    try {
+      window.location.href = redirectUrl;
+    } catch (e) {
+      console.error("❌ Redirect failed", e);
+    }
   };
 
   return (
