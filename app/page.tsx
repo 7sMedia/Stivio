@@ -41,11 +41,9 @@ export default function HomePage() {
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   useEffect(() => {
-    let mounted = true;
-
     const checkSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (mounted && data?.session) {
+      const { data, error } = await supabase.auth.getSession();
+      if (data?.session) {
         router.replace("/dashboard");
       } else {
         setHasCheckedSession(true);
@@ -55,12 +53,13 @@ export default function HomePage() {
     checkSession();
 
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
-      if (session) router.replace("/dashboard");
+      if (session) {
+        router.replace("/dashboard");
+      }
     });
 
     return () => {
-      mounted = false;
-      sub.subscription.unsubscribe();
+      sub?.subscription.unsubscribe();
     };
   }, [router]);
 
@@ -78,7 +77,9 @@ export default function HomePage() {
     else router.replace("/dashboard");
   };
 
-  if (!hasCheckedSession) return null;
+  if (!hasCheckedSession) {
+    return null;
+  }
 
   if (page === "landing") {
     return (
@@ -145,7 +146,10 @@ export default function HomePage() {
             <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
               Get Started Free
             </Button>
-            <Button className="text-lg px-6 py-3 border border-text-secondary" onClick={() => setPage("login")}>
+            <Button
+              className="text-lg px-6 py-3 border border-text-secondary"
+              onClick={() => setPage("login")}
+            >
               Login
             </Button>
           </motion.div>
@@ -157,7 +161,14 @@ export default function HomePage() {
             className="mt-14 flex justify-center"
           >
             <div className="rounded-2xl shadow-md bg-surface-primary border-4 border-accent p-2">
-              <video className="rounded-xl w-[350px] md:w-[560px] max-w-full" src="/hero-demo.mp4" autoPlay loop muted playsInline />
+              <video
+                className="rounded-xl w-[350px] md:w-[560px] max-w-full"
+                src="/hero-demo.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
+              />
             </div>
           </motion.div>
 
@@ -228,7 +239,10 @@ export default function HomePage() {
               {page === "signup" ? "Create Account" : "Login"}
             </Button>
 
-            <Button className="w-full py-3 text-text-secondary" onClick={() => setPage(page === "signup" ? "login" : "signup")}>
+            <Button
+              className="w-full py-3 text-text-secondary"
+              onClick={() => setPage(page === "signup" ? "login" : "signup")}
+            >
               {page === "signup" ? "Already have an account? Login" : "New here? Sign Up"}
             </Button>
 
