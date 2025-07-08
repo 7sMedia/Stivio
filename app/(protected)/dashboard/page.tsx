@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
+import DropboxFolderPicker from "@/components/ui/DropboxFolderPicker";
 import { CheckCircle, XCircle } from "lucide-react";
 
 export default function DashboardPage() {
@@ -78,6 +79,10 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 text-green-400">
               <CheckCircle size={24} /> <span>Dropbox is connected.</span>
             </div>
+
+            {/* Folder Picker if Dropbox is connected */}
+            <DropboxFolderPicker accessToken={token} />
+
             <Button
               variant="destructive"
               className="w-full max-w-sm"
