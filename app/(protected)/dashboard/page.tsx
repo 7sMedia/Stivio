@@ -15,12 +15,6 @@ interface UploadFile {
   error: boolean;
 }
 
-declare global {
-  interface Window {
-    Dropbox: any;
-  }
-}
-
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -28,29 +22,6 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
   const [inputFolder, setInputFolder] = useState<string | null>(null);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
-  const [chooserReady, setChooserReady] = useState(false);
-
-  useEffect(() => {
-    const APP_KEY = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
-    if (!APP_KEY) {
-      console.error("Missing NEXT_PUBLIC_DROPBOX_APP_KEY");
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://www.dropbox.com/static/api/2/dropins.js";
-    script.id = "dropboxjs";
-    script.setAttribute("data-app-key", APP_KEY);
-    script.onload = () => setChooserReady(true);
-    script.onerror = () => console.error("Failed to load Dropbox Chooser SDK");
-
-    document.body.appendChild(script);
-
-    return () => {
-      const el = document.getElementById("dropboxjs");
-      if (el) el.remove();
-    };
-  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -76,16 +47,14 @@ export default function DashboardPage() {
     });
   }, [router]);
 
-  const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
-    if (chooserReady && window.Dropbox) {
-      window.Dropbox.choose({
-        folderselect: true,
-        multiselect: false,
-        success: ([folder]: any) => setter(folder.path_display),
-      });
-    } else {
-      alert("Dropbox Chooser not ready yet. Please wait.");
+  const connectDropbox = () => {
+    if (!userId) {
+      alert("User ID not loaded yet");
+      return;
     }
+    const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
+    console.log("🌐 Redirecting to:", url);
+    window.location.href = url;
   };
 
   const handleFiles = (files: FileList | null) => {
@@ -186,31 +155,22 @@ export default function DashboardPage() {
         </h2>
 
         <button
-          onClick={() => {
-            console.log("✅ Connect Dropbox button clicked");
-            if (!userId) {
-              alert("User ID not loaded yet");
-              return;
-            }
-            const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
-            console.log("🌐 Redirecting to:", url);
-            window.location.href = url;
-          }}
+          onClick={connectDropbox}
           className="bg-blue-600 text-white px-4 py-2 rounded w-full max-w-xs shadow hover:bg-blue-700"
         >
           {token ? "Re-connect Dropbox" : "Connect Dropbox"}
         </button>
 
         {token && (
-          <div className="w-full max-w-xs text-left">
+          <div className="w-full max-w-xs text-left mt-4">
             <label className="block text-sm text-text-secondary mb-1">Input Folder</label>
-            <Button
-              variant="outline"
-              className="w-full justify-start text-sm"
-              onClick={() => chooseFolder(setInputFolder)}
-            >
-              {inputFolder ?? "Select Input Folder"}
-            </Button>
+            <input
+              type="text"
+              className="w-full border border-gray-300 rounded p-2 bg-black text-white"
+              value={inputFolder ?? ""}
+              onChange={(e) => setInputFolder(e.target.value)}
+              placeholder="Enter Dropbox folder path"
+            />
           </div>
         )}
       </Card>
