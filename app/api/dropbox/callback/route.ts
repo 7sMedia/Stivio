@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -16,7 +18,6 @@ export async function GET(request: NextRequest) {
   const state = request.nextUrl.searchParams.get("state");
 
   if (!code || !state) {
-    console.error("❌ Missing code or state in callback");
     return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
   }
 
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
 
     const { access_token, refresh_token, expires_in } = tokenData;
 
-    const { error: upsertError } = await supabase
+    const { error: dbError } = await supabase
       .from("dropbox_tokens")
       .upsert({
         user_id: userId,
@@ -55,17 +56,14 @@ export async function GET(request: NextRequest) {
         expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
       });
 
-    if (upsertError) {
-      console.error("❌ Failed to store Dropbox token:", upsertError);
-      return NextResponse.json(
-        { error: upsertError.message || "Failed to save Dropbox token" },
-        { status: 500 }
-      );
+    if (dbError) {
+      console.error("❌ Failed to save token:", dbError);
+      return NextResponse.json({ error: dbError.message }, { status: 500 });
     }
 
     return NextResponse.redirect("https://beta7mvp.vercel.app/dashboard");
   } catch (err) {
-    console.error("❌ Unexpected server error during Dropbox callback:", err);
+    console.error("❌ Unexpected error:", err);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }
