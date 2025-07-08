@@ -3,7 +3,7 @@
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import Script from "next/script";
-import { ToastProvider } from "@/components/ui/toast-provider";
+import { ToastProvider } from "@/components/ui/toast-provider"; // ✅ must import
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
