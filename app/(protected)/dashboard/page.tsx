@@ -14,7 +14,7 @@ export default function DashboardPage() {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const getSession = async () => {
+    const init = async () => {
       const {
         data: { session },
         error,
@@ -32,10 +32,12 @@ export default function DashboardPage() {
         .from("dropbox_tokens")
         .select("access_token")
         .eq("user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .single();
 
-      if (tokenError || !data) {
-        console.warn("No Dropbox token found.");
+      if (tokenError || !data?.access_token) {
+        console.warn("No Dropbox token found for this user.");
         setToken(null);
       } else {
         setToken(data.access_token);
@@ -44,7 +46,7 @@ export default function DashboardPage() {
       setLoading(false);
     };
 
-    getSession();
+    init();
   }, [router]);
 
   if (loading) {
@@ -52,7 +54,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6 text-white">
       <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
 
       {!token ? (
