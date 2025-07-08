@@ -1,5 +1,3 @@
-// /app/api/dropbox/callback/route.ts
-
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { validate as validateUUID } from "uuid";
@@ -9,6 +7,7 @@ const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
 const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
+const NEXT_PUBLIC_SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
 
 function errorHtml(message: string) {
   return `
@@ -73,5 +72,5 @@ export async function GET(req: NextRequest) {
     });
   }
 
-  return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
+  return NextResponse.redirect(`${NEXT_PUBLIC_SITE_URL}/dashboard`);
 }
