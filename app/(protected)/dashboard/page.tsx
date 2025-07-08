@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
     const init = async () => {
@@ -26,8 +27,22 @@ export default function DashboardPage() {
         return;
       }
 
-      setUserId(session.user.id);
+      const id = session.user.id;
+      setUserId(id);
       setEmail(session.user.email ?? "");
+
+      const { data, error: tokenError } = await supabase
+        .from("dropbox_tokens")
+        .select("access_token")
+        .eq("user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!tokenError && data?.access_token) {
+        setToken(data.access_token);
+      }
+
       setLoading(false);
     };
 
@@ -65,12 +80,11 @@ export default function DashboardPage() {
 
       {/* Right column */}
       <div className="space-y-6">
-        {/* Dropbox Folder Picker */}
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
-            {/* ✅ FIXED: Removed userId prop */}
-            <DropboxFolderPicker />
+            {/* ✅ FIXED: Pass accessToken correctly */}
+            {token && <DropboxFolderPicker accessToken={token} />}
           </CardContent>
         </Card>
       </div>
