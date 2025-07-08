@@ -5,90 +5,91 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DropboxConnectButton } from "@/components/DropboxConnectButton";
+import DropboxConnectButton from "@/components/DropboxConnectButton"; // ✅ fixed default import
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxFileList from "@/components/DropboxFileList";
+import UserGeneratedVideos from "@/components/UserGeneratedVideos";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUserAndToken = async () => {
+    const fetchSession = async () => {
       const {
         data: { session },
         error,
       } = await supabase.auth.getSession();
-
-      if (error || !session) {
-        router.push("/login");
+      if (error) {
+        console.error("Error fetching session:", error.message);
         return;
       }
 
-      const id = session.user.id;
-      setUserId(id);
+      const currentUser = session?.user;
+      setUserId(currentUser?.id ?? null);
 
       const { data, error: tokenError } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
-        .eq("user_id", id)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .eq("user_id", currentUser?.id)
         .single();
 
-      if (!tokenError && data?.access_token) {
-        setToken(data.access_token);
+      if (tokenError) {
+        console.error("Error fetching token:", tokenError.message);
+      } else {
+        setAccessToken(data?.access_token ?? null);
       }
-
-      setLoading(false);
     };
 
-    getUserAndToken();
-  }, [router]);
+    fetchSession();
+  }, []);
 
   const handleProcessFile = (filePath: string) => {
-    console.log("Processing file:", filePath);
-    // Add real processing logic here later
+    console.log("Process file:", filePath);
+    // hook up to Seedance or backend
   };
 
-  if (loading) {
-    return <div className="text-center mt-10">Loading...</div>;
-  }
-
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold mb-2">Welcome</h2>
-              <p className="text-sm text-muted-foreground">{userId}</p>
-            </div>
-            <DropboxConnectButton />
+    <div className="min-h-screen px-6 py-10 text-white bg-black">
+      <h1 className="text-3xl font-bold mb-6">Your Dashboard</h1>
+
+      <Card className="mb-6 bg-zinc-900 border-zinc-800">
+        <CardContent className="p-6 flex items-center justify-between">
+          <div>
+            <p className="text-lg">Dropbox Connection</p>
+            <p className="text-sm text-zinc-400">
+              Connect your Dropbox to start importing images.
+            </p>
           </div>
+          <DropboxConnectButton />
         </CardContent>
       </Card>
 
-      {token && (
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
-            <DropboxFolderPicker accessToken={token} />
-          </CardContent>
-        </Card>
+      {accessToken && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <Card className="bg-zinc-900 border-zinc-800">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
+              <DropboxFolderPicker accessToken={accessToken} />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-900 border-zinc-800">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
+              <DropboxFileList userId={userId ?? ""} onProcessFile={handleProcessFile} />
+            </CardContent>
+          </Card>
+
+          <Card className="bg-zinc-900 border-zinc-800 md:col-span-2">
+            <CardContent className="p-6">
+              <h2 className="text-lg font-semibold mb-4">Your Generated Videos</h2>
+              {userId && <UserGeneratedVideos userId={userId} />}
+            </CardContent>
+          </Card>
+        </div>
       )}
-
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
-          <DropboxFileList
-            userId={userId ?? ""}
-            onProcessFile={handleProcessFile}
-          />
-        </CardContent>
-      </Card>
     </div>
   );
 }
