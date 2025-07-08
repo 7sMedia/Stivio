@@ -61,12 +61,9 @@ export default function DashboardPage() {
         <Card className="mb-6">
           <CardContent className="p-4">
             <p className="mb-4">Connect your Dropbox account to continue.</p>
+            {/* ✅ Updated Button: Redirects to full-screen connect flow */}
             <Button
-              onClick={() => {
-                if (userId) {
-                  window.location.href = `/api/dropbox/auth?user_id=${userId}`;
-                }
-              }}
+              onClick={() => router.push("/connect-dropbox")}
             >
               Connect Dropbox
             </Button>
