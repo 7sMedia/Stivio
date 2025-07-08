@@ -1,7 +1,8 @@
 // app/layout.tsx
-import "../styles/globals.css";
+
+import "@/styles/globals.css";
 import { ReactNode } from "react";
-import { ToastProvider } from "@/components/ToastProvider";
+import ToastProvider from "@/components/ui/toast-provider";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
