@@ -1,26 +1,28 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const DROPBOX_CLIENT_ID = process.env.DROPBOX_CLIENT_ID!;
-const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_CLIENT_SECRET!;
-const DROPBOX_REDIRECT_URI = process.env.DROPBOX_REDIRECT_URI!;
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const code = searchParams.get("code");
+  const state = searchParams.get("state");
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
-export async function GET(req: NextRequest) {
-  const code = req.nextUrl.searchParams.get("code");
-  const state = req.nextUrl.searchParams.get("state");
+  console.log("📥 Incoming Dropbox OAuth callback:");
+  console.log("code:", code);
+  console.log("state:", state);
 
   if (!code || !state) {
-    return new Response("Missing code or state", { status: 400 });
+    console.error("❌ Missing code or state");
+    return NextResponse.json({ error: "Missing code or state" }, { status: 400 });
   }
 
-  try {
-    console.log("📩 Received Dropbox OAuth code:", code);
-    console.log("🔒 Using redirect URI:", DROPBOX_REDIRECT_URI);
+  const clientId = process.env.DROPBOX_CLIENT_ID;
+  const clientSecret = process.env.DROPBOX_CLIENT_SECRET;
+  const redirectUri = process.env.DROPBOX_REDIRECT_URI;
 
+  console.log("🔐 Using client_id:", clientId);
+  console.log("🔐 Using redirect_uri:", redirectUri);
+
+  try {
     const tokenRes = await fetch("https://api.dropbox.com/oauth2/token", {
       method: "POST",
       headers: {
@@ -29,42 +31,43 @@ export async function GET(req: NextRequest) {
       body: new URLSearchParams({
         code,
         grant_type: "authorization_code",
-        client_id: DROPBOX_CLIENT_ID,
-        client_secret: DROPBOX_CLIENT_SECRET,
-        redirect_uri: DROPBOX_REDIRECT_URI,
-      }).toString(),
+        client_id: clientId!,
+        client_secret: clientSecret!,
+        redirect_uri: redirectUri!,
+      }),
     });
 
-    if (!tokenRes.ok) {
-      const error = await tokenRes.text();
-      console.error("❌ Failed to get Dropbox token:", error);
-      return new Response("Failed to retrieve Dropbox token", { status: 400 });
-    }
-
     const tokenData = await tokenRes.json();
-    console.log("✅ Dropbox token received:", tokenData);
+    console.log("📦 Dropbox token response:", tokenData);
 
-    const { access_token, refresh_token, uid, account_id } = tokenData;
-
-    const { error } = await supabase
-      .from("dropbox_tokens")
-      .upsert({
-        user_id: state,
-        access_token,
-        refresh_token,
-        account_id,
-        uid,
-        updated_at: new Date().toISOString(),
-      });
-
-    if (error) {
-      console.error("❌ Supabase upsert error:", error);
-      return new Response("Failed to save token", { status: 500 });
+    if (!tokenData.access_token) {
+      console.error("❌ Failed to retrieve Dropbox token");
+      return NextResponse.json({ error: "Failed to retrieve Dropbox token", detail: tokenData }, { status: 400 });
     }
 
-    return NextResponse.redirect(new URL("/dashboard", req.nextUrl.origin));
-  } catch (err) {
-    console.error("❌ Error in Dropbox callback:", err);
-    return new Response("Internal server error", { status: 500 });
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({
+        dropbox_access_token: tokenData.access_token,
+        dropbox_refresh_token: tokenData.refresh_token,
+        dropbox_account_id: tokenData.account_id,
+      })
+      .eq("id", state);
+
+    if (updateError) {
+      console.error("❌ Supabase update failed:", updateError);
+      return NextResponse.json({ error: "Failed to save token to Supabase" }, { status: 500 });
+    }
+
+    console.log("✅ Dropbox token saved to Supabase");
+    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_APP_URL}/dashboard`);
+  } catch (err: any) {
+    console.error("❌ Callback handler error:", err);
+    return NextResponse.json({ error: "Unexpected error", detail: err.message }, { status: 500 });
   }
 }
