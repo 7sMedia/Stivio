@@ -60,7 +60,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Your Generated Videos */}
-       {userId && <UserGeneratedVideos userId={userId} />}
+        {userId && <UserGeneratedVideos userId={userId} />}
       </div>
 
       {/* Right column */}
@@ -69,7 +69,8 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
-            <DropboxFolderPicker userId={userId} />
+            {/* ✅ FIXED: Removed userId prop */}
+            <DropboxFolderPicker />
           </CardContent>
         </Card>
       </div>
@@ -79,7 +80,7 @@ export default function DashboardPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
-            <DropboxFileList userId={userId} />
+            <DropboxFileList userId={userId ?? ""} />
           </CardContent>
         </Card>
       </div>
