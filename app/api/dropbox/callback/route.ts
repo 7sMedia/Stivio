@@ -1,3 +1,5 @@
+// Path: app/api/dropbox/callback/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import validator from "validator";
@@ -7,6 +9,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const DROPBOX_CLIENT_ID = process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!;
 const DROPBOX_CLIENT_SECRET = process.env.DROPBOX_APP_SECRET!;
 const DROPBOX_REDIRECT_URI = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL!;
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
@@ -71,7 +74,7 @@ export async function GET(request: NextRequest) {
       .update({ dropbox_token: tokenJson.access_token })
       .eq("id", userId);
 
-    return NextResponse.redirect(`${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`);
+    return NextResponse.redirect(`${SITE_URL}/dashboard`);
   } catch (err) {
     console.error("Dropbox OAuth error:", err);
     return new NextResponse(errorHtml("Unexpected error occurred"), {
