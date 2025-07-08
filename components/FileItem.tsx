@@ -10,11 +10,12 @@ interface FileItemProps {
     name: string;
     path: string;
   };
+  accessToken: string;
   onDelete: (path: string) => void;
   onRename: (oldPath: string, newPath: string) => void;
 }
 
-export default function FileItem({ file, onDelete, onRename }: FileItemProps) {
+export default function FileItem({ file, onDelete, onRename, accessToken }: FileItemProps) {
   const [renaming, setRenaming] = useState(false);
   const [newName, setNewName] = useState(file.name);
 
@@ -24,7 +25,7 @@ export default function FileItem({ file, onDelete, onRename }: FileItemProps) {
       return;
     }
     try {
-      await renameDropboxFile(file.path, newName);
+      await renameDropboxFile(accessToken, file.path, newName); // ✅ now passes 3 args
       onRename(file.path, newName);
       toast.success("File renamed.");
     } catch (error: any) {
