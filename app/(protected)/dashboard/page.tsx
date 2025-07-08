@@ -6,17 +6,20 @@ import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
+import { Button } from "@/components/ui/button";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
-        router.replace("/login");
+        router.replace("/");
       } else {
         const uid = data.session.user.id;
         console.log("✅ Loaded Supabase user ID:", uid);
@@ -37,6 +40,31 @@ export default function DashboardPage() {
     });
   }, [router]);
 
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  const handleDropboxDisconnect = async () => {
+    if (!userId) return;
+    setDisconnecting(true);
+
+    const res = await fetch("/api/dropbox/disconnect", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_id: userId }),
+    });
+
+    setDisconnecting(false);
+    if (res.ok) {
+      alert("Disconnected Dropbox.");
+      setToken(null);
+    } else {
+      alert("Failed to disconnect Dropbox.");
+    }
+  };
+
   if (loading) {
     return <div className="p-10 text-text-secondary">Loading...</div>;
   }
@@ -48,7 +76,27 @@ export default function DashboardPage() {
         {token ? "Dropbox Connected" : "Connect Your Dropbox"}
       </h2>
 
-      <DropboxConnectButton />
+      <DropboxConnectButton userId={userId} />
+
+      {token && (
+        <Button
+          variant="destructive"
+          onClick={handleDropboxDisconnect}
+          disabled={disconnecting}
+          className="w-full"
+        >
+          {disconnecting ? "Disconnecting..." : "Disconnect Dropbox"}
+        </Button>
+      )}
+
+      <Button
+        variant="secondary"
+        onClick={handleLogout}
+        disabled={loggingOut}
+        className="w-full"
+      >
+        {loggingOut ? "Logging out..." : "Logout"}
+      </Button>
     </main>
   );
 }
