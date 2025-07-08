@@ -3,6 +3,7 @@
 import "../styles/globals.css";
 import { ReactNode } from "react";
 import Script from "next/script";
+import { ToastProvider } from "@/components/ui/toast-provider";
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
@@ -22,7 +23,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
       </head>
       <body className="min-h-screen h-full antialiased bg-black text-white">
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );
