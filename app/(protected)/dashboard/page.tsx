@@ -1,106 +1,81 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import DropboxConnectButton from "@/components/DropboxConnectButton";
-import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import { CheckCircle, XCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import DropboxImageUploader from "@/components/DropboxImageUploader";
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserAndToken = async () => {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session?.user.id) {
-        setLoading(false);
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
         return;
       }
 
-      setUserId(session.user.id);
+      setUserId(user.id);
 
       const { data, error } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
-        .eq("user_id", session.user.id)
+        .eq("user_id", user.id)
         .single();
 
-      if (error) {
-        console.error("No Dropbox token found:", error.message);
+      if (error || !data) {
+        console.warn("No Dropbox token found.");
         setToken(null);
       } else {
-        setToken(data?.access_token ?? null);
+        setToken(data.access_token);
       }
 
       setLoading(false);
     };
 
-    getUser();
-  }, []);
-
-  const handleDisconnect = async () => {
-    if (!userId) return;
-    const { error } = await supabase
-      .from("dropbox_tokens")
-      .delete()
-      .eq("user_id", userId);
-
-    if (!error) {
-      setToken(null);
-      alert("Dropbox disconnected.");
-    } else {
-      console.error("Failed to disconnect Dropbox:", error.message);
-    }
-  };
+    getUserAndToken();
+  }, [router]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <span className="text-white">Loading dashboard...</span>
-      </div>
-    );
+    return <div className="text-center p-4">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen px-4 py-10 bg-black text-white flex flex-col items-center gap-6">
-      <h1 className="text-4xl font-bold text-center">Welcome to Beta7 Dashboard</h1>
-      <Card className="p-6 w-full max-w-xl flex flex-col items-center gap-4 bg-surface-primary text-white border border-gray-700">
-        <h2 className="text-2xl font-semibold">Dropbox Connection</h2>
+    <div className="max-w-4xl mx-auto p-6">
+      <h1 className="text-3xl font-bold mb-4">Dashboard</h1>
 
-        {token ? (
-          <>
-            <div className="flex items-center gap-2 text-green-400">
-              <CheckCircle size={24} /> <span>Dropbox is connected.</span>
-            </div>
+      {!token ? (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <p className="mb-4">Connect your Dropbox account to continue.</p>
             <Button
-              variant="destructive"
-              className="w-full max-w-sm"
-              onClick={handleDisconnect}
+              onClick={() => {
+                window.location.href = `/api/dropbox/auth`;
+              }}
             >
-              Disconnect Dropbox
+              Connect Dropbox
             </Button>
-
-            {/* Step 2: Folder Picker */}
-            <div className="w-full mt-6">
-              <DropboxFolderPicker accessToken={token} />
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-2 text-yellow-300">
-              <XCircle size={24} /> <span>Dropbox not connected.</span>
-            </div>
-            <DropboxConnectButton userId={userId} />
-          </>
-        )}
-      </Card>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* ✅ Step 3: Render DropboxImageUploader */}
+          <Card className="mb-6">
+            <CardContent className="p-4">
+              <h2 className="text-xl font-semibold mb-2">Upload Images</h2>
+              <DropboxImageUploader accessToken={token} />
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
