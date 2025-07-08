@@ -8,8 +8,7 @@ export default async function ProtectedLayout({ children }: { children: ReactNod
   } = await supabase.auth.getUser();
 
   if (!user) {
-    // Only redirect if they're trying to visit a protected route
-    redirect("/"); // ✅ send them to landing page
+    redirect("/"); // ✅ send to landing page instead of /login
   }
 
   return <>{children}</>;
