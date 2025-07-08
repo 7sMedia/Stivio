@@ -58,6 +58,7 @@ export default function DashboardPage() {
         router.replace("/login");
       } else {
         const uid = data.session.user.id;
+        console.log("✅ Loaded Supabase user ID:", uid);
         setUserId(uid);
 
         const { data: row } = await supabase
@@ -77,16 +78,13 @@ export default function DashboardPage() {
 
   const connectDropbox = () => {
     console.log("✅ Connect Dropbox button clicked");
-
     if (!userId) {
       alert("User ID not loaded yet");
-      console.error("❌ Cannot connect Dropbox: userId is null");
       return;
     }
 
     const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
-    console.log("🌐 Redirecting to internal OAuth route:", url);
-
+    console.log("🌐 Redirecting to:", url);
     window.location.href = url;
   };
 
@@ -147,9 +145,7 @@ export default function DashboardPage() {
         });
         const data = await res.json();
         setUploadFiles((prev) =>
-          prev.map((u) =>
-            u.id === upload.id ? { ...u, url: data.link, progress: 100 } : u
-          )
+          prev.map((u) => (u.id === upload.id ? { ...u, url: data.link, progress: 100 } : u))
         );
       } else {
         setUploadFiles((prev) =>
