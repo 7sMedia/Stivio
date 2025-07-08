@@ -45,25 +45,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to retrieve Dropbox token" }, { status: 400 });
     }
 
-    const { access_token, refresh_token, expires_in } = tokenData;
+    const { access_token, refresh_token, expires_in, account_id } = tokenData;
 
-    const { error: dbError } = await supabase
+    const { error: dbxError } = await supabase
       .from("dropbox_tokens")
       .upsert({
         user_id: userId,
         access_token,
         refresh_token,
-        expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
+        expires_in,
+        dropbox_account_id: account_id
       });
 
-    if (dbError) {
-      console.error("❌ Failed to save token:", dbError);
-      return NextResponse.json({ error: dbError.message }, { status: 500 });
+    if (dbxError) {
+      console.error("❌ Supabase dropbox_tokens upsert failed:", dbxError);
+      return NextResponse.json({ error: "Failed to store Dropbox token" }, { status: 500 });
     }
 
     return NextResponse.redirect("https://beta7mvp.vercel.app/dashboard");
   } catch (err) {
-    console.error("❌ Unexpected error:", err);
+    console.error("❌ Unexpected error in callback:", err);
     return NextResponse.json({ error: "Unexpected server error" }, { status: 500 });
   }
 }
