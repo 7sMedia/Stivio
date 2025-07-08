@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const getUser = async () => {
@@ -31,6 +32,7 @@ export default function DashboardPage() {
       }
 
       setUserId(user.id);
+      setUserEmail(user.email);
       setLoading(false);
     };
 
@@ -39,7 +41,7 @@ export default function DashboardPage() {
 
   const handleConnectDropbox = () => {
     if (!userId) {
-      alert("Please wait for user info to load.");
+      alert("User not loaded yet. Please wait...");
       return;
     }
 
@@ -56,7 +58,9 @@ export default function DashboardPage() {
     <div className="p-6 space-y-4">
       <Card className="p-4">
         <h1 className="text-2xl font-bold mb-2">Dashboard</h1>
-        <p className="text-sm text-gray-400">Your User ID: {userId}</p>
+        <p className="text-sm text-gray-400">
+          Logged in as: <span className="font-medium">{userEmail}</span>
+        </p>
       </Card>
 
       <Card className="p-4">
