@@ -37,16 +37,19 @@ export default function DashboardPage() {
       return;
     }
 
-    const existing = document.getElementById("dropbox-chooser");
-    if (existing) existing.remove();
-
     const script = document.createElement("script");
-    script.id = "dropbox-chooser";
     script.src = "https://www.dropbox.com/static/api/2/dropins.js";
+    script.id = "dropboxjs";
     script.setAttribute("data-app-key", APP_KEY);
     script.onload = () => setChooserReady(true);
     script.onerror = () => console.error("Failed to load Dropbox Chooser SDK");
+
     document.body.appendChild(script);
+
+    return () => {
+      const el = document.getElementById("dropboxjs");
+      if (el) el.remove();
+    };
   }, []);
 
   useEffect(() => {
@@ -56,31 +59,29 @@ export default function DashboardPage() {
       } else {
         const uid = data.session.user.id;
         setUserId(uid);
+
         const { data: row } = await supabase
           .from("dropbox_tokens")
           .select("access_token")
           .eq("user_id", uid)
           .maybeSingle();
+
         if (row?.access_token) {
           setToken(row.access_token);
         }
+
         setLoading(false);
       }
     });
   }, [router]);
 
-  if (loading) {
-    return <div className="p-10 text-text-secondary">Loading...</div>;
-  }
-
-  const connectDropbox = async () => {
-    const { data } = await supabase.auth.getSession();
-    const uid = data?.session?.user?.id;
-    if (!uid) {
-      console.error("No user session");
+  const connectDropbox = () => {
+    if (!userId) {
+      alert("User ID not loaded yet");
       return;
     }
-    window.location.href = `/api/dropbox/auth?user_id=${uid}`;
+    const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
+    window.location.assign(url);
   };
 
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
@@ -91,7 +92,7 @@ export default function DashboardPage() {
         success: ([folder]: any) => setter(folder.path_display),
       });
     } else {
-      console.warn("Dropbox Chooser not ready yet");
+      alert("Dropbox Chooser not ready yet. Please wait.");
     }
   };
 
@@ -119,12 +120,14 @@ export default function DashboardPage() {
       "Dropbox-API-Arg",
       JSON.stringify({ path: dropboxPath, mode: "add", autorename: true, mute: false })
     );
+
     xhr.upload.onprogress = (e) => {
       const pct = Math.round((e.loaded / e.total) * 100);
       setUploadFiles((prev) =>
         prev.map((u) => (u.id === upload.id ? { ...u, progress: pct } : u))
       );
     };
+
     xhr.onload = async () => {
       if (xhr.status === 200) {
         const info = JSON.parse(xhr.responseText);
@@ -148,11 +151,13 @@ export default function DashboardPage() {
         );
       }
     };
+
     xhr.onerror = () => {
       setUploadFiles((prev) =>
         prev.map((u) => (u.id === upload.id ? { ...u, error: true } : u))
       );
     };
+
     xhr.send(upload.file);
   };
 
@@ -175,6 +180,10 @@ export default function DashboardPage() {
     const { jobId } = await res.json();
     router.push(`/dashboard/job/${jobId}`);
   };
+
+  if (loading) {
+    return <div className="p-10 text-text-secondary">Loading...</div>;
+  }
 
   const hasImages = uploadFiles.some((u) => u.url);
 
