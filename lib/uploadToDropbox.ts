@@ -8,7 +8,7 @@ export async function uploadToDropbox({
   file: File;
   folderPath: string;
 }) {
-  // ✅ Protect localStorage access from SSR
+  // ✅ Protect browser-only logic
   if (typeof window === "undefined") {
     throw new Error("Dropbox upload can only run in the browser.");
   }
