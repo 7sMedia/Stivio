@@ -41,25 +41,25 @@ export default function HomePage() {
   const [hasCheckedSession, setHasCheckedSession] = useState(false);
 
   useEffect(() => {
-    const checkSession = async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (data?.session) {
+    let mounted = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!mounted) return;
+      if (data.session) {
         router.replace("/dashboard");
       } else {
         setHasCheckedSession(true);
       }
-    };
+    });
 
-    checkSession();
-
-    const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         router.replace("/dashboard");
       }
     });
 
     return () => {
-      sub?.subscription.unsubscribe();
+      mounted = false;
+      sub.subscription.unsubscribe();
     };
   }, [router]);
 
@@ -77,9 +77,7 @@ export default function HomePage() {
     else router.replace("/dashboard");
   };
 
-  if (!hasCheckedSession) {
-    return null;
-  }
+  if (!hasCheckedSession) return null;
 
   if (page === "landing") {
     return (
@@ -175,21 +173,15 @@ export default function HomePage() {
           <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
             <Card className="flex items-center gap-4 bg-surface-secondary p-6">
               <UploadCloudIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">
-                Upload images
-              </span>
+              <span className="text-base text-text-secondary font-semibold">Upload images</span>
             </Card>
             <Card className="flex items-center gap-4 bg-surface-secondary p-6">
               <ImageIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">
-                AI animates
-              </span>
+              <span className="text-base text-text-secondary font-semibold">AI animates</span>
             </Card>
             <Card className="flex items-center gap-4 bg-surface-secondary p-6">
               <UserIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">
-                Share anywhere
-              </span>
+              <span className="text-base text-text-secondary font-semibold">Share anywhere</span>
             </Card>
           </div>
         </motion.div>
@@ -243,7 +235,9 @@ export default function HomePage() {
               className="w-full py-3 text-text-secondary"
               onClick={() => setPage(page === "signup" ? "login" : "signup")}
             >
-              {page === "signup" ? "Already have an account? Login" : "New here? Sign Up"}
+              {page === "signup"
+                ? "Already have an account? Login"
+                : "New here? Sign Up"}
             </Button>
 
             <Button className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
