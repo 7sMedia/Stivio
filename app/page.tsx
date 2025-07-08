@@ -16,13 +16,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div
-      className="
-        min-h-screen w-full flex flex-col items-center justify-center
-        bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative
-        pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]
-      "
-    >
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -47,11 +41,17 @@ export default function HomePage() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) router.replace("/dashboard");
+      if (data.session && window.location.pathname === "/") {
+        router.replace("/dashboard");
+      }
     });
+
     const { data: sub } = supabase.auth.onAuthStateChange((_, session) => {
-      if (session) router.replace("/dashboard");
+      if (session && window.location.pathname === "/") {
+        router.replace("/dashboard");
+      }
     });
+
     return () => sub.subscription.unsubscribe();
   }, [router]);
 
@@ -79,11 +79,7 @@ export default function HomePage() {
         >
           <div className="relative flex flex-col items-center mb-12 mt-20">
             <motion.div
-              animate={{
-                rotate: [0, 360],
-                scale: [1, 1.08, 1],
-                opacity: [0.8, 1, 0.8],
-              }}
+              animate={{ rotate: [0, 360], scale: [1, 1.08, 1], opacity: [0.8, 1, 0.8] }}
               transition={{ repeat: Infinity, duration: 16, ease: "linear" }}
               className="absolute -top-24 left-1/2 -translate-x-1/2 z-0"
               style={{ width: 380, height: 380 }}
