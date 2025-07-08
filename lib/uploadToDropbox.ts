@@ -8,7 +8,7 @@ export async function uploadToDropbox({
   file: File;
   folderPath: string;
 }) {
-  // ✅ prevent SSR crash
+  // ✅ prevent crash during SSR
   if (typeof window === "undefined") {
     throw new Error("Dropbox upload can only run in the browser.");
   }
