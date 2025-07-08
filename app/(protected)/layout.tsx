@@ -1,15 +1,21 @@
-import { ReactNode } from "react";
+// /app/(protected)/layout.tsx
+
+"use client";
+
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { redirect } from "next/navigation";
 
-export default async function ProtectedLayout({ children }: { children: ReactNode }) {
-  const {
-    data: { user }
-  } = await supabase.auth.getUser();
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
 
-  if (!user) {
-    redirect("/"); // ✅ send to landing page instead of /login
-  }
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        router.replace("/");
+      }
+    });
+  }, [router]);
 
   return <>{children}</>;
 }
