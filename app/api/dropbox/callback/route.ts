@@ -45,15 +45,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to retrieve Dropbox token" }, { status: 400 });
     }
 
-    const { access_token, refresh_token, expires_in, account_id } = tokenData;
+    const { access_token, refresh_token, expires_in } = tokenData;
 
-    // Step 2: Log what we’re about to insert
+    // Step 2: Build payload — only include known fields
     const tokenInsertPayload = {
       user_id: userId,
       access_token,
       refresh_token,
-      expires_at: new Date(Date.now() + expires_in * 1000).toISOString(),
-      dropbox_account_id: account_id
+      expires_at: new Date(Date.now() + expires_in * 1000).toISOString()
     };
 
     console.log("ℹ️ Saving Dropbox token to Supabase:", tokenInsertPayload);
