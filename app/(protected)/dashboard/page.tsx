@@ -76,18 +76,6 @@ export default function DashboardPage() {
     });
   }, [router]);
 
-  const connectDropbox = () => {
-    console.log("✅ Connect Dropbox button clicked");
-    if (!userId) {
-      alert("User ID not loaded yet");
-      return;
-    }
-
-    const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
-    console.log("🌐 Redirecting to:", url);
-    window.location.href = url;
-  };
-
   const chooseFolder = (setter: React.Dispatch<React.SetStateAction<string | null>>) => {
     if (chooserReady && window.Dropbox) {
       window.Dropbox.choose({
@@ -196,13 +184,22 @@ export default function DashboardPage() {
         <h2 className="text-2xl font-semibold text-text-primary">
           {token ? "Dropbox Connected" : "Connect Your Dropbox"}
         </h2>
-        <Button
-          variant={token ? "secondary" : "default"}
-          className="w-full max-w-xs flex items-center justify-center gap-2"
-          onClick={connectDropbox}
+
+        <button
+          onClick={() => {
+            console.log("✅ Connect Dropbox button clicked");
+            if (!userId) {
+              alert("User ID not loaded yet");
+              return;
+            }
+            const url = `/api/dropbox/auth?user_id=${encodeURIComponent(userId)}`;
+            console.log("🌐 Redirecting to:", url);
+            window.location.href = url;
+          }}
+          className="bg-blue-600 text-white px-4 py-2 rounded w-full max-w-xs shadow hover:bg-blue-700"
         >
           {token ? "Re-connect Dropbox" : "Connect Dropbox"}
-        </Button>
+        </button>
 
         {token && (
           <div className="w-full max-w-xs text-left">
