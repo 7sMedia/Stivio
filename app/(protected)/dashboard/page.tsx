@@ -1,119 +1,100 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import DropboxConnectButton from "@/components/DropboxConnectButton";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import DropboxConnectButton from "@/components/DropboxConnectButton";
+import { CheckCircle, XCircle } from "lucide-react";
 
 export default function DashboardPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [disconnecting, setDisconnecting] = useState(false);
-  const [loggingOut, setLoggingOut] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let active = true;
+    const getUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
 
-    const loadUser = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error || !data.session) {
-          router.replace("/");
-          return;
-        }
-
-        const uid = data.session.user.id;
-        console.log("✅ Loaded Supabase user ID:", uid);
-        if (!active) return;
-
-        setUserId(uid);
-
-        const { data: row } = await supabase
-          .from("dropbox_tokens")
-          .select("access_token")
-          .eq("user_id", uid)
-          .maybeSingle();
-
-        if (row?.access_token) {
-          setToken(row.access_token);
-        }
-      } catch (err) {
-        console.error("🔴 Supabase auth load failed:", err);
-        router.replace("/");
-      } finally {
-        if (active) setLoading(false);
+      if (!session?.user.id) {
+        setLoading(false);
+        return;
       }
+
+      setUserId(session.user.id);
+
+      const { data, error } = await supabase
+        .from("dropbox_tokens")
+        .select("access_token")
+        .eq("user_id", session.user.id)
+        .single();
+
+      if (error) {
+        console.error("No Dropbox token found:", error.message);
+        setToken(null);
+      } else {
+        setToken(data?.access_token ?? null);
+      }
+
+      setLoading(false);
     };
 
-    loadUser();
+    getUser();
+  }, []);
 
-    return () => {
-      active = false;
-    };
-  }, [router]);
-
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    await supabase.auth.signOut();
-    router.push("/");
-  };
-
-  const handleDropboxDisconnect = async () => {
+  const handleDisconnect = async () => {
     if (!userId) return;
-    setDisconnecting(true);
+    const { error } = await supabase
+      .from("dropbox_tokens")
+      .delete()
+      .eq("user_id", userId);
 
-    const res = await fetch("/api/dropbox/disconnect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId }),
-    });
-
-    setDisconnecting(false);
-    if (res.ok) {
-      alert("✅ Disconnected Dropbox.");
+    if (!error) {
       setToken(null);
+      alert("Dropbox disconnected.");
     } else {
-      alert("❌ Failed to disconnect Dropbox.");
+      console.error("Failed to disconnect Dropbox:", error.message);
     }
   };
 
   if (loading) {
-    return <div className="p-10 text-text-secondary">Loading dashboard...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="text-white">Loading dashboard...</span>
+      </div>
+    );
   }
 
   return (
-    <main className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-bold mb-6 text-text-primary">Welcome to Beta7 Dashboard</h2>
+    <div className="min-h-screen px-4 py-10 bg-black text-white flex flex-col items-center gap-6">
+      <h1 className="text-4xl font-bold text-center">Welcome to Beta7 Dashboard</h1>
+      <Card className="p-6 w-full max-w-xl flex flex-col items-center gap-4 bg-surface-primary text-white border border-gray-700">
+        <h2 className="text-2xl font-semibold">Dropbox Connection</h2>
 
-      <DropboxConnectButton userId={userId} />
-
-      {token && (
-        <div className="mt-6 flex flex-col gap-4">
-          <Button
-            className="bg-red-600 hover:bg-red-700 text-white"
-            onClick={handleDropboxDisconnect}
-            disabled={disconnecting}
-          >
-            {disconnecting ? "Disconnecting..." : "Disconnect Dropbox"}
-          </Button>
-        </div>
-      )}
-
-      <div className="mt-8">
-        <Button
-          variant="outline"
-          className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white"
-          onClick={handleLogout}
-          disabled={loggingOut}
-        >
-          {loggingOut ? "Logging out..." : "Logout"}
-        </Button>
-      </div>
-    </main>
+        {token ? (
+          <>
+            <div className="flex items-center gap-2 text-green-400">
+              <CheckCircle size={24} /> <span>Dropbox is connected.</span>
+            </div>
+            <Button
+              variant="destructive"
+              className="w-full max-w-sm"
+              onClick={handleDisconnect}
+            >
+              Disconnect Dropbox
+            </Button>
+          </>
+        ) : (
+          <>
+            <div className="flex items-center gap-2 text-yellow-300">
+              <XCircle size={24} /> <span>Dropbox not connected.</span>
+            </div>
+            <DropboxConnectButton userId={userId} />
+          </>
+        )}
+      </Card>
+    </div>
   );
 }
