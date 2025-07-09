@@ -12,7 +12,15 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
   const router = useRouter();
 
   const handleConnect = () => {
-    window.location.href = "/api/dropbox/oauth";
+    const clientId = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
+
+    if (!clientId || !redirectUri) {
+      console.error("Missing Dropbox client ID or redirect URI.");
+      return;
+    }
+
+    window.location.href = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
   };
 
   const handleDisconnect = async () => {
@@ -34,9 +42,5 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
     );
   }
 
-  return (
-    <Button onClick={handleConnect}>
-      Connect Dropbox
-    </Button>
-  );
+  return <Button onClick={handleConnect}>Connect Dropbox</Button>;
 }
