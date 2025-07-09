@@ -22,11 +22,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Exchange code for Dropbox access token
     const tokenRes = await fetch("https://api.dropboxapi.com/oauth2/token", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({
         code,
         grant_type: "authorization_code",
@@ -38,29 +37,55 @@ export async function GET(req: NextRequest) {
 
     if (!tokenRes.ok) {
       const errorText = await tokenRes.text();
-      return NextResponse.json({ error: "❌ Token exchange failed", details: errorText }, { status: 400 });
+      console.error("❌ Dropbox token exchange failed:", errorText);
+      return NextResponse.json({ error: "❌ Dropbox token exchange failed", details: errorText }, { status: 400 });
     }
 
     const tokenData = await tokenRes.json();
-    const accessToken = tokenData.access_token;
-    const accountId = tokenData.account_id;
+    const {
+      access_token,
+      refresh_token,
+      expires_in,
+      token_type,
+      scope,
+      account_id,
+      uid,
+      team_id,
+    } = tokenData;
+
+    // Calculate expiration timestamp (optional)
+    const expires_at = expires_in
+      ? new Date(Date.now() + expires_in * 1000).toISOString()
+      : null;
 
     const { error } = await supabase
       .from("dropbox_tokens")
-      .upsert({
-        user_id: userId,
-        access_token: accessToken,
-        account_id: accountId,
-      });
+      .upsert(
+        {
+          user_id: userId,
+          access_token,
+          refresh_token,
+          token_type,
+          scope,
+          expires_at,
+          account_id,
+          uid,
+          team_id,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id" }
+      )
+      .select()
+      .maybeSingle();
 
     if (error) {
-      console.error("Supabase insert error:", error);
-      return NextResponse.json({ error: "❌ Failed to save token in Supabase" }, { status: 500 });
+      console.error("❌ Supabase upsert error:", error);
+      return NextResponse.json({ error: "❌ Failed to save token in Supabase", details: error.message }, { status: 500 });
     }
 
     return NextResponse.redirect(`${NEXT_PUBLIC_SITE_URL}/dashboard`);
-  } catch (err) {
-    console.error("OAuth error:", err);
-    return NextResponse.json({ error: "❌ Unexpected error" }, { status: 500 });
+  } catch (err: any) {
+    console.error("❌ Unexpected OAuth error:", err);
+    return NextResponse.json({ error: "❌ Unexpected error", details: err.message }, { status: 500 });
   }
 }
