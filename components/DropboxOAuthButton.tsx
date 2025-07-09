@@ -13,7 +13,7 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
 
   const handleConnect = () => {
     if (!userId) {
-      console.error("👤 Missing user ID");
+      console.error("\ud83d\udc64 Missing user ID");
       return;
     }
 
@@ -21,23 +21,23 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
     const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
-      console.error("📦 Missing Dropbox clientId or redirectUri");
+      console.error("\ud83d\udce6 Missing Dropbox clientId or redirectUri");
       return;
     }
 
     const state = encodeURIComponent(userId);
     const url = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
 
-    console.log("📦 clientId:", clientId);
-    console.log("📦 redirectUri:", redirectUri);
-    console.log("👤 userId:", userId);
+    console.log("\ud83d\udce6 clientId:", clientId);
+    console.log("\ud83d\udce6 redirectUri:", redirectUri);
+    console.log("\ud83d\udc64 userId:", userId);
 
     window.location.href = url;
   };
 
   const handleDisconnect = async () => {
     if (!userId) {
-      console.error("❌ Missing user ID for disconnect");
+      console.error("\u274c Missing user ID for disconnect");
       return;
     }
 
@@ -52,7 +52,7 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
 
       router.refresh();
     } catch (error) {
-      console.error("❌ Disconnect failed:", error);
+      console.error("\u274c Disconnect failed:", error);
     }
   };
 
