@@ -1,73 +1,104 @@
-// ✅ File: app/(protected)/dashboard/page.tsx
-
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import Sidebar from "@/components/sidebar";
-import { Card } from "@/components/ui/card";
-import DropboxOAuthButton from "@/components/DropboxOAuthButton";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { UploadCloud, XCircle } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchSession = async () => {
+    const fetchUserAndStatus = async () => {
       const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (error || !session) {
-        router.push("/login");
+      if (!user) {
+        router.push("/");
         return;
       }
 
-      const user = session.user;
       setUserId(user.id);
-      setUserEmail(user.email || null);
 
-      const { data, error: tokenError } = await supabase
+      const { data, error } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (tokenError) {
-        console.error("Failed to fetch Dropbox token:", tokenError);
+      if (error) {
+        console.error("Error checking Dropbox connection:", error);
       }
 
-      setAccessToken(data?.access_token || null);
+      setIsConnected(!!data?.access_token);
       setLoading(false);
     };
 
-    fetchSession();
+    fetchUserAndStatus();
   }, [router]);
 
-  if (loading) {
-    return <div className="p-4 text-white">Loading...</div>;
-  }
+  const handleDisconnect = async () => {
+    if (!userId) return;
+
+    try {
+      const res = await fetch("/api/dropbox/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      const result = await res.json();
+
+      if (res.ok) {
+        setIsConnected(false);
+      } else {
+        console.error("Failed to disconnect:", result.error);
+      }
+    } catch (err) {
+      console.error("Unexpected error during disconnect:", err);
+    }
+  };
+
+  const connectUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}`;
 
   return (
-    <div className="flex min-h-screen bg-zinc-900 text-white">
-      <Sidebar />
-      <main className="flex-1 p-6">
-        <Card className="mb-6 p-4 bg-zinc-800">
-          <div className="text-sm">Welcome, {userEmail}</div>
-        </Card>
+    <div className="p-6 space-y-6">
+      <Card>
+        <CardContent className="py-6 flex justify-between items-center">
+          <div>
+            <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+            {!loading && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
+              </p>
+            )}
+          </div>
 
-        <div className="mb-6">
-          <DropboxOAuthButton userId={userId} accessToken={accessToken} />
-        </div>
+          {!loading && (
+            isConnected ? (
+              <Button variant="destructive" onClick={handleDisconnect}>
+                <XCircle className="mr-2 h-4 w-4" />
+                Disconnect Dropbox
+              </Button>
+            ) : (
+              <a href={connectUrl}>
+                <Button>
+                  <UploadCloud className="mr-2 h-4 w-4" />
+                  Connect Dropbox
+                </Button>
+              </a>
+            )
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Other dashboard components go here */}
-        <div className="text-zinc-300">Dashboard content here...</div>
-      </main>
+      {/* More dashboard content can go here... */}
     </div>
   );
 }
