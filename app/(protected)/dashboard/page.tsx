@@ -10,58 +10,54 @@ import DropboxFileList from "@/components/DropboxFileList";
 
 export default function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getUserInfo = async () => {
+    const getUserId = async () => {
       const {
         data: { user },
       } = await supabase.auth.getUser();
 
-      if (user) {
+      if (user?.id) {
         setUserId(user.id);
-
-        const { data, error } = await supabase
-          .from("dropbox_tokens")
-          .select("access_token")
-          .eq("user_id", user.id)
-          .single();
-
-        if (data && data.access_token) {
-          setAccessToken(data.access_token);
-        }
       }
+
+      setLoading(false);
     };
 
-    getUserInfo();
+    getUserId();
   }, []);
 
   return (
-    <div className="p-4 space-y-8">
+    <div className="p-6 space-y-6">
+      {/* Welcome Card */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="py-6">
           <h2 className="text-lg font-semibold mb-4">Welcome</h2>
-          <p>Your email: {userId}</p>
-          <DropboxConnectButton userId={userId ?? ""} />
+          <p>Your email: {userId || "Unknown"}</p>
+          <div className="mt-4">
+            {loading ? (
+              <Button disabled className="w-full bg-cyan-400 text-black">
+                Loading...
+              </Button>
+            ) : userId ? (
+              <DropboxConnectButton userId={userId} />
+            ) : (
+              <p className="text-red-500">User not authenticated</p>
+            )}
+          </div>
         </CardContent>
       </Card>
 
-      {accessToken && (
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
-            <DropboxFolderPicker accessToken={accessToken} />
-          </CardContent>
-        </Card>
-      )}
-
+      {/* Dropbox File Section */}
       <Card>
-        <CardContent className="p-6">
+        <CardContent className="py-6">
           <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
-          <DropboxFileList
-            userId={userId ?? ""}
-            onProcessFile={() => {}}
-          />
+          {userId ? (
+            <DropboxFileList userId={userId} />
+          ) : (
+            <p className="text-red-500">No Dropbox token for user</p>
+          )}
         </CardContent>
       </Card>
     </div>
