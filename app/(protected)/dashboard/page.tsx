@@ -12,6 +12,7 @@ import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
 
@@ -38,7 +39,14 @@ export default function DashboardPage() {
         console.error("Error checking Dropbox connection:", error);
       }
 
-      setIsConnected(!!data?.access_token);
+      if (data?.access_token) {
+        setIsConnected(true);
+        setAccessToken(data.access_token);
+      } else {
+        setIsConnected(false);
+        setAccessToken(null);
+      }
+
       setLoading(false);
     };
 
@@ -59,6 +67,7 @@ export default function DashboardPage() {
 
       if (res.ok) {
         setIsConnected(false);
+        setAccessToken(null);
       } else {
         console.error("Failed to disconnect:", result.error);
       }
@@ -105,10 +114,10 @@ export default function DashboardPage() {
         </Card>
 
         {/* Step 2: Folder Picker if connected */}
-        {isConnected && userId && (
+        {isConnected && userId && accessToken && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
-            <DropboxFolderPicker userId={userId} />
+            <DropboxFolderPicker userId={userId} accessToken={accessToken} />
           </div>
         )}
       </main>
