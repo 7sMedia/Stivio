@@ -16,7 +16,7 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
     const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
 
     if (!clientId || !redirectUri) {
-      console.error("Missing Dropbox client ID or redirect URI.");
+      console.error("Missing Dropbox clientId or redirectUri");
       return;
     }
 
@@ -42,5 +42,9 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
     );
   }
 
-  return <Button onClick={handleConnect}>Connect Dropbox</Button>;
+  return (
+    <Button onClick={handleConnect}>
+      Connect Dropbox
+    </Button>
+  );
 }
