@@ -13,34 +13,35 @@ const supabase = createClient(
 );
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [dropboxToken, setDropboxToken] = useState<string | null>(null);
-
-  const router = useRouter();
 
   useEffect(() => {
     const fetchUserAndToken = async () => {
       const {
         data: { user },
+        error,
       } = await supabase.auth.getUser();
 
-      if (!user) {
+      if (error || !user) {
+        console.error("Failed to get user", error);
         router.push("/");
         return;
       }
 
       setUserId(user.id);
-      setUserEmail(user.email);
+      setUserEmail(user.email ?? "Unknown");
 
-      const { data, error } = await supabase
+      const { data, error: tokenError } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
         .eq("user_id", user.id)
-        .maybeSingle(); // ✅ allow 0 or 1 rows without throwing
+        .maybeSingle();
 
-      if (error) {
-        console.error("Error fetching Dropbox token:", error.message);
+      if (tokenError) {
+        console.error("Error fetching Dropbox token:", tokenError.message);
       }
 
       setDropboxToken(data?.access_token ?? null);
