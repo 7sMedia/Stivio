@@ -3,127 +3,131 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxImageUploader from "@/components/DropboxImageUploader";
 import DropboxFileList from "@/components/DropboxFileList";
-import DropboxFolderPicker from "@/components/DropboxFolderPicker";
+import { Input } from "@/components/ui/input";
+import { LogOut } from "lucide-react";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    const init = async () => {
+    const getUserData = async () => {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
+        data: { user },
+        error,
+      } = await supabase.auth.getUser();
 
-      if (!session?.user?.id) {
-        router.push("/login");
+      if (error || !user) {
+        router.push("/");
         return;
       }
 
-      const id = session.user.id;
-      setUserId(id);
+      setUserEmail(user.email);
+      setUserId(user.id);
 
-      const { data, error: tokenError } = await supabase
+      const { data: tokenData } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
-        .eq("user_id", id)
-        .order("created_at", { ascending: false })
-        .limit(1)
+        .eq("user_id", user.id)
         .single();
 
-      if (!tokenError && data?.access_token) {
-        setToken(data.access_token);
-      }
-
+      setToken(tokenData?.access_token || null);
       setLoading(false);
     };
 
-    init();
+    getUserData();
   }, [router]);
 
-  if (loading) return <div className="text-center text-white p-10">Loading...</div>;
+  const handleConnectDropbox = () => {
+    window.location.href = `/api/dropbox/oauth/start?user_id=${userId}`;
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+  };
+
+  if (loading) {
+    return <div className="text-center text-white">Loading...</div>;
+  }
 
   return (
-    <div className="flex min-h-screen bg-black text-white">
-      <aside className="w-64 bg-[#111] p-6 hidden md:block">
-        <div className="font-bold text-lg mb-4">Beta7</div>
-        <nav>
-          <ul className="space-y-3">
-            <li><a className="hover:text-gray-300" href="/dashboard">Dashboard</a></li>
-            <li><a className="hover:text-gray-300" href="/ai-tool">AI Tool</a></li>
-          </ul>
-        </nav>
-        <div className="absolute bottom-6 left-6 text-sm text-gray-400">jay7nyc@hotmail.com</div>
-      </aside>
-
-      <main className="flex-1 p-6 md:p-10">
-        <h1 className="text-2xl font-bold mb-6">Welcome back!</h1>
-
-        <div className="mb-6">
-          {!token ? (
-            <Button
-              onClick={() => router.push("/connect-dropbox")}
-              className="bg-blue-500 hover:bg-blue-600 text-white"
-            >
-              Connect Dropbox (Auto Sync)
-            </Button>
-          ) : (
-            <div className="text-sm text-green-400 mb-2">Dropbox connected</div>
-          )}
+    <div className="flex min-h-screen text-white">
+      <div className="w-64 bg-black p-4 flex flex-col justify-between">
+        <div>
+          <div className="text-2xl font-bold mb-6">Beta7</div>
+          <div className="mb-2">Dashboard</div>
+          <div className="mb-2">AI Tool</div>
         </div>
+        <div>
+          <div className="text-sm mb-2">{userEmail}</div>
+          <Button onClick={handleLogout} className="w-full" variant="outline">
+            <LogOut className="mr-2 h-4 w-4" /> Log Out
+          </Button>
+        </div>
+      </div>
 
-        <div className="grid md:grid-cols-2 gap-6 mb-10">
-          <Card className="bg-[#1c1c1c]">
+      <div className="flex-1 p-6 space-y-6">
+        <h2 className="text-2xl font-bold">Welcome back!</h2>
+        {token ? (
+          <div className="text-green-500 text-sm">Dropbox connected</div>
+        ) : (
+          <Button onClick={handleConnectDropbox} className="bg-cyan-400 w-full">
+            Connect Dropbox
+          </Button>
+        )}
+
+        <div className="grid grid-cols-2 gap-6">
+          <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Your Latest Videos</h2>
-              <div className="flex space-x-4">
-                <div className="bg-[#2a2a2a] rounded-md w-1/2 h-32 flex items-center justify-center text-gray-400">Video 1</div>
-                <div className="bg-[#2a2a2a] rounded-md w-1/2 h-32 flex items-center justify-center text-gray-400">Video 2</div>
+              <h3 className="text-lg font-semibold mb-2">Your Latest Videos</h3>
+              <div className="flex gap-4">
+                <div className="w-1/2 h-32 bg-gray-800 rounded flex items-center justify-center">Video 1</div>
+                <div className="w-1/2 h-32 bg-gray-800 rounded flex items-center justify-center">Video 2</div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-[#1c1c1c]">
+          <Card>
             <CardContent className="p-6">
-              <h2 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h2>
+              <h3 className="text-lg font-semibold mb-4">Dropbox Folder Picker</h3>
               <DropboxFolderPicker accessToken={token || ""} userId={userId || ""} />
             </CardContent>
           </Card>
         </div>
 
-        <Card className="mb-6 bg-[#1c1c1c]">
+        <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-3">Upload Images</h2>
-            <DropboxImageUploader accessToken={token || ""} />
+            <h3 className="text-lg font-semibold mb-4">Upload Images</h3>
+            <DropboxImageUploader accessToken={token || ""} userId={userId || ""} />
           </CardContent>
         </Card>
 
-        <Card className="mb-6 bg-[#1c1c1c]">
+        <Card>
           <CardContent className="p-6">
-            <h2 className="text-xl font-semibold mb-3">Describe Your Video</h2>
-            <textarea
+            <h3 className="text-lg font-semibold mb-4">Describe Your Video</h3>
+            <Input
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
-              rows={4}
               placeholder="e.g. Create a fast-paced ad for a beach resort with upbeat music."
-              className="w-full p-4 rounded-md text-black"
+              className="mb-4"
             />
-            <Button className="mt-4 bg-green-500 hover:bg-green-600 text-white">
-              Generate Video
-            </Button>
+            <Button className="bg-green-600">Generate Video</Button>
           </CardContent>
         </Card>
 
-        <Card className="mb-6 bg-[#1c1c1c]">
+        <Card>
           <CardContent className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
+            <h3 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h3>
             {userId ? (
               <DropboxFileList userId={userId} onProcessFile={() => {}} />
             ) : (
@@ -131,7 +135,7 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-      </main>
+      </div>
     </div>
   );
 }
