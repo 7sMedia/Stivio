@@ -1,38 +1,36 @@
+// ✅ File: app/(protected)/dashboard/page.tsx
+
 "use client";
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@supabase/supabase-js";
-import DropboxOAuthButton from "@/components/DropboxOAuthButton";
-import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
+import Sidebar from "@/components/sidebar";
 import { Card } from "@/components/ui/card";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import DropboxOAuthButton from "@/components/DropboxOAuthButton";
 
 export default function DashboardPage() {
   const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [dropboxToken, setDropboxToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserAndToken = async () => {
+    const fetchSession = async () => {
       const {
-        data: { user },
+        data: { session },
         error,
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getSession();
 
-      if (error || !user) {
-        console.error("Failed to get user", error);
-        router.push("/");
+      if (error || !session) {
+        router.push("/login");
         return;
       }
 
+      const user = session.user;
       setUserId(user.id);
-      setUserEmail(user.email ?? "Unknown");
+      setUserEmail(user.email || null);
 
       const { data, error: tokenError } = await supabase
         .from("dropbox_tokens")
@@ -41,33 +39,35 @@ export default function DashboardPage() {
         .maybeSingle();
 
       if (tokenError) {
-        console.error("Error fetching Dropbox token:", tokenError.message);
+        console.error("Failed to fetch Dropbox token:", tokenError);
       }
 
-      setDropboxToken(data?.access_token ?? null);
+      setAccessToken(data?.access_token || null);
+      setLoading(false);
     };
 
-    fetchUserAndToken();
+    fetchSession();
   }, [router]);
 
-  return (
-    <main className="p-8 space-y-6">
-      <Card className="p-6 flex justify-between items-center">
-        <div>
-          <h2 className="text-xl font-bold">Welcome</h2>
-          <p>{userEmail}</p>
-        </div>
-        <form action="/auth/signout" method="post">
-          <Button variant="outline" type="submit">
-            Log out
-          </Button>
-        </form>
-      </Card>
+  if (loading) {
+    return <div className="p-4 text-white">Loading...</div>;
+  }
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Dropbox Integration</h3>
-        <DropboxOAuthButton userId={userId} accessToken={dropboxToken} />
-      </Card>
-    </main>
+  return (
+    <div className="flex min-h-screen bg-zinc-900 text-white">
+      <Sidebar />
+      <main className="flex-1 p-6">
+        <Card className="mb-6 p-4 bg-zinc-800">
+          <div className="text-sm">Welcome, {userEmail}</div>
+        </Card>
+
+        <div className="mb-6">
+          <DropboxOAuthButton userId={userId} accessToken={accessToken} />
+        </div>
+
+        {/* Other dashboard components go here */}
+        <div className="text-zinc-300">Dashboard content here...</div>
+      </main>
+    </div>
   );
 }
