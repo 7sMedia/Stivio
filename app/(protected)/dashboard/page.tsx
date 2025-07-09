@@ -6,6 +6,8 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
+import Sidebar from "@/components/Sidebar";
+import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -68,37 +70,46 @@ export default function DashboardPage() {
   const connectUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}`;
 
   return (
-    <div className="p-6 space-y-6">
-      <Card>
-        <CardContent className="py-6 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+    <div className="flex min-h-screen dark bg-background text-white">
+      <Sidebar />
+      <main className="flex-1 p-6 space-y-6">
+        <Card>
+          <CardContent className="py-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+              {!loading && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
+                </p>
+              )}
+            </div>
+
             {!loading && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
-              </p>
-            )}
-          </div>
-
-          {!loading && (
-            isConnected ? (
-              <Button variant="destructive" onClick={handleDisconnect}>
-                <XCircle className="mr-2 h-4 w-4" />
-                Disconnect Dropbox
-              </Button>
-            ) : (
-              <a href={connectUrl}>
-                <Button>
-                  <UploadCloud className="mr-2 h-4 w-4" />
-                  Connect Dropbox
+              isConnected ? (
+                <Button variant="destructive" onClick={handleDisconnect}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Disconnect Dropbox
                 </Button>
-              </a>
-            )
-          )}
-        </CardContent>
-      </Card>
+              ) : (
+                <a href={connectUrl}>
+                  <Button>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    Connect Dropbox
+                  </Button>
+                </a>
+              )
+            )}
+          </CardContent>
+        </Card>
 
-      {/* More dashboard content can go here... */}
+        {/* Step 2: Folder Picker if connected */}
+        {isConnected && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
+            <DropboxFolderPicker userId={userId} />
+          </div>
+        )}
+      </main>
     </div>
   );
 }
