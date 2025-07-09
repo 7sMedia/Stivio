@@ -1,60 +1,18 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 
-declare global {
-  interface Window {
-    Dropbox: any;
-  }
-}
-
-interface Props {
+interface DropboxFolderPickerProps {
   accessToken: string;
+  userId: string;
 }
 
-export default function DropboxFolderPicker({ accessToken }: Props) {
-  useEffect(() => {
-    const scriptId = "dropbox-picker-sdk";
-
-    if (!document.getElementById(scriptId)) {
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.src = "https://www.dropbox.com/static/api/2/dropins.js";
-      script.setAttribute("data-app-key", process.env.NEXT_PUBLIC_DROPBOX_APP_KEY!);
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
-
-  const handleChoose = () => {
-    if (!window.Dropbox) {
-      alert("Dropbox Picker not loaded.");
-      return;
-    }
-
-    window.Dropbox.choose({
-      linkType: "preview",
-      multiselect: false,
-      folderselect: true,
-      success: (files: any) => {
-        if (files && files.length > 0) {
-          alert(`Folder selected: ${files[0].link}`);
-        }
-      },
-      cancel: () => {
-        console.log("Folder selection cancelled.");
-      },
-    });
-  };
-
+export default function DropboxFolderPicker({ accessToken, userId }: DropboxFolderPickerProps) {
   return (
-    <div className="w-full max-w-sm flex flex-col items-center gap-3">
-      <button
-        onClick={handleChoose}
-        className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded w-full"
-      >
-        Choose Dropbox Folder
-      </button>
+    <div className="border border-dashed border-gray-400 p-4 text-white">
+      <p className="text-sm mb-2">Dropbox Folder Picker</p>
+      <p className="text-xs">User ID: {userId}</p>
+      <p className="text-xs">Token: {accessToken ? "✔️" : "❌"}</p>
     </div>
   );
 }
