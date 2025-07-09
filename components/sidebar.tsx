@@ -1,94 +1,53 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabaseClient";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useRouter, usePathname } from "next/navigation";
-import { navItems } from "@/app/src/config/nav";
-import { Menu } from "lucide-react";
-import ThemeToggle from "@/components/ThemeToggle";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { LogOut, Settings, Video } from "lucide-react";
+
+const navItems = [
+  { name: "Dashboard", href: "/dashboard", icon: Video },
+  { name: "Settings", href: "/settings", icon: Settings },
+];
 
 export default function Sidebar() {
-  const router = useRouter();
-  const path = usePathname() || "";
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [isOpen, setIsOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      const email = user?.email ?? null;
-      if (!email) {
-        window.location.href = "/login";
-      } else {
-        setUserEmail(email);
-      }
-    };
-    fetchUser();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("You have been signed out successfully.");
-    setTimeout(() => {
-      window.location.href = "/login";
-    }, 1500);
-  };
-
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full border-r border-zinc-800 p-6 bg-zinc-950 w-64">
-      <h1 className="text-2xl font-bold tracking-tight mb-4 flex items-center justify-between">
-        <span>Beta7</span>
-        <ThemeToggle />
-      </h1>
-      <nav className="flex-1 space-y-2">
-        {navItems.map((item) => {
-          const active = path === item.href;
-          return (
-            <Button
-              key={item.href}
-              variant={active ? "secondary" : "ghost"}
-              className="w-full justify-start"
-              onClick={() => router.push(item.href)}
-            >
-              {item.title}
-            </Button>
-          );
-        })}
-      </nav>
-      <div className="mt-auto pt-6 text-sm text-muted-foreground">
-        <p className="mb-2">{userEmail ?? "Loading..."}</p>
-        <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
-          Log Out
-        </Button>
-      </div>
-    </div>
-  );
+  const pathname = usePathname();
 
   return (
-    <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex h-screen">{SidebarContent()}</aside>
-
-      {/* Mobile Topbar + Sidebar Drawer */}
-      <div className="md:hidden flex items-center justify-between px-4 py-2 border-b border-zinc-800 bg-zinc-950">
-        <div className="flex items-center space-x-2">
-          <h1 className="text-xl font-bold">Beta7</h1>
-          <ThemeToggle />
+    <aside className="hidden w-64 h-screen px-4 py-6 border-r lg:block dark:border-zinc-800">
+      <div className="flex flex-col h-full">
+        <div className="flex items-center mb-6 text-xl font-bold text-white">
+          Beta7
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(!isOpen)}>
-          <Menu className="h-6 w-6" />
-        </Button>
+        <nav className="flex-1 space-y-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                pathname === item.href
+                  ? "bg-zinc-800 text-white"
+                  : "text-zinc-400 hover:text-white hover:bg-zinc-800"
+              }`}
+            >
+              <item.icon className="w-5 h-5 mr-3" />
+              {item.name}
+            </Link>
+          ))}
+        </nav>
+        <form
+          action="/logout"
+          method="post"
+          className="mt-auto"
+        >
+          <button
+            type="submit"
+            className="flex items-center w-full px-3 py-2 text-sm font-medium text-zinc-400 rounded-md hover:text-white hover:bg-zinc-800"
+          >
+            <LogOut className="w-5 h-5 mr-3" />
+            Logout
+          </button>
+        </form>
       </div>
-
-      {isOpen && (
-        <div className="md:hidden fixed inset-y-0 left-0 z-50 bg-zinc-950 w-64 border-r border-zinc-800">
-          {SidebarContent()}
-        </div>
-      )}
-    </>
+    </aside>
   );
 }
