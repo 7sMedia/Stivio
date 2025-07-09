@@ -67,8 +67,6 @@ export default function DashboardPage() {
     }
   };
 
-  const connectUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}`;
-
   return (
     <div className="flex min-h-screen dark bg-background text-white">
       <Sidebar />
@@ -91,12 +89,16 @@ export default function DashboardPage() {
                   Disconnect Dropbox
                 </Button>
               ) : (
-                <a href={connectUrl}>
-                  <Button>
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                    Connect Dropbox
-                  </Button>
-                </a>
+                userId && (
+                  <a
+                    href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
+                  >
+                    <Button>
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Connect Dropbox
+                    </Button>
+                  </a>
+                )
               )
             )}
           </CardContent>
