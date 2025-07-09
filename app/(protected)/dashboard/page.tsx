@@ -1,70 +1,97 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import DropboxConnectButton from "@/components/DropboxConnectButton";
-import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import DropboxFileList from "@/components/DropboxFileList";
+import { Card, CardContent } from "@/components/ui/card";
+import DropboxImageUploader from "@/components/DropboxImageUploader";
 
 export default function DashboardPage() {
-  const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [token, setToken] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    const getUserId = async () => {
+    const init = async () => {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
+        data: { session },
+      } = await supabase.auth.getSession();
 
-      if (user?.id) {
-        setUserId(user.id);
+      if (!session?.user?.id) {
+        router.push("/login");
+        return;
+      }
+
+      const id = session.user.id;
+      setUserId(id);
+
+      const { data, error: tokenError } = await supabase
+        .from("dropbox_tokens")
+        .select("access_token")
+        .eq("user_id", id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!tokenError && data?.access_token) {
+        setToken(data.access_token);
       }
 
       setLoading(false);
     };
 
-    getUserId();
-  }, []);
+    init();
+  }, [router]);
 
-  const handleProcessFile = (filePath: string) => {
-    console.log("Processing file:", filePath);
-    // TODO: Add actual processing logic here
-  };
+  if (loading) return <div className="text-center text-white p-10">Loading...</div>;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Welcome Card */}
-      <Card>
-        <CardContent className="py-6">
-          <h2 className="text-lg font-semibold mb-4">Welcome</h2>
-          <p>Your email: {userId || "Unknown"}</p>
-          <div className="mt-4">
-            {loading ? (
-              <Button disabled className="w-full bg-cyan-400 text-black">
-                Loading...
-              </Button>
-            ) : userId ? (
-              <DropboxConnectButton userId={userId} />
-            ) : (
-              <p className="text-red-500">User not authenticated</p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen bg-black text-white py-10 px-6 md:px-10">
+      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
-      {/* Dropbox File Section */}
-      <Card>
-        <CardContent className="py-6">
-          <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
-          {userId ? (
-            <DropboxFileList userId={userId} onProcessFile={handleProcessFile} />
-          ) : (
-            <p className="text-red-500">No Dropbox token for user</p>
-          )}
-        </CardContent>
-      </Card>
+      {!token ? (
+        <Card className="mb-6 bg-[#1c1c1c]">
+          <CardContent className="p-6">
+            <p className="mb-4 text-lg">Connect your Dropbox account to continue.</p>
+            <Button
+              onClick={() => router.push("/connect-dropbox")}
+              className="bg-blue-500 hover:bg-blue-600 text-white"
+            >
+              Connect Dropbox
+            </Button>
+          </CardContent>
+        </Card>
+      ) : (
+        <>
+          {/* Upload Panel */}
+          <Card className="mb-6 bg-[#1c1c1c]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-3">Upload Images</h2>
+              <DropboxImageUploader accessToken={token} />
+            </CardContent>
+          </Card>
+
+          {/* Prompt Input */}
+          <Card className="mb-6 bg-[#1c1c1c]">
+            <CardContent className="p-6">
+              <h2 className="text-xl font-semibold mb-3">Describe Your Video</h2>
+              <textarea
+                value={prompt}
+                onChange={(e) => setPrompt(e.target.value)}
+                rows={4}
+                placeholder="e.g. Create a fast-paced ad for a beach resort with upbeat music."
+                className="w-full p-4 rounded-md text-black"
+              />
+              <Button className="mt-4 bg-green-500 hover:bg-green-600 text-white">
+                Generate Video
+              </Button>
+            </CardContent>
+          </Card>
+        </>
+      )}
     </div>
   );
 }
