@@ -105,7 +105,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Step 2: Folder Picker if connected */}
-        {isConnected && (
+        {isConnected && userId && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
             <DropboxFolderPicker userId={userId} />
