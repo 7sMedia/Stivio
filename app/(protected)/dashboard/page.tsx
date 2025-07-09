@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
-import Sidebar from "@/components/Sidebar";
+import Sidebar from "@/components/sidebar";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 
 export default function DashboardPage() {
