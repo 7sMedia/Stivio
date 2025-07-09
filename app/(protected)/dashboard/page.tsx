@@ -2,83 +2,71 @@
 
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabaseClient";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { createClient } from "@supabase/supabase-js";
 import DropboxOAuthButton from "@/components/DropboxOAuthButton";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [userId, setUserId] = useState<string | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [dropboxToken, setDropboxToken] = useState<string | null>(null);
+
+  const router = useRouter();
 
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserAndToken = async () => {
       const {
         data: { user },
-        error,
       } = await supabase.auth.getUser();
 
-      if (error) {
-        console.error("Error fetching user:", error.message);
+      if (!user) {
+        router.push("/");
         return;
       }
 
-      if (!user) return;
-
-      setUserEmail(user.email ?? null);
       setUserId(user.id);
+      setUserEmail(user.email);
 
-      const { data: tokenData, error: tokenError } = await supabase
+      const { data, error } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
         .eq("user_id", user.id)
-        .single();
+        .maybeSingle(); // ✅ allow 0 or 1 rows without throwing
 
-      if (tokenError) {
-        console.error("Error fetching Dropbox token:", tokenError.message);
-        return;
+      if (error) {
+        console.error("Error fetching Dropbox token:", error.message);
       }
 
-      setAccessToken(tokenData?.access_token ?? null);
+      setDropboxToken(data?.access_token ?? null);
     };
 
-    fetchUserData();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/");
-  };
+    fetchUserAndToken();
+  }, [router]);
 
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="flex">
-        <aside className="w-64 bg-[#111] min-h-screen p-4 flex flex-col justify-between">
-          <div>
-            <div className="text-xl font-bold mb-6">Beta7 Dashboard</div>
-            <div className="text-sm mb-2">User: {userEmail}</div>
-          </div>
-          <Button variant="destructive" onClick={handleLogout} className="mt-auto">
-            ⎋ Logout
+    <main className="p-8 space-y-6">
+      <Card className="p-6 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold">Welcome</h2>
+          <p>{userEmail}</p>
+        </div>
+        <form action="/auth/signout" method="post">
+          <Button variant="outline" type="submit">
+            Log out
           </Button>
-        </aside>
-        <main className="flex-1 p-6 space-y-6">
-          <Card>
-            <CardContent className="p-4">
-              <h2 className="text-lg font-semibold mb-2">Dropbox Connection</h2>
-              <DropboxOAuthButton userId={userId} accessToken={accessToken} />
-            </CardContent>
-          </Card>
+        </form>
+      </Card>
 
-          <Card>
-            <CardContent className="p-4">
-              <p>Other dashboard components go here...</p>
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-    </div>
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Dropbox Integration</h3>
+        <DropboxOAuthButton userId={userId} accessToken={dropboxToken} />
+      </Card>
+    </main>
   );
 }
