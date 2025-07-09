@@ -28,6 +28,11 @@ export default function DashboardPage() {
     getUserId();
   }, []);
 
+  const handleProcessFile = (filePath: string) => {
+    console.log("Processing file:", filePath);
+    // TODO: Add actual processing logic here
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Welcome Card */}
@@ -54,7 +59,7 @@ export default function DashboardPage() {
         <CardContent className="py-6">
           <h2 className="text-lg font-semibold mb-4">Your Dropbox Files (Root)</h2>
           {userId ? (
-            <DropboxFileList userId={userId} />
+            <DropboxFileList userId={userId} onProcessFile={handleProcessFile} />
           ) : (
             <p className="text-red-500">No Dropbox token for user</p>
           )}
