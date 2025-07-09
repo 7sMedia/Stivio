@@ -1,35 +1,26 @@
 "use client";
 
-import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 
 interface Props {
-  userId: string | null;
+  userId: string;
 }
 
 export default function DropboxConnectButton({ userId }: Props) {
-  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleConnect = async () => {
     if (!userId) return;
-    setLoading(true);
-    const res = await fetch(`/api/dropbox/auth?user_id=${userId}`);
-    if (res.ok) {
-      const { url } = await res.json();
-      window.location.href = url;
-    } else {
-      alert("Failed to initiate Dropbox OAuth");
-    }
-    setLoading(false);
+    const response = await fetch(`/api/dropbox/oauth/start?user_id=${userId}`);
+    const { authUrl } = await response.json();
+
+    window.location.href = authUrl; // Full redirect
   };
 
   return (
-    <Button
-      onClick={handleConnect}
-      disabled={loading || !userId}
-      className="w-full"
-    >
-      {loading ? "Loading..." : "Connect Dropbox"}
+    <Button onClick={handleConnect} className="bg-cyan-400 hover:bg-cyan-500 text-black w-full">
+      Connect Dropbox
     </Button>
   );
 }
