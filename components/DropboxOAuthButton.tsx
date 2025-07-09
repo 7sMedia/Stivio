@@ -13,48 +13,58 @@ export default function DropboxOAuthButton({ userId, accessToken }: Props) {
 
   const handleConnect = () => {
     if (!userId) {
-      console.error("👤 userId is missing");
+      console.error("👤 Missing user ID");
       return;
     }
 
     const clientId = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID;
     const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
 
-    console.log("📦 clientId:", clientId);
-    console.log("📦 redirectUri:", redirectUri);
-    console.log("👤 userId:", userId);
-
     if (!clientId || !redirectUri) {
-      console.error("❌ Missing Dropbox client ID or redirect URI");
+      console.error("📦 Missing Dropbox clientId or redirectUri");
       return;
     }
 
     const state = encodeURIComponent(userId);
     const url = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
 
+    console.log("📦 clientId:", clientId);
+    console.log("📦 redirectUri:", redirectUri);
+    console.log("👤 userId:", userId);
+
     window.location.href = url;
   };
 
   const handleDisconnect = async () => {
     if (!userId) {
-      console.error("Missing user ID for disconnect");
+      console.error("❌ Missing user ID for disconnect");
       return;
     }
 
-    await fetch("/api/dropbox/disconnect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    });
+    try {
+      await fetch("/api/dropbox/disconnect", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ userId }),
+      });
 
-    router.refresh();
+      router.refresh();
+    } catch (error) {
+      console.error("❌ Disconnect failed:", error);
+    }
   };
 
-  return accessToken ? (
-    <Button variant="destructive" onClick={handleDisconnect}>
-      Disconnect from Dropbox
-    </Button>
-  ) : (
+  if (accessToken) {
+    return (
+      <Button variant="destructive" onClick={handleDisconnect}>
+        Disconnect from Dropbox
+      </Button>
+    );
+  }
+
+  return (
     <Button onClick={handleConnect}>
       Connect Dropbox
     </Button>
