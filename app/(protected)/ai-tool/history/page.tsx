@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import VideoCard from "@/components/VideoCard";
 
 interface VideoEntry {
   id: string;
@@ -58,18 +58,13 @@ export default function HistoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {videos.map((video) => (
-            <Card key={video.id} className="bg-zinc-900 text-white border border-zinc-700">
-              <CardContent className="p-4 space-y-2">
-                <video src={video.video_url} controls className="w-full rounded-md" />
-                <div>
-                  <div className="text-sm text-indigo-400">{video.filename}</div>
-                  <div className="text-sm italic text-zinc-300">"{video.prompt}"</div>
-                  <div className="text-xs text-zinc-500">
-                    {new Date(video.created_at).toLocaleString()}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <VideoCard
+              key={video.id}
+              video_url={video.video_url}
+              filename={video.filename}
+              prompt={video.prompt}
+              created_at={video.created_at}
+            />
           ))}
         </div>
       )}
