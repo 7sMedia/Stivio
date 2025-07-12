@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -59,7 +58,13 @@ export default function HomePage() {
 
   const handleSignup = async () => {
     setError("");
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: "https://beta7mvp.vercel.app/confirm",
+      },
+    });
     if (error) setError(error.message);
     else router.replace("/dashboard");
   };
@@ -202,6 +207,22 @@ export default function HomePage() {
             <Button className="w-full py-3" onClick={page === "signup" ? handleSignup : handleLogin}>
               {page === "signup" ? "Create Account" : "Login"}
             </Button>
+
+            {page === "login" && (
+              <button
+                onClick={async () => {
+                  if (!email) return setError("Enter your email first.");
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: "https://beta7mvp.vercel.app/reset-password",
+                  });
+                  if (error) setError(error.message);
+                  else setError("Check your email to reset your password.");
+                }}
+                className="text-sm text-sky-400 underline mt-2"
+              >
+                Forgot password?
+              </button>
+            )}
 
             <Button
               className="w-full py-3 text-text-secondary"
