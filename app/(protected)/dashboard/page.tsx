@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
 import Sidebar from "@/components/sidebar";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
+import DropboxAutomationSetup from "@/components/DropboxAutomationSetup";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function DashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUserAndStatus = async () => {
@@ -68,6 +70,7 @@ export default function DashboardPage() {
       if (res.ok) {
         setIsConnected(false);
         setAccessToken(null);
+        setSelectedPath(null);
       } else {
         console.error("Failed to disconnect:", result.error);
       }
@@ -117,7 +120,20 @@ export default function DashboardPage() {
         {isConnected && userId && accessToken && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
-            <DropboxFolderPicker userId={userId} accessToken={accessToken} />
+            <DropboxFolderPicker
+              userId={userId}
+              accessToken={accessToken}
+              onSelectPath={setSelectedPath}
+            />
+
+            {/* Step 3: Automation Config if folder is selected */}
+            {selectedPath && (
+              <DropboxAutomationSetup
+                userId={userId}
+                accessToken={accessToken}
+                folderPath={selectedPath}
+              />
+            )}
           </div>
         )}
       </main>
