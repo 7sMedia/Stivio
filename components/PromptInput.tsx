@@ -1,4 +1,3 @@
-// /app/ai-tool/components/PromptInput.tsx
 "use client";
 import React from "react";
 
@@ -9,7 +8,10 @@ type Props = {
 
 export default function PromptInput({ value, onChange }: Props) {
   return (
-    <div className="w-full">
+    <div className="w-full space-y-2">
+      <label className="text-sm font-medium text-indigo-200">
+        Describe the video you want:
+      </label>
       <input
         type="text"
         placeholder="Describe the animation (e.g., make her smile and blink)"
