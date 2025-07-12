@@ -62,11 +62,11 @@ export default function HomePage() {
       email,
       password,
       options: {
-        emailRedirectTo: "https://beta7mvp.vercel.app/confirm",
+        emailRedirectTo: "https://beta7mvp.vercel.app/auth/callback",
       },
     });
     if (error) setError(error.message);
-    else router.replace("/dashboard");
+    else setError("Check your email to confirm your account.");
   };
 
   if (page === "landing") {
