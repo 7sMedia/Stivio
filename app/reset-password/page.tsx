@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        setError("Missing or expired session. Try resetting again.");
+        setError("Your reset link is missing or has expired. Please try again.");
         setStatus("error");
       }
     };
@@ -40,7 +40,7 @@ export default function ResetPasswordPage() {
       <div className="w-full max-w-md space-y-6 text-center">
         <h1 className="text-3xl font-bold text-sky-400">Reset Your Password</h1>
 
-        {status !== "done" && (
+        {status !== "done" && status !== "error" && (
           <>
             <Input
               type="password"
@@ -56,7 +56,19 @@ export default function ResetPasswordPage() {
         )}
 
         {status === "done" && <p className="text-green-400">Password updated! Redirecting…</p>}
-        {status === "error" && <p className="text-red-400 text-sm">{error}</p>}
+
+        {status === "error" && (
+          <>
+            <p className="text-red-400 text-sm">{error}</p>
+            <Button
+              variant="outline"
+              className="mt-4"
+              onClick={() => router.replace("/")}
+            >
+              ← Back to Login
+            </Button>
+          </>
+        )}
       </div>
     </div>
   );
