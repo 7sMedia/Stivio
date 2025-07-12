@@ -1,10 +1,12 @@
-// app/api/cron/process-dropbox/route.ts
+// ✅ File: app/api/cron/process-dropbox/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
+const CRON_SECRET = process.env.CRON_SECRET!;
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
   auth: { autoRefreshToken: false, persistSession: false },
 });
@@ -13,9 +15,12 @@ const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  const expected = `Bearer ${process.env.CRON_SECRET}`;
+  const tokenFromHeader = authHeader?.replace("Bearer ", "").trim();
+  const tokenFromQuery = req.nextUrl.searchParams.get("auth");
 
-  if (authHeader !== expected) {
+  const token = tokenFromHeader || tokenFromQuery;
+
+  if (token !== CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -71,7 +76,7 @@ export async function GET(req: NextRequest) {
           .eq("dropbox_path", path_display)
           .maybeSingle();
 
-        if (existing) continue;
+        if (existing) continue; // already processed
 
         await supabase.from("generated_videos").insert({
           user_id,
@@ -81,7 +86,7 @@ export async function GET(req: NextRequest) {
           output_folder: dropbox_folder,
         });
 
-        // TODO: call Seedance API here
+        // TODO: Call Seedance API
         console.log(`✅ Queued: ${name} for ${user_id}`);
       }
     }
