@@ -21,7 +21,7 @@ export default function AuthCallback() {
         return;
       }
 
-      const { error } = await supabase.auth.exchangeCodeForSession(code);
+      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
 
       if (error) {
         setStatus("error");
