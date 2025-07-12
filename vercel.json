@@ -2,7 +2,7 @@
   "cron": [
     {
       "path": "/api/cron/process-dropbox",
-      "schedule": "*/15 * * * *", // every 15 minutes
+      "schedule": "*/15 * * * *",
       "enabled": true
     }
   ]
