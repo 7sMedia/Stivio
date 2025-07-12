@@ -1,3 +1,5 @@
+// app/api/cron/process-dropbox/route.ts
+
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
@@ -10,6 +12,13 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, {
 const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 
 export async function GET(req: NextRequest) {
+  const authHeader = req.headers.get("authorization");
+  const expected = `Bearer ${process.env.CRON_SECRET}`;
+
+  if (authHeader !== expected) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const { data: configs, error: configError } = await supabase
       .from("automation_configs")
@@ -72,7 +81,7 @@ export async function GET(req: NextRequest) {
           output_folder: dropbox_folder,
         });
 
-        // TODO: Send to Seedance API
+        // TODO: call Seedance API here
         console.log(`✅ Queued: ${name} for ${user_id}`);
       }
     }
