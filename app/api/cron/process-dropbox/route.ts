@@ -1,4 +1,4 @@
-// ✅ File: app/api/cron/process-dropbox/route.ts
+// /app/api/cron/process-dropbox/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
@@ -15,10 +15,7 @@ const SUPPORTED_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp"];
 
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
-  const tokenFromHeader = authHeader?.replace("Bearer ", "").trim();
-  const tokenFromQuery = req.nextUrl.searchParams.get("auth");
-
-  const token = tokenFromHeader || tokenFromQuery;
+  const token = authHeader?.replace("Bearer ", "").trim();
 
   if (token !== CRON_SECRET) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -86,7 +83,7 @@ export async function GET(req: NextRequest) {
           output_folder: dropbox_folder,
         });
 
-        // TODO: Call Seedance API
+        // TODO: Replace with Seedance API call
         console.log(`✅ Queued: ${name} for ${user_id}`);
       }
     }
