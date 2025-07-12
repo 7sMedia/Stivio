@@ -1,0 +1,9 @@
+{
+  "cron": [
+    {
+      "path": "/api/process-automation",
+      "schedule": "*/10 * * * *",
+      "enabled": true
+    }
+  ]
+}
