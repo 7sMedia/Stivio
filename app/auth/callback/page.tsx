@@ -1,38 +1,29 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Loader2, XCircle } from "lucide-react";
 
 export default function AuthCallback() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [status, setStatus] = useState<"loading" | "error">("loading");
   const [errorMsg, setErrorMsg] = useState("");
 
   useEffect(() => {
     const handleRedirect = async () => {
-      const code = searchParams.get("code");
+      const { data, error } = await supabase.auth.getSession();
 
-      if (!code) {
+      if (error || !data.session) {
         setStatus("error");
-        setErrorMsg("Missing auth code.");
-        return;
-      }
-
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href);
-
-      if (error) {
-        setStatus("error");
-        setErrorMsg(error.message);
+        setErrorMsg("This login link may have expired. Try again.");
       } else {
         setTimeout(() => router.replace("/dashboard"), 1500);
       }
     };
 
     handleRedirect();
-  }, [searchParams, router]);
+  }, [router]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
@@ -42,7 +33,7 @@ export default function AuthCallback() {
         {status === "loading" && (
           <>
             <Loader2 className="w-8 h-8 mx-auto animate-spin text-zinc-300" />
-            <p className="text-lg">Logging you in…</p>
+            <p className="text-lg">Verifying your login…</p>
           </>
         )}
 
@@ -50,7 +41,7 @@ export default function AuthCallback() {
           <>
             <XCircle className="w-8 h-8 mx-auto text-red-500" />
             <p className="text-lg text-red-400 font-medium">Error: {errorMsg}</p>
-            <p className="text-zinc-400">This login link may have expired. Try again.</p>
+            <p className="text-zinc-400">Please check your email and try again.</p>
           </>
         )}
       </div>
