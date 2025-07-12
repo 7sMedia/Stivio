@@ -1,9 +1,0 @@
-{
-  "cron": [
-    {
-      "path": "/api/cron/process-dropbox",
-      "schedule": "*/15 * * * *",
-      "enabled": true
-    }
-  ]
-}
