@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 interface DropboxFolderPickerProps {
   userId: string;
   accessToken: string;
+  onSelectPath: (path: string) => void;
 }
 
 interface DropboxEntry {
@@ -15,12 +16,11 @@ interface DropboxEntry {
   ".tag": "folder" | "file";
 }
 
-export default function DropboxFolderPicker({ userId, accessToken }: DropboxFolderPickerProps) {
+export default function DropboxFolderPicker({ userId, accessToken, onSelectPath }: DropboxFolderPickerProps) {
   const [folders, setFolders] = useState<DropboxEntry[]>([]);
   const [currentPath, setCurrentPath] = useState<string>("");
   const [pathHistory, setPathHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPath, setSelectedPath] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,19 +71,12 @@ export default function DropboxFolderPicker({ userId, accessToken }: DropboxFold
   };
 
   const handleSelect = (folder: DropboxEntry) => {
-    setSelectedPath(folder.path_display);
-    // Optional: Save this to Supabase later
+    onSelectPath(folder.path_display);
   };
 
   return (
     <div className="p-4 border border-dashed border-zinc-600 rounded-md">
       <h4 className="text-sm text-muted-foreground mb-2">Dropbox Folder Picker</h4>
-
-      {selectedPath && (
-        <div className="mb-4 text-xs text-green-400">
-          ✅ Selected Folder: <span className="font-mono">{selectedPath}</span>
-        </div>
-      )}
 
       {currentPath && (
         <button
