@@ -1,21 +1,27 @@
-// /app/layout.tsx
-import "@/styles/globals.css";
-import { ReactNode } from "react";
-import { ToastProvider } from "@/components/ui/toast-provider";
+import "./globals.css";
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+const inter = Inter({ subsets: ["latin"] });
+
+export const metadata: Metadata = {
+  title: "Piksion – Image In. Motion Out.",
+  description: "Generate AI-powered videos from images. Auto-post to social. Powered by Piksion.",
+  icons: {
+    icon: "/favicon.ico",
+  },
+  openGraph: {
+    title: "Piksion",
+    description: "Generate AI-powered videos from images. Auto-post to social. Powered by Piksion.",
+    images: ["/piksion-logo-512.png"],
+  },
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark">
-      <head>
-        <title>Beta7</title>
-        <meta name="description" content="AI video creation from still images" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </head>
-      <body className="min-h-screen h-full antialiased bg-black text-white">
-        <ToastProvider>
-          {children}
-        </ToastProvider>
-      </body>
+    <html lang="en">
+      <head />
+      <body className={inter.className}>{children}</body>
     </html>
   );
 }
