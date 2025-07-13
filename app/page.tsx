@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary via-[#1A1A1A] to-background text-white relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
+    <div className="min-h-screen w-screen overflow-hidden bg-gradient-to-br from-primary via-[#1A1A1A] to-background text-white relative flex flex-col items-center justify-center">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
