@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React from "react";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { fetchDropboxFolders } from "@/lib/dropboxUtils";
 
 interface Props {
   userId: string;
@@ -11,35 +10,23 @@ interface Props {
   onChange: (value: string) => void;
 }
 
+const folders = [
+  { id: "images/input", name: "Input Folder" },
+  { id: "images/secondary", name: "Secondary Folder" },
+];
+
 export default function DropboxFolderPicker({ userId, value, onChange }: Props) {
-  const [folders, setFolders] = useState<string[]>([]);
-
-  useEffect(() => {
-    const loadFolders = async () => {
-      try {
-        const fetchedFolders = await fetchDropboxFolders(userId);
-        setFolders(fetchedFolders);
-      } catch (error) {
-        console.error("Failed to load Dropbox folders", error);
-      }
-    };
-
-    if (userId) loadFolders();
-  }, [userId]);
-
   return (
     <div className="space-y-2">
-      <Label htmlFor="dropbox-folder" className="text-sm font-medium">
-        Select Dropbox Folder
-      </Label>
+      <Label>Select Dropbox Folder</Label>
       <Select value={value} onValueChange={onChange}>
-        <SelectTrigger id="dropbox-folder">
-          <SelectValue placeholder="Choose a folder..." />
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Select a folder" />
         </SelectTrigger>
         <SelectContent>
           {folders.map((folder) => (
-            <SelectItem key={folder} value={folder}>
-              {folder}
+            <SelectItem key={folder.id} value={folder.id}>
+              {folder.name}
             </SelectItem>
           ))}
         </SelectContent>
