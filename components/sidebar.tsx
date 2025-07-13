@@ -17,7 +17,7 @@ const navItems = [
   { name: "Manual Mode", href: "/manual", icon: PenTool },
   { name: "History", href: "/history", icon: Clock },
   { name: "Settings", href: "/settings", icon: Settings },
-  { name: "AI Tool", href: "/ai-tool", icon: Sparkles }, // ✅ NEW LINK
+  { name: "AI Tool", href: "/ai-tool", icon: Sparkles }, // ✅ Added link
 ];
 
 export default function Sidebar() {
@@ -45,7 +45,9 @@ export default function Sidebar() {
               >
                 <item.icon
                   className={`w-5 h-5 mr-3 ${
-                    isActive ? "text-sky-400" : "text-zinc-500 group-hover:text-white"
+                    isActive
+                      ? "text-sky-400"
+                      : "text-zinc-500 group-hover:text-white"
                   }`}
                 />
                 {item.name}
