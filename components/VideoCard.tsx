@@ -1,36 +1,24 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
+import React from "react";
 
-export interface VideoEntry {
-  id: string;
-  url: string;
-  thumbnail_url: string;
-  created_at: string;
+export interface VideoCardProps {
+  video_url: string;
+  filename: string;
   prompt: string;
+  created_at: string;
 }
 
-interface VideoCardProps {
-  video: VideoEntry;
-}
-
-export default function VideoCard({ video }: VideoCardProps) {
+export default function VideoCard({ video_url, filename, prompt, created_at }: VideoCardProps) {
   return (
-    <Card className="bg-zinc-800 rounded-lg overflow-hidden shadow-md border border-zinc-700">
-      <div className="relative aspect-video w-full">
-        <video
-          src={video.url}
-          controls
-          poster={video.thumbnail_url}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      <div className="p-3 text-sm text-muted-foreground">
-        <p className="truncate">🧠 Prompt: {video.prompt}</p>
-        <p className="text-xs text-right opacity-70 mt-1">
-          {new Date(video.created_at).toLocaleString()}
-        </p>
-      </div>
-    </Card>
+    <div className="border border-zinc-700 rounded-md p-4">
+      <video controls className="w-full rounded mb-2">
+        <source src={video_url} type="video/mp4" />
+        Your browser does not support the video tag.
+      </video>
+      <p className="text-sm text-white font-semibold truncate">{filename}</p>
+      <p className="text-xs text-muted-foreground mt-1">{prompt}</p>
+      <p className="text-xs text-zinc-500 mt-1">{new Date(created_at).toLocaleString()}</p>
+    </div>
   );
 }
