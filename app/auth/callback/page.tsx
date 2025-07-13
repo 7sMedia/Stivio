@@ -26,9 +26,9 @@ export default function AuthCallback() {
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+    <div className="min-h-screen flex items-center justify-center bg-background text-white px-4">
       <div className="text-center space-y-6 max-w-md">
-        <h1 className="text-4xl font-bold tracking-tight mb-2 animate-pulse text-sky-400">Piksion</h1>
+        <h1 className="text-4xl font-bold tracking-tight mb-2 animate-pulse text-accent">Piksion</h1>
 
         {status === "loading" && (
           <>
