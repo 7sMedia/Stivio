@@ -16,56 +16,51 @@ export default function ResetPasswordPage() {
     const checkSession = async () => {
       const { data } = await supabase.auth.getSession();
       if (!data.session) {
-        setError("Your reset link is missing or has expired. Please try again.");
         setStatus("error");
       }
     };
     checkSession();
   }, []);
 
-  const handleUpdatePassword = async () => {
+  const handleReset = async () => {
     setStatus("updating");
     const { error } = await supabase.auth.updateUser({ password });
+
     if (error) {
       setError(error.message);
       setStatus("error");
     } else {
       setStatus("done");
-      setTimeout(() => router.replace("/dashboard"), 1500);
+      setTimeout(() => router.replace("/"), 1500);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
-      <div className="w-full max-w-md space-y-6 text-center">
-        <h1 className="text-3xl font-bold text-sky-400">Reset Your Password</h1>
+    <div className="min-h-screen flex items-center justify-center bg-background text-white px-4">
+      <div className="max-w-md w-full border border-zinc-700 rounded-xl bg-zinc-900 p-6 space-y-6 text-center">
+        <h1 className="text-3xl font-bold text-accent">Reset Password</h1>
 
-        {status !== "done" && status !== "error" && (
+        {status === "error" && (
+          <p className="text-red-400 text-sm">Error: {error || "Session missing. Try login again."}</p>
+        )}
+
+        {status === "done" ? (
+          <p className="text-green-400 text-sm animate-pulse">✅ Password updated. Redirecting…</p>
+        ) : (
           <>
             <Input
               type="password"
               placeholder="New password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-zinc-800 border border-zinc-600"
+              className="bg-zinc-800 text-white"
             />
-            <Button onClick={handleUpdatePassword} className="w-full">
-              Update Password
-            </Button>
-          </>
-        )}
-
-        {status === "done" && <p className="text-green-400">Password updated! Redirecting…</p>}
-
-        {status === "error" && (
-          <>
-            <p className="text-red-400 text-sm">{error}</p>
             <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => router.replace("/")}
+              onClick={handleReset}
+              disabled={status === "updating" || !password}
+              className="w-full"
             >
-              ← Back to Login
+              {status === "updating" ? "Updating…" : "Reset Password"}
             </Button>
           </>
         )}
