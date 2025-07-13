@@ -3,12 +3,12 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { DropboxConnectButton } from "@/components/DropboxConnectButton";
-import { DropboxFolderPicker } from "@/components/DropboxFolderPicker";
-import { DropboxImageUploader } from "@/components/DropboxImageUploader";
-import { PromptTemplatePicker } from "@/components/PromptTemplatePicker";
-import { PromptInput } from "@/components/PromptInput";
-import { VideoGallery } from "@/components/VideoGallery";
+import DropboxConnectButton from "@/components/DropboxConnectButton";
+import DropboxFolderPicker from "@/components/DropboxFolderPicker";
+import DropboxImageUploader from "@/components/DropboxImageUploader";
+import PromptTemplatePicker from "@/components/PromptTemplatePicker";
+import PromptInput from "@/components/PromptInput";
+import VideoGallery from "@/components/VideoGallery";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
