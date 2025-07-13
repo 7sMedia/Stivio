@@ -1,91 +1,43 @@
 "use client";
 
-import { useState } from "react";
-import { PROMPT_TEMPLATES } from "./promptTemplates";
+import React from "react";
 
 interface PromptTemplatePickerProps {
-  onSelectTemplate: (template: { title: string; prompt: string }) => void;
+  setPrompt: (templatePrompt: string) => void;
 }
 
-export default function PromptTemplatePicker({
-  onSelectTemplate,
-}: PromptTemplatePickerProps) {
-  const [filter, setFilter] = useState<"all" | "animation" | "text">("all");
+const promptTemplates = [
+  {
+    title: "Auto Performance Reel",
+    prompt: "Create a dynamic video ad showcasing a high-performance car with aggressive transitions, cinematic zooms, and upbeat music. Highlight power, speed, and modifications.",
+    description: "For car tuning shops or performance brands."
+  },
+  {
+    title: "Real Estate Walkthrough",
+    prompt: "Generate a cinematic walkthrough of a luxury property. Include smooth pan shots, elegant transitions, soft background music, and key selling points as text overlays.",
+    description: "Perfect for realtors, Airbnb, or home tours."
+  },
+  {
+    title: "Local Business Promo",
+    prompt: "Create a short promo for a local business. Use upbeat music, quick cuts of services, smiling staff, and contact info at the end.",
+    description: "Ideal for barbers, cafes, gyms, etc."
+  }
+];
 
-  const filteredTemplates =
-    filter === "all"
-      ? PROMPT_TEMPLATES
-      : PROMPT_TEMPLATES.filter((t) => t.type === filter);
-
+export default function PromptTemplatePicker({ setPrompt }: PromptTemplatePickerProps) {
   return (
-    <div className="mb-4 space-y-4">
-      {/* Filter Buttons */}
-      <div className="flex gap-2">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+      {promptTemplates.map((template, idx) => (
         <button
-          onClick={() => setFilter("all")}
-          className={`px-3 py-1 rounded ${
-            filter === "all"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-800 text-gray-300"
-          }`}
-          type="button"
+          key={idx}
+          onClick={() => setPrompt(template.prompt)}
+          className="rounded-2xl bg-muted p-4 text-left transition-all hover:bg-muted/60 hover:shadow-md border border-border"
         >
-          All
+          <div className="font-semibold text-base mb-2">{template.title}</div>
+          <div className="text-sm text-muted-foreground mb-1">{template.description}</div>
+          <div className="text-xs text-muted-foreground italic">{template.prompt}</div>
         </button>
-        <button
-          onClick={() => setFilter("animation")}
-          className={`px-3 py-1 rounded ${
-            filter === "animation"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-800 text-gray-300"
-          }`}
-          type="button"
-        >
-          Animation Only
-        </button>
-        <button
-          onClick={() => setFilter("text")}
-          className={`px-3 py-1 rounded ${
-            filter === "text"
-              ? "bg-indigo-600 text-white"
-              : "bg-gray-800 text-gray-300"
-          }`}
-          type="button"
-        >
-          Text Only
-        </button>
-      </div>
-
-      {/* Template Cards */}
-      <div className="space-y-4">
-        {filteredTemplates.map((tpl) => (
-          <div
-            key={tpl.title}
-            className="border border-zinc-700 rounded p-4 bg-zinc-900 shadow-sm"
-          >
-            <div className="flex justify-between items-center">
-              <h3 className="text-white font-semibold text-lg">{tpl.title}</h3>
-              <button
-                onClick={() =>
-                  onSelectTemplate({ title: tpl.title, prompt: tpl.prompt })
-                }
-                className="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
-              >
-                Use Template
-              </button>
-            </div>
-            <p className="text-zinc-400 mt-2 text-sm">{tpl.prompt}</p>
-            {tpl.description && (
-              <details className="mt-3 text-sm text-zinc-400">
-                <summary className="cursor-pointer text-indigo-400">
-                  Show Tips
-                </summary>
-                <p className="mt-1 whitespace-pre-wrap">{tpl.description}</p>
-              </details>
-            )}
-          </div>
-        ))}
-      </div>
+      ))}
     </div>
   );
 }
