@@ -1,65 +1,79 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { UploadCloud } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxImageUploader from "@/components/DropboxImageUploader";
-import PromptTemplatePicker from "@/components/PromptTemplatePicker";
 import PromptInput from "@/components/PromptInput";
-import VideoGallery from "@/components/VideoGallery";
+import GenerateButton from "@/components/GenerateButton";
+import PromptTemplatePicker from "@/components/PromptTemplatePicker";
+import { logout } from "@/lib/logout";
 
 export default function DashboardPage() {
+  const [userId, setUserId] = useState<string>("");
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [prompt, setPrompt] = useState<string>("");
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const session = data?.session;
-      if (!session?.user) {
+    const fetchUserId = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+
+      if (error || !session) {
         router.push("/login");
-      } else {
-        setUserId(session.user.id);
-        setLoading(false);
+        return;
       }
+
+      setUserId(session.user.id);
     };
-    fetchSession();
+
+    fetchUserId();
   }, [router]);
 
-  if (loading || !userId) {
-    return <div className="text-center mt-20">Loading dashboard...</div>;
-  }
-
   return (
-    <div className="p-6 space-y-6">
+    <div className="space-y-6 px-6 py-10">
       <Card className="p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Welcome to Beta7</h1>
-          <DropboxConnectButton userId={userId} />
+          {userId && <DropboxConnectButton userId={userId} />}
         </div>
       </Card>
 
       <Card className="p-6">
-        <DropboxFolderPicker userId={userId} />
+        <DropboxFolderPicker
+          userId={userId}
+          value={selectedFolder}
+          onChange={(val: string) => setSelectedFolder(val)}
+        />
       </Card>
 
       <Card className="p-6">
-        <DropboxImageUploader userId={userId} />
+        <DropboxImageUploader folderPath={selectedFolder} />
       </Card>
 
       <Card className="p-6">
-        <PromptTemplatePicker />
-        <PromptInput />
+        <PromptTemplatePicker onSelectTemplate={(val) => setPrompt(val)} />
       </Card>
 
       <Card className="p-6">
-        <VideoGallery userId={userId} />
+        <PromptInput value={prompt} onChange={setPrompt} />
+      </Card>
+
+      <Card className="p-6">
+        <GenerateButton folderPath={selectedFolder} prompt={prompt} />
+      </Card>
+
+      <Card className="p-6">
+        <Button variant="destructive" onClick={logout}>
+          Logout
+        </Button>
       </Card>
     </div>
   );
