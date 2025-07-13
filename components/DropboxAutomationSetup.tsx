@@ -4,11 +4,19 @@ import { useState } from "react";
 
 interface Props {
   userId: string;
-  accessToken: string | null; // ✅ now supports null
+  accessToken: string | null;
   folderPath: string;
+  onDisconnect: () => void;
+  onPathChange: (path: string | null) => void;
 }
 
-export default function DropboxAutomationSetup({ userId, accessToken, folderPath }: Props) {
+export default function DropboxAutomationSetup({
+  userId,
+  accessToken,
+  folderPath,
+  onDisconnect,
+  onPathChange,
+}: Props) {
   const [prompt, setPrompt] = useState("");
   const [template, setTemplate] = useState("");
   const [status, setStatus] = useState<"idle" | "saving" | "success" | "error">("idle");
@@ -40,24 +48,18 @@ export default function DropboxAutomationSetup({ userId, accessToken, folderPath
     }
   };
 
-  if (!accessToken) {
-    return (
-      <div className="rounded-lg border p-4 bg-muted/30">
-        <p className="text-sm text-muted-foreground mb-2">
-          Dropbox is not connected yet.
-        </p>
-        <a
-          href="/connect-dropbox"
-          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
-        >
-          Connect Dropbox
-        </a>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-4 mt-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Dropbox Automation Setup</h2>
+        <button
+          onClick={onDisconnect}
+          className="text-sm text-red-500 hover:underline"
+        >
+          Disconnect Dropbox
+        </button>
+      </div>
+
       <div>
         <label className="block text-sm text-muted-foreground mb-1">
           Prompt / Instructions
