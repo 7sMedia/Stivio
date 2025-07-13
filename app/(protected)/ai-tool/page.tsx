@@ -21,9 +21,8 @@ export default function AIToolPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Prompt Templates */}
         <div className="space-y-4">
-          <PromptTemplatePicker onSelectTemplate={(tpl) => {
-            setPrompt(tpl.prompt);
-            setSelectedTemplate(tpl.name);
+          <PromptTemplatePicker setPrompt={(tplPrompt) => {
+            setPrompt(tplPrompt);
           }} />
         </div>
 
