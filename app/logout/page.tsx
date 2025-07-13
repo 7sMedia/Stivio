@@ -20,7 +20,7 @@ export default function LogoutPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-background text-white">
       <div className="text-center space-y-3">
-        <h1 className="text-2xl font-bold">Beta7</h1>
+        <h1 className="text-2xl font-bold text-primary">Piksion</h1>
         <p className="text-sm text-muted-foreground animate-pulse">Signing you out…</p>
       </div>
     </div>
