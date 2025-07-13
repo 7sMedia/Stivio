@@ -61,4 +61,14 @@ export default function HistoryPage() {
           {videos.map((video) => (
             <VideoCard
               key={video.id}
-              video_url={_
+              video_url={video.video_url}
+              filename={video.filename}
+              prompt={video.prompt}
+              created_at={video.created_at}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
