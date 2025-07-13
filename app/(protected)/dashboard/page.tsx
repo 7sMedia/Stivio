@@ -29,8 +29,9 @@ export default function DashboardPage() {
 
       const res = await fetch(`/api/dropbox/token?user_id=${user.id}`);
       const json = await res.json();
-      if (res.token) {
-        setToken(res.token);
+
+      if (json.token) {
+        setToken(json.token);
       }
     };
 
