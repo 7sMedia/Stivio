@@ -16,13 +16,13 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#000000] text-white relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
-          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-violet-500/30 blur-3xl"
+          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-accent/20 blur-3xl"
         />
       </div>
       <div className="z-10 w-full flex-1 flex flex-col items-center justify-center">
@@ -92,7 +92,7 @@ export default function HomePage() {
               </svg>
             </motion.div>
             <div className="relative z-10 flex items-center gap-3">
-              <ImageIcon size={48} className="text-accent drop-shadow-xl" />
+              <ImageIcon size={48} className="text-indigo-100 drop-shadow-xl" />
               <span className="text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-xl font-display">
                 Piksion
               </span>
@@ -100,13 +100,16 @@ export default function HomePage() {
           </div>
 
           <motion.h1
-            className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl text-white"
+            className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Image In. <br />
-            Motion Out. <br />
+            Image In.{" "}
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Motion Out.
+            </span>
+            <br />
             Social Reach.
           </motion.h1>
 
@@ -116,10 +119,16 @@ export default function HomePage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
-            <Button className="text-lg px-6 py-3 bg-accent hover:bg-accent/80" onClick={() => setPage("signup")}>
+            <Button
+              className="text-lg px-6 py-3 bg-accent hover:bg-accent/80 text-black font-semibold rounded-xl"
+              onClick={() => setPage("signup")}
+            >
               Create Login
             </Button>
-            <Button className="text-lg px-6 py-3 bg-accent hover:bg-accent/80" onClick={() => setPage("login")}>
+            <Button
+              className="text-lg px-6 py-3 border border-accent text-accent hover:bg-accent/10 font-semibold rounded-xl"
+              onClick={() => setPage("login")}
+            >
               Login
             </Button>
           </motion.div>
@@ -141,21 +150,6 @@ export default function HomePage() {
               />
             </div>
           </motion.div>
-
-          <div className="mt-12 flex flex-col md:flex-row gap-8 justify-center">
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <UploadCloudIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">Upload images</span>
-            </Card>
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <ImageIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">AI animates</span>
-            </Card>
-            <Card className="flex items-center gap-4 bg-surface-secondary p-6">
-              <UserIcon className="text-accent" size={32} />
-              <span className="text-base text-text-secondary font-semibold">Share anywhere</span>
-            </Card>
-          </div>
         </motion.div>
       </GradientBackground>
     );
@@ -168,67 +162,71 @@ export default function HomePage() {
         animate={{ scale: 1, opacity: 1 }}
         className="w-full max-w-md mx-auto mt-24"
       >
-        <Card className="bg-surface-primary p-6 space-y-6">
-          <div className="flex flex-col items-center gap-4">
+        <Card className="bg-surface-primary border border-zinc-700">
+          <div className="flex flex-col items-center gap-6 p-6">
             <ImageIcon size={32} className="text-accent" />
-            <h2 className="text-3xl font-bold text-white">{page === "signup" ? "Sign Up" : "Login"}</h2>
-          </div>
+            <h2 className="text-3xl font-bold mb-2">{page === "signup" ? "Create Account" : "Login"}</h2>
 
-          <div className="w-full flex flex-col gap-4">
-            <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
-              <UserIcon size={20} className="text-text-muted" />
-              <Input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-transparent text-white placeholder:text-text-muted"
-              />
+            <div className="w-full flex flex-col gap-4">
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <UserIcon size={20} className="text-text-muted" />
+                <Input
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="bg-transparent placeholder:text-text-muted"
+                />
+              </div>
+              <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
+                <LockIcon size={20} className="text-text-muted" />
+                <Input
+                  placeholder="Password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="bg-transparent placeholder:text-text-muted"
+                />
+              </div>
             </div>
-            <div className="flex items-center gap-2 bg-surface-secondary rounded-lg px-4 py-2">
-              <LockIcon size={20} className="text-text-muted" />
-              <Input
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-transparent text-white placeholder:text-text-muted"
-              />
-            </div>
-          </div>
 
-          {error && <div className="text-pink-400 text-sm">{error}</div>}
+            {error && <div className="text-pink-300 text-sm">{error}</div>}
 
-          <Button className="w-full py-3 bg-accent hover:bg-accent/80" onClick={page === "signup" ? handleSignup : handleLogin}>
-            {page === "signup" ? "Create Account" : "Login"}
-          </Button>
+            <Button className="w-full py-3 bg-primary hover:bg-primary/90" onClick={page === "signup" ? handleSignup : handleLogin}>
+              {page === "signup" ? "Sign Up" : "Login"}
+            </Button>
 
-          {page === "login" && (
-            <button
-              onClick={async () => {
-                if (!email) return setError("Enter your email first.");
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                  redirectTo: "https://beta7mvp.vercel.app/reset-password",
-                });
-                if (error) setError(error.message);
-                else setError("Check your email to reset your password.");
-              }}
-              className="text-sm text-accent underline mt-2"
+            {page === "login" && (
+              <button
+                onClick={async () => {
+                  if (!email) return setError("Enter your email first.");
+                  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: "https://beta7mvp.vercel.app/reset-password",
+                  });
+                  if (error) setError(error.message);
+                  else setError("Check your email to reset your password.");
+                }}
+                className="text-sm text-sky-400 underline mt-2"
+              >
+                Forgot password?
+              </button>
+            )}
+
+            <Button
+              variant="ghost"
+              className="w-full py-3 text-text-secondary"
+              onClick={() => setPage(page === "signup" ? "login" : "signup")}
             >
-              Forgot password?
-            </button>
-          )}
+              {page === "signup" ? "Already have an account? Login" : "New here? Create Account"}
+            </Button>
 
-          <Button
-            variant="outline"
-            className="w-full py-3 text-white border border-zinc-600"
-            onClick={() => setPage(page === "signup" ? "login" : "signup")}
-          >
-            {page === "signup" ? "Already have an account? Login" : "New here? Sign Up"}
-          </Button>
-
-          <Button variant="ghost" className="w-full py-3 text-accent" onClick={() => setPage("landing")}>
-            ← Back to Home
-          </Button>
+            <Button
+              variant="ghost"
+              className="w-full py-3 text-accent"
+              onClick={() => setPage("landing")}
+            >
+              ← Back to Home
+            </Button>
+          </div>
         </Card>
       </motion.div>
     </GradientBackground>
