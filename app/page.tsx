@@ -16,13 +16,13 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
-          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-indigo-400/30 blur-3xl"
+          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-primary/30 blur-3xl"
         />
       </div>
       <div className="z-10 w-full flex-1 flex flex-col items-center justify-center">
@@ -62,7 +62,7 @@ export default function HomePage() {
       email,
       password,
       options: {
-        emailRedirectTo: "https://beta7mvp.vercel.app/auth/callback",
+        emailRedirectTo: "https://piksionmvp.vercel.app/auth/callback",
       },
     });
     if (error) setError(error.message);
@@ -92,9 +92,9 @@ export default function HomePage() {
               </svg>
             </motion.div>
             <div className="relative z-10 flex items-center gap-3">
-              <ImageIcon size={48} className="text-indigo-100 drop-shadow-xl" />
+              <ImageIcon size={48} className="text-primary drop-shadow-xl" />
               <span className="text-5xl md:text-6xl font-extrabold text-white tracking-tight drop-shadow-xl font-display">
-                Beta7
+                Piksion
               </span>
             </div>
           </div>
@@ -106,13 +106,13 @@ export default function HomePage() {
             transition={{ delay: 0.5 }}
           >
             Bring{" "}
-            <span className="bg-gradient-to-r from-sky-400 to-fuchsia-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
               Still Images
             </span>{" "}
             to Life
             <br />
             with{" "}
-            <span className="bg-gradient-to-r from-violet-500 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               AI Video Creation
             </span>
           </motion.h1>
@@ -126,7 +126,7 @@ export default function HomePage() {
             <Button className="text-lg px-6 py-3" onClick={() => setPage("signup")}>
               Get Started Free
             </Button>
-            <Button className="text-lg px-6 py-3 border border-text-secondary" onClick={() => setPage("login")}>
+            <Button variant="outline" className="text-lg px-6 py-3" onClick={() => setPage("login")}>
               Login
             </Button>
           </motion.div>
@@ -202,7 +202,7 @@ export default function HomePage() {
               </div>
             </div>
 
-            {error && <div className="text-pink-300 text-sm">{error}</div>}
+            {error && <div className="text-secondary text-sm">{error}</div>}
 
             <Button className="w-full py-3" onClick={page === "signup" ? handleSignup : handleLogin}>
               {page === "signup" ? "Create Account" : "Login"}
@@ -213,12 +213,12 @@ export default function HomePage() {
                 onClick={async () => {
                   if (!email) return setError("Enter your email first.");
                   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: "https://beta7mvp.vercel.app/reset-password",
+                    redirectTo: "https://piksionmvp.vercel.app/reset-password",
                   });
                   if (error) setError(error.message);
                   else setError("Check your email to reset your password.");
                 }}
-                className="text-sm text-sky-400 underline mt-2"
+                className="text-sm text-accent underline mt-2"
               >
                 Forgot password?
               </button>
