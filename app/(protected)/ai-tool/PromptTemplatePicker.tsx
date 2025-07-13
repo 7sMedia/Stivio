@@ -1,14 +1,15 @@
-// /app/ai-tool/PromptTemplatePicker.tsx
-
 "use client";
+
 import { useState } from "react";
 import { PROMPT_TEMPLATES } from "./promptTemplates";
 
-type Props = {
-  setPrompt: (prompt: string) => void;
-};
+interface PromptTemplatePickerProps {
+  onSelectTemplate: (template: { name: string; prompt: string }) => void;
+}
 
-export default function PromptTemplatePicker({ setPrompt }: Props) {
+export default function PromptTemplatePicker({
+  onSelectTemplate,
+}: PromptTemplatePickerProps) {
   const [filter, setFilter] = useState<"all" | "animation" | "text">("all");
 
   const filteredTemplates =
@@ -17,8 +18,9 @@ export default function PromptTemplatePicker({ setPrompt }: Props) {
       : PROMPT_TEMPLATES.filter((t) => t.type === filter);
 
   return (
-    <div className="mb-4">
-      <div className="flex gap-2 mb-2">
+    <div className="mb-4 space-y-4">
+      {/* Filter Buttons */}
+      <div className="flex gap-2">
         <button
           onClick={() => setFilter("all")}
           className={`px-3 py-1 rounded ${
@@ -50,20 +52,38 @@ export default function PromptTemplatePicker({ setPrompt }: Props) {
           }`}
           type="button"
         >
-          With Text Overlay
+          Text Only
         </button>
       </div>
-      <div className="flex gap-2 flex-wrap">
+
+      {/* Template Cards */}
+      <div className="space-y-4">
         {filteredTemplates.map((tpl) => (
-          <button
-            key={tpl.title}
-            onClick={() => setPrompt(tpl.prompt)}
-            className="bg-gray-800 px-3 py-2 rounded text-sm hover:bg-indigo-600 transition"
-            title={tpl.description}
-            type="button"
+          <div
+            key={tpl.name}
+            className="border border-zinc-700 rounded p-4 bg-zinc-900 shadow-sm"
           >
-            {tpl.title}
-          </button>
+            <div className="flex justify-between items-center">
+              <h3 className="text-white font-semibold text-lg">{tpl.name}</h3>
+              <button
+                onClick={() =>
+                  onSelectTemplate({ name: tpl.name, prompt: tpl.prompt })
+                }
+                className="text-sm bg-indigo-600 text-white px-3 py-1 rounded hover:bg-indigo-700 transition"
+              >
+                Use Template
+              </button>
+            </div>
+            <p className="text-zinc-400 mt-2 text-sm">{tpl.prompt}</p>
+            {tpl.help && (
+              <details className="mt-3 text-sm text-zinc-400">
+                <summary className="cursor-pointer text-indigo-400">
+                  Show Tips
+                </summary>
+                <p className="mt-1 whitespace-pre-wrap">{tpl.help}</p>
+              </details>
+            )}
+          </div>
         ))}
       </div>
     </div>
