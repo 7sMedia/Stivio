@@ -2,8 +2,8 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ScrollArea'; // ✅ Fixed path
-import { usePromptInput } from '@/lib/zustand/promptInputStore'; // ✅ Fixed path
+import { ScrollArea } from '@/components/ui/scroll-area'; // ✅ VERIFIED
+import { usePromptInput } from '@/stores/promptInputStore'; // ✅ VERIFIED
 
 const templates = [
   {
