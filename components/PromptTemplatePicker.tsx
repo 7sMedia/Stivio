@@ -2,21 +2,24 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { usePromptInput } from '@/lib/store';
+import { ScrollArea } from '@/components/ScrollArea'; // ✅ Fixed path
+import { usePromptInput } from '@/lib/zustand/promptInputStore'; // ✅ Fixed path
 
 const templates = [
   {
     title: 'Automotive Performance Ad',
-    prompt: 'Create a 15-second video for a high-performance car shop showcasing turbo installs and dyno runs. Use fast cuts and energetic music. Add call-to-action text at the end.',
+    prompt:
+      'Create a 15-second video for a high-performance car shop showcasing turbo installs and dyno runs. Use fast cuts and energetic music. Add call-to-action text at the end.',
   },
   {
     title: 'Real Estate Listing Promo',
-    prompt: 'Create a cinematic video for a luxury home listing with sweeping shots, soft background music, and elegant transitions. Include price, location, and agent contact info.',
+    prompt:
+      'Create a cinematic video for a luxury home listing with sweeping shots, soft background music, and elegant transitions. Include price, location, and agent contact info.',
   },
   {
     title: 'Barbershop Promo',
-    prompt: 'Create a video ad for a trendy barbershop with clips of fades, beard trims, and satisfied customers. Add upbeat music and text overlays showing the shop name and hours.',
+    prompt:
+      'Create a video ad for a trendy barbershop with clips of fades, beard trims, and satisfied customers. Add upbeat music and text overlays showing the shop name and hours.',
   },
 ];
 
@@ -24,7 +27,7 @@ export default function PromptTemplatePicker() {
   const { setPrompt } = usePromptInput();
 
   const handleClick = (template: string) => {
-    setPrompt(template); // This sets the prompt input to the selected template
+    setPrompt(template);
   };
 
   return (
