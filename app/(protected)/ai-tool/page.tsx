@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import PromptTemplatePicker from "./PromptTemplatePicker";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
@@ -10,6 +9,8 @@ import ImageUpload from "@/components/ImageUpload";
 export default function AIToolPage() {
   const [prompt, setPrompt] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
 
   return (
     <div className="p-6 space-y-6">
@@ -39,7 +40,12 @@ export default function AIToolPage() {
 
           <div>
             <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
-            <ImageUpload />
+            <ImageUpload
+              uploadedImages={uploadedImages}
+              setUploadedImages={setUploadedImages}
+              selectedImageIdx={selectedImageIdx}
+              setSelectedImageIdx={setSelectedImageIdx}
+            />
           </div>
 
           <Button className="w-full">
