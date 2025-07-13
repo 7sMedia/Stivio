@@ -58,13 +58,7 @@ export default function HistoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {videos.map((video) => (
-            <VideoCard
-              key={video.id}
-              video_url={video.video_url}
-              filename={video.filename}
-              prompt={video.prompt}
-              created_at={video.created_at}
-            />
+            <VideoCard key={video.id} video={video} />
           ))}
         </div>
       )}
