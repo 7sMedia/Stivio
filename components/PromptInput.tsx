@@ -1,24 +1,39 @@
 "use client";
-import React from "react";
 
-type Props = {
+import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
+import { usePromptInput } from "@/stores/promptInputStore";
+
+interface Props {
   value: string;
-  onChange: (v: string) => void;
-};
+  onChange: (value: string) => void;
+}
 
 export default function PromptInput({ value, onChange }: Props) {
+  const [localValue, setLocalValue] = useState(value);
+  const { setPrompt } = usePromptInput();
+
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setLocalValue(newValue);
+    onChange(newValue); // Push value back to parent
+    setPrompt(newValue); // Optional: also update global prompt state
+  };
+
   return (
-    <div className="w-full space-y-2">
-      <label className="text-sm font-medium text-indigo-200">
-        Describe the video you want:
+    <div className="space-y-2">
+      <label htmlFor="prompt" className="text-sm font-medium">
+        Prompt
       </label>
-      <input
-        type="text"
-        placeholder="Describe the animation (e.g., make her smile and blink)"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        maxLength={120}
-        className="w-full px-4 py-3 rounded-lg border border-indigo-500 bg-indigo-900 text-indigo-100 placeholder:text-indigo-400 focus:outline-none focus:ring-2 focus:ring-sky-500 transition"
+      <Input
+        id="prompt"
+        value={localValue}
+        onChange={handleInputChange}
+        placeholder="Describe your video idea or use a template above"
       />
     </div>
   );
