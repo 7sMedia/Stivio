@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
 import Sidebar from "@/components/sidebar";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import callSeedanceAPI from "@/app/(protected)/ai-tool/actions/seedance";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -16,7 +15,7 @@ export default function DashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const [selectedFolder, setSelectedFolder] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState<string>("");
 
   useEffect(() => {
     const fetchUserAndStatus = async () => {
@@ -116,14 +115,14 @@ export default function DashboardPage() {
         </Card>
 
         {isConnected && userId && accessToken && (
-          <div>
+          <Card className="p-6">
             <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
             <DropboxFolderPicker
               userId={userId}
               value={selectedFolder}
               onChange={setSelectedFolder}
             />
-          </div>
+          </Card>
         )}
       </main>
     </div>
