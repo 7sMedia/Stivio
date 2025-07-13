@@ -1,9 +1,8 @@
-'use client';
-
+// components/PromptTemplatePicker.tsx
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area'; // ✅ VERIFIED
-import { usePromptInput } from '@/stores/promptInputStore'; // ✅ VERIFIED
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePromptInput } from '@/stores/promptInputStore';
 
 const templates = [
   {
