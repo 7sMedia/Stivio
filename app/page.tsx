@@ -16,7 +16,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-[#0D0D0D] via-[#1A1A1A] to-[#000000] text-white relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-gradient-to-br from-primary via-[#1A1A1A] to-background text-white relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -106,7 +106,7 @@ export default function HomePage() {
             transition={{ delay: 0.5 }}
           >
             Image In.{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
               Motion Out.
             </span>
             <br />
@@ -191,7 +191,10 @@ export default function HomePage() {
 
             {error && <div className="text-pink-300 text-sm">{error}</div>}
 
-            <Button className="w-full py-3 bg-primary hover:bg-primary/90" onClick={page === "signup" ? handleSignup : handleLogin}>
+            <Button
+              className="w-full py-3 bg-primary hover:bg-primary/90"
+              onClick={page === "signup" ? handleSignup : handleLogin}
+            >
               {page === "signup" ? "Sign Up" : "Login"}
             </Button>
 
