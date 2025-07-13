@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
+  const [selectedPath, setSelectedPath] = useState<string | null>(null); // ✅ Added
 
   useEffect(() => {
     const fetchUserAndStatus = async () => {
