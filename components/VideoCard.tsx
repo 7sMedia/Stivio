@@ -1,33 +1,36 @@
 "use client";
 
-import React from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 
-interface VideoCardProps {
-  video_url: string;
-  filename: string;
-  prompt: string;
+export interface VideoEntry {
+  id: string;
+  url: string;
+  thumbnail_url: string;
   created_at: string;
+  prompt: string;
 }
 
-export default function VideoCard({
-  video_url,
-  filename,
-  prompt,
-  created_at,
-}: VideoCardProps) {
+interface VideoCardProps {
+  video: VideoEntry;
+}
+
+export default function VideoCard({ video }: VideoCardProps) {
   return (
-    <Card className="bg-zinc-900 text-white border border-zinc-700">
-      <CardContent className="p-4 space-y-2">
-        <video src={video_url} controls className="w-full rounded-md" />
-        <div>
-          <div className="text-sm text-indigo-400">{filename}</div>
-          <div className="text-sm italic text-zinc-300">"{prompt}"</div>
-          <div className="text-xs text-zinc-500">
-            {new Date(created_at).toLocaleString()}
-          </div>
-        </div>
-      </CardContent>
+    <Card className="bg-zinc-800 rounded-lg overflow-hidden shadow-md border border-zinc-700">
+      <div className="relative aspect-video w-full">
+        <video
+          src={video.url}
+          controls
+          poster={video.thumbnail_url}
+          className="w-full h-full object-cover"
+        />
+      </div>
+      <div className="p-3 text-sm text-muted-foreground">
+        <p className="truncate">🧠 Prompt: {video.prompt}</p>
+        <p className="text-xs text-right opacity-70 mt-1">
+          {new Date(video.created_at).toLocaleString()}
+        </p>
+      </div>
     </Card>
   );
 }
