@@ -25,8 +25,15 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:block w-64 h-screen bg-background border-r border-zinc-800 text-white">
       <div className="flex flex-col h-full px-4 py-6">
-        {/* Top Brand */}
-        <div className="text-2xl font-bold text-white mb-8">Beta7</div>
+        {/* Top Brand Logo */}
+        <div className="flex items-center gap-3 mb-8">
+          <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 p-2 rounded-xl">
+            <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+          </div>
+          <span className="text-2xl font-bold tracking-tight">Piksion</span>
+        </div>
 
         <nav className="flex-1 space-y-2">
           {navItems.map((item) => {
@@ -59,4 +66,3 @@ export default function Sidebar() {
     </aside>
   );
 }
- 
