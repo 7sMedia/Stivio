@@ -1,135 +1,119 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { UploadCloud, XCircle } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import DropboxConnectButton from "@/components/DropboxConnectButton";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import DropboxAutomationSetup from "@/components/DropboxAutomationSetup";
+import DropboxImageUploader from "@/components/DropboxImageUploader";
+import PromptInput from "@/components/PromptInput";
+import PromptTemplatePicker from "@/components/PromptTemplatePicker";
 import VideoCard from "@/components/VideoCard";
 
 interface VideoEntry {
   id: string;
-  prompt: string;
-  filename: string;
   video_url: string;
+  filename: string;
+  prompt: string;
   created_at: string;
 }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
   const [selectedPath, setSelectedPath] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState<string>("");
   const [recentVideos, setRecentVideos] = useState<VideoEntry[]>([]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return router.replace("/");
-      setUserId(user.id);
+    const fetchSession = async () => {
+      const {
+        data: { session },
+        error,
+      } = await supabase.auth.getSession();
+      if (error || !session?.user?.id) {
+        router.push("/login");
+        return;
+      }
+      setUserId(session.user.id);
 
-      const { data } = await supabase
+      const { data, error: tokenError } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
-        .eq("user_id", user.id)
+        .eq("user_id", session.user.id)
         .maybeSingle();
 
       if (data?.access_token) {
-        setIsConnected(true);
         setAccessToken(data.access_token);
       }
-
-      setLoading(false);
     };
 
-    fetchUser();
+    fetchSession();
   }, [router]);
 
   useEffect(() => {
-    const loadRecent = async () => {
-      if (!userId) return;
-      const res = await fetch(`/api/history?userId=${userId}`);
-      const json = await res.json();
-      if (res.ok && json.data) setRecentVideos(json.data.slice(0, 3));
-    };
-    loadRecent();
-  }, [userId]);
+    const fetchVideos = async () => {
+      const { data, error } = await supabase
+        .from("generated_videos")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(6);
 
-  const handleDisconnect = async () => {
-    if (!userId) return;
-    const res = await fetch("/api/dropbox/disconnect", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId }),
-    });
-    if (res.ok) {
-      setIsConnected(false);
-      setAccessToken(null);
-      setSelectedPath(null);
-    }
-  };
+      if (data) {
+        setRecentVideos(data);
+      }
+    };
+
+    fetchVideos();
+  }, []);
 
   return (
-    <div className="space-y-8">
-      {/* Hero */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Beta7</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            {loading
-              ? "Checking Dropbox status..."
-              : isConnected
-              ? "✅ Dropbox connected"
-              : "❌ Not connected"}
-          </p>
+    <div className="p-4 space-y-6">
+      <Card className="p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-white">Welcome to Beta7</h2>
+          <DropboxConnectButton />
         </div>
-      </div>
-
-      {/* ✅ AI Tool Card */}
-      <Card className="hover:shadow-lg transition">
-        <CardContent className="p-4 space-y-2">
-          <h3 className="text-lg font-semibold">AI Video Tool</h3>
-          <p className="text-sm text-muted-foreground">
-            Generate social-ready videos with AI prompt templates.
-          </p>
-          <Button variant="outline" className="mt-2" asChild>
-            <a href="/ai-tool">Launch AI Tool</a>
-          </Button>
-        </CardContent>
       </Card>
 
-      {/* ✅ Dropbox Setup (only render if userId exists) */}
-      {userId && (
-        <DropboxAutomationSetup
-          accessToken={accessToken}
-          userId={userId}
-          onDisconnect={handleDisconnect}
-          onPathChange={setSelectedPath}
-          folderPath={selectedPath ?? ""}
-        />
-      )}
+      {accessToken && userId && (
+        <>
+          <div className="grid md:grid-cols-2 gap-4">
+            <DropboxFolderPicker
+              userId={userId}
+              accessToken={accessToken}
+              onSelectPath={(path) => setSelectedPath(path)}
+            />
+            <div className="flex flex-col gap-4">
+              <PromptTemplatePicker onSelectTemplate={setPrompt} />
+              <PromptInput value={prompt} onChange={(e) => setPrompt(e.target.value)} />
+              <DropboxImageUploader
+                accessToken={accessToken}
+                userId={userId}
+                folderPath={selectedPath ?? ""}
+              />
+            </div>
+          </div>
 
-      {/* ✅ Folder Picker */}
-      {isConnected && accessToken && (
-        <DropboxFolderPicker
-          accessToken={accessToken}
-          onSelect={setSelectedPath}
-          selectedPath={selectedPath}
-        />
-      )}
-
-      {/* ✅ Recent Jobs */}
-      {recentVideos.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {recentVideos.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
+          <div>
+            <h3 className="text-sm font-medium text-muted-foreground mb-2">Recent Videos</h3>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {recentVideos.map((video) => (
+                <VideoCard
+                  key={video.id}
+                  video_url={video.video_url}
+                  filename={video.filename}
+                  prompt={video.prompt}
+                  created_at={video.created_at}
+                />
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );
