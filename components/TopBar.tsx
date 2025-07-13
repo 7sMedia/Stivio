@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, UserCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function TopBar() {
   return (
@@ -17,9 +18,9 @@ export default function TopBar() {
 
       {/* Right actions */}
       <div className="flex items-center space-x-4">
-        <button className="bg-primary hover:opacity-90 transition text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-md">
+        <Button variant="gradient">
           + Create
-        </button>
+        </Button>
         <UserCircle2 size={32} className="text-white hover:text-accent transition" />
       </div>
     </header>
