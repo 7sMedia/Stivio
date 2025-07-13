@@ -8,7 +8,7 @@ export default function DropboxConnectButton() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUserId = async () => {
+    const fetchUser = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
@@ -18,18 +18,21 @@ export default function DropboxConnectButton() {
       }
     };
 
-    getUserId();
+    fetchUser();
   }, []);
 
   const handleConnect = () => {
     if (!userId) {
-      console.error("❌ Missing user ID");
+      alert("Missing user ID");
       return;
     }
 
-    const dropboxAuthUrl = `https://www.dropbox.com/oauth2/authorize?response_type=code&client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&state=${userId}`;
+    const clientId = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID;
+    const redirectUri = process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI;
 
-    window.location.href = dropboxAuthUrl;
+    const url = `https://www.dropbox.com/oauth2/authorize?client_id=${clientId}&response_type=code&redirect_uri=${redirectUri}&state=${userId}`;
+
+    window.location.href = url;
   };
 
   return (
