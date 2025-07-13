@@ -102,13 +102,12 @@ export default function DashboardPage() {
       </div>
 
       {/* Folder Picker */}
-      {isConnected && (
+      {userId && isConnected && (
         <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6 space-y-4">
           <h3 className="text-lg font-medium text-white">Choose a Dropbox Folder</h3>
           <DropboxFolderPicker
-            accessToken={accessToken!}
-            selectedPath={selectedPath}
-            onSelectPath={(path) => setSelectedPath(path)}
+            userId={userId}
+            onFolderSelect={(path) => setSelectedPath(path)}
           />
         </div>
       )}
@@ -121,7 +120,6 @@ export default function DashboardPage() {
           <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Prompt Input</h4>
             <p className="text-sm text-zinc-400 mb-3">Type or select a prompt to generate a video.</p>
-            {/* TODO: Replace with actual PromptInput component */}
             <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Prompt input field goes here ]</div>
           </div>
 
@@ -129,7 +127,6 @@ export default function DashboardPage() {
           <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Video Preview</h4>
             <p className="text-sm text-zinc-400 mb-3">Once generated, your AI video will appear here.</p>
-            {/* TODO: Replace with actual VideoPreview component */}
             <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Video player or image preview goes here ]</div>
           </div>
         </div>
@@ -139,7 +136,6 @@ export default function DashboardPage() {
           <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Job History</h4>
             <p className="text-sm text-zinc-400 mb-3">Recently generated videos.</p>
-            {/* TODO: Replace with VideoHistory component */}
             <div className="space-y-3">
               <div className="bg-zinc-900 rounded-xl px-4 py-3 text-sm text-zinc-400">[ Generated video 1 ]</div>
               <div className="bg-zinc-900 rounded-xl px-4 py-3 text-sm text-zinc-400">[ Generated video 2 ]</div>
