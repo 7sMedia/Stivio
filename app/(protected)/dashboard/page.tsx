@@ -103,17 +103,20 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* Dropbox Setup */}
-      <DropboxAutomationSetup
-        accessToken={accessToken}
-        isConnected={isConnected}
-        userId={userId}
-        onDisconnect={handleDisconnect}
-        onPathChange={setSelectedPath}
-      />
+      {/* ✅ Dropbox Setup (only render when userId is defined) */}
+      {userId && accessToken !== undefined && (
+        <DropboxAutomationSetup
+          accessToken={accessToken}
+          isConnected={isConnected}
+          userId={userId}
+          onDisconnect={handleDisconnect}
+          onPathChange={setSelectedPath}
+          folderPath={selectedPath ?? ""}
+        />
+      )}
 
-      {/* Folder Picker */}
-      {isConnected && (
+      {/* ✅ Folder Picker */}
+      {isConnected && accessToken && (
         <DropboxFolderPicker
           accessToken={accessToken}
           onSelect={setSelectedPath}
@@ -121,7 +124,7 @@ export default function DashboardPage() {
         />
       )}
 
-      {/* Recent Jobs */}
+      {/* ✅ Recent Jobs */}
       {recentVideos.length > 0 && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {recentVideos.map((video) => (
