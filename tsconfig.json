@@ -16,12 +16,13 @@
     "incremental": true,
     "baseUrl": ".",
     "paths": {
+      "@/*": ["./*"],
       "@components/*": ["components/*"],
       "@ui/*": ["components/ui/*"],
+      "@layouts/*": ["components/layouts/*"],
       "@stores/*": ["stores/*"],
-      "@lib/*": ["lib/*"],      // Retained in case you add `lib/` later
-      "@styles/*": ["styles/*"],
-      "@/*": ["./*"]
+      "@lib/*": ["lib/*"],
+      "@styles/*": ["styles/*"]
     }
   },
   "include": [
