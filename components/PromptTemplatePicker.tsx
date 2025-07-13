@@ -34,17 +34,21 @@ export default function PromptTemplatePicker({ onSelectTemplate }: Props) {
       <ScrollArea className="h-[220px] w-full rounded-md border">
         <div className="p-2 space-y-2">
           {templates.map((template, index) => (
-            <Card key={index} className="cursor-pointer hover:bg-muted transition">
-              <CardContent
-                className="p-4"
-                onClick={() => onSelectTemplate(template.prompt)}
-              >
-                <p className="font-medium">{template.title}</p>
-                <p className="text-sm text-muted-foreground line-clamp-3">
-                  {template.prompt}
-                </p>
-              </CardContent>
-            </Card>
+            <div
+              key={index}
+              role="button"
+              onClick={() => onSelectTemplate(template.prompt)}
+              className="cursor-pointer hover:bg-muted transition rounded-md"
+            >
+              <Card>
+                <CardContent className="p-4">
+                  <p className="font-medium">{template.title}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">
+                    {template.prompt}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
           ))}
         </div>
       </ScrollArea>
