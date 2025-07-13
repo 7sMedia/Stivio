@@ -14,44 +14,64 @@ export default function DashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const [selectedPath, setSelectedPath] = useState<string>("");
 
   useEffect(() => {
     const fetchUserAndStatus = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         router.push("/");
         return;
       }
+
       setUserId(user.id);
+
       const { data, error } = await supabase
         .from("dropbox_tokens")
         .select("access_token")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      if (error) {
+        console.error("Error checking Dropbox connection:", error);
+      }
+
       if (data?.access_token) {
         setIsConnected(true);
         setAccessToken(data.access_token);
+      } else {
+        setIsConnected(false);
+        setAccessToken(null);
       }
+
       setLoading(false);
     };
+
     fetchUserAndStatus();
   }, [router]);
 
   const handleDisconnect = async () => {
     if (!userId) return;
+
     try {
       const res = await fetch("/api/dropbox/disconnect", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId }),
       });
+
+      const result = await res.json();
+
       if (res.ok) {
         setIsConnected(false);
         setAccessToken(null);
+      } else {
+        console.error("Failed to disconnect:", result.error);
       }
     } catch (err) {
-      console.error("Unexpected error:", err);
+      console.error("Unexpected error during disconnect:", err);
     }
   };
 
