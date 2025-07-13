@@ -17,10 +17,11 @@
     "baseUrl": ".",
     "paths": {
       "@components/*": ["components/*"],
-      "@ui/*":         ["components/ui/*"],
-      "@lib/*":        ["lib/*"],
-      "styles/*":      ["styles/*"],
-      "@/*":           ["./*"]
+      "@ui/*": ["components/ui/*"],
+      "@stores/*": ["stores/*"],
+      "@lib/*": ["lib/*"],      // Retained in case you add `lib/` later
+      "@styles/*": ["styles/*"],
+      "@/*": ["./*"]
     }
   },
   "include": [
@@ -30,11 +31,9 @@
     ".next/types/**/*.ts",
     "app",
     "components",
+    "stores",
     "lib",
     "styles"
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
-
