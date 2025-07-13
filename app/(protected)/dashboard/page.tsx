@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxAutomationSetup from "@/components/DropboxAutomationSetup";
@@ -87,59 +88,45 @@ export default function DashboardPage() {
               : "❌ Not connected"}
           </p>
         </div>
-
-        {!loading && (isConnected ? (
-          <Button variant="destructive" onClick={handleDisconnect}>
-            <XCircle className="mr-2 h-4 w-4" />
-            Disconnect Dropbox
-          </Button>
-        ) : (
-          userId && (
-            <a
-              href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
-            >
-              <Button>
-                <UploadCloud className="mr-2 h-4 w-4" />
-                Connect Dropbox
-              </Button>
-            </a>
-          )
-        ))}
       </div>
 
-      {/* Folder Picker + Automation */}
-      {isConnected && accessToken && userId && (
-        <div className="space-y-4">
-          <DropboxFolderPicker
-            userId={userId}
-            accessToken={accessToken}
-            onSelectPath={setSelectedPath}
-          />
-          {selectedPath && (
-            <DropboxAutomationSetup
-              userId={userId}
-              accessToken={accessToken}
-              folderPath={selectedPath}
-            />
-          )}
-        </div>
+      {/* ✅ AI Tool Card */}
+      <Card className="hover:shadow-lg transition">
+        <CardContent className="p-4 space-y-2">
+          <h3 className="text-lg font-semibold">AI Video Tool</h3>
+          <p className="text-sm text-muted-foreground">
+            Generate social-ready videos with AI prompt templates.
+          </p>
+          <Button variant="outline" className="mt-2" asChild>
+            <a href="/ai-tool">Launch AI Tool</a>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Dropbox Setup */}
+      <DropboxAutomationSetup
+        accessToken={accessToken}
+        isConnected={isConnected}
+        userId={userId}
+        onDisconnect={handleDisconnect}
+        onPathChange={setSelectedPath}
+      />
+
+      {/* Folder Picker */}
+      {isConnected && (
+        <DropboxFolderPicker
+          accessToken={accessToken}
+          onSelect={setSelectedPath}
+          selectedPath={selectedPath}
+        />
       )}
 
-      {/* Recent Videos */}
+      {/* Recent Jobs */}
       {recentVideos.length > 0 && (
-        <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Recent Videos</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {recentVideos.map((video) => (
-              <VideoCard
-                key={video.id}
-                video_url={video.video_url}
-                filename={video.filename}
-                prompt={video.prompt}
-                created_at={video.created_at}
-              />
-            ))}
-          </div>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {recentVideos.map((video) => (
+            <VideoCard key={video.id} video={video} />
+          ))}
         </div>
       )}
     </div>
