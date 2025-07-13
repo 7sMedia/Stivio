@@ -1,76 +1,36 @@
-// app/(protected)/ai-tool/VideoGenerator.tsx
 "use client";
 
-import React, { useState } from "react";
-import ImageUpload from "@/components/ImageUpload";
-import { CheckCircle } from "lucide-react";
-import PromptTemplatePicker from "./PromptTemplatePicker";
-import { Button } from "@/components/ui/button";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { v4 as uuidv4 } from "uuid";
-
-type UploadedImage = {
-  name: string;
-  url: string;
-  dropboxPath?: string;
-  fromDropbox?: boolean;
-  fileObj?: File;
-};
+import { Button } from "@/components/ui/button";
+import { generateVideoFromSeedance } from "./actions/seedance";
+import PromptTemplatePicker from "./PromptTemplatePicker";
+import ImageUpload, { UploadedImage } from "@/components/ImageUpload"; // ✅ use this
 
 export default function VideoGenerator() {
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [prompt, setPrompt] = useState("");
-  const [overlayText, setOverlayText] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [dropboxVideoPath, setDropboxVideoPath] = useState<string | null>(null);
-  const [dropboxPreviewUrl, setDropboxPreviewUrl] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [showSuccess, setShowSuccess] = useState(false);
+  const [inputText, setInputText] = useState("");
+
+  const handleGenerate = async () => {
+    if (selectedImageIdx === null) return;
+    const image = uploadedImages[selectedImageIdx];
+    const finalPrompt = prompt.replace("{text}", inputText).replace("{image}", image.path);
+    setLoading(true);
+    const video = await generateVideoFromSeedance(finalPrompt);
+    setVideoUrl(video);
+    setLoading(false);
+  };
 
   const handleTemplatePrompt = (templatePrompt: string) => {
     setPrompt(templatePrompt);
   };
 
-  const handleGenerate = async () => {
-    if (selectedImageIdx === null) return;
-    const image = uploadedImages[selectedImageIdx];
-    setLoading(true);
-    setError(null);
-    setShowSuccess(false);
-
-    try {
-      const res = await fetch("/app/(protected)/ai-tool/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: "", // to be populated with real user ID
-          dropboxPath: image.dropboxPath,
-          prompt: prompt.replace("{text}", overlayText),
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || "Generation failed");
-      } else {
-        setDropboxVideoPath(data.dropbox_video_path);
-        setDropboxPreviewUrl(data.seedance_metadata?.video_url);
-        setShowSuccess(true);
-      }
-    } catch (err) {
-      console.error("Generation error", err);
-      setError("Unexpected error occurred");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-white">Manual Video Generator</h1>
-
       <ImageUpload
         uploadedImages={uploadedImages}
         setUploadedImages={setUploadedImages}
@@ -78,42 +38,23 @@ export default function VideoGenerator() {
         setSelectedImageIdx={setSelectedImageIdx}
       />
 
-      <PromptTemplatePicker
-        onSelectTemplate={(tpl) => handleTemplatePrompt(tpl.prompt)}
-      />
+      <PromptTemplatePicker setPrompt={handleTemplatePrompt} />
 
       {prompt.includes("{text}") && (
         <Input
           type="text"
-          placeholder="Enter overlay text..."
-          value={overlayText}
-          onChange={(e) => setOverlayText(e.target.value)}
+          placeholder="Enter custom text"
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
         />
       )}
 
-      <Textarea
-        placeholder="Final prompt used for Seedance AI"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-      />
-
-      <Button onClick={handleGenerate} disabled={loading}>
+      <Button onClick={handleGenerate} disabled={loading || selectedImageIdx === null}>
         {loading ? "Generating..." : "Generate Video"}
       </Button>
 
-      {error && <p className="text-red-500">{error}</p>}
-      {showSuccess && dropboxPreviewUrl && (
-        <div className="flex items-center space-x-2 text-green-400">
-          <CheckCircle size={18} />
-          <a
-            href={dropboxPreviewUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            Preview your video
-          </a>
-        </div>
+      {videoUrl && (
+        <video className="rounded mt-4" src={videoUrl} controls width="100%" />
       )}
     </div>
   );
