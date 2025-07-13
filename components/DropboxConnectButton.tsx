@@ -1,3 +1,5 @@
+// ✅ File: components/DropboxConnectButton.tsx
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -6,7 +8,7 @@ interface Props {
   userId: string;
 }
 
-export default function DropboxConnectButton({ userId }: Props) {
+function DropboxConnectButton({ userId }: Props) {
   const handleConnect = async () => {
     if (!userId) return;
 
@@ -22,3 +24,5 @@ export default function DropboxConnectButton({ userId }: Props) {
     </Button>
   );
 }
+
+export default DropboxConnectButton;
