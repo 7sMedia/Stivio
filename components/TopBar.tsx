@@ -4,7 +4,7 @@ import { Search, UserCircle2 } from "lucide-react";
 
 export default function TopBar() {
   return (
-    <header className="flex items-center justify-between px-6 py-4 bg-[#1a1a1a] border-b border-zinc-800 shadow-sm">
+    <header className="flex items-center justify-between px-6 py-4 bg-[#1a1a1a]/80 backdrop-blur-md border-b border-zinc-700 shadow-lg rounded-b-xl">
       {/* Search bar */}
       <div className="flex items-center space-x-2 bg-[#2a2a2a] px-3 py-2 rounded-lg w-full max-w-md">
         <Search size={18} className="text-gray-400" />
