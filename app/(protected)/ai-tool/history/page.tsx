@@ -1,3 +1,4 @@
+// app/(protected)/ai-tool/history/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -58,10 +59,6 @@ export default function HistoryPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {videos.map((video) => (
-            <VideoCard key={video.id} video={video} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+            <VideoCard
+              key={video.id}
+              video_url={_
