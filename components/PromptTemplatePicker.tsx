@@ -1,52 +1,53 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-
-interface PromptTemplatePickerProps {
-  setPrompt: (templatePrompt: string) => void;
-}
+import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { usePromptInput } from '@/lib/store';
 
 const templates = [
-  "Make the photo come alive with flowing motion and vibrant animation.",
-  "Add {text} in bold letters that animate onto the screen.",
-  "Create a dynamic zoom and pan effect with dramatic lighting.",
-  "Give the scene a cinematic look with slow-motion depth.",
-  "Animate the background with gentle parallax movement.",
-  "Make the person blink and subtly move their head.",
-  "Apply a glitch transition with modern energy.",
+  {
+    title: 'Automotive Performance Ad',
+    prompt: 'Create a 15-second video for a high-performance car shop showcasing turbo installs and dyno runs. Use fast cuts and energetic music. Add call-to-action text at the end.',
+  },
+  {
+    title: 'Real Estate Listing Promo',
+    prompt: 'Create a cinematic video for a luxury home listing with sweeping shots, soft background music, and elegant transitions. Include price, location, and agent contact info.',
+  },
+  {
+    title: 'Barbershop Promo',
+    prompt: 'Create a video ad for a trendy barbershop with clips of fades, beard trims, and satisfied customers. Add upbeat music and text overlays showing the shop name and hours.',
+  },
 ];
 
-export default function PromptTemplatePicker({ setPrompt }: PromptTemplatePickerProps) {
-  const [activeIdx, setActiveIdx] = useState<number | null>(null);
+export default function PromptTemplatePicker() {
+  const { setPrompt } = usePromptInput();
+
+  const handleClick = (template: string) => {
+    setPrompt(template); // This sets the prompt input to the selected template
+  };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div className="text-sm font-medium text-white">Prompt Templates</div>
-      <div className="flex gap-2 overflow-x-auto pb-2">
-        {templates.map((template, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              setPrompt(template);
-              setActiveIdx(idx);
-            }}
-            className={`whitespace-nowrap px-3 py-2 rounded-lg text-sm border transition-all ${
-              activeIdx === idx
-                ? "bg-indigo-600 text-white border-indigo-500"
-                : "bg-zinc-800 text-zinc-200 border-zinc-600 hover:bg-zinc-700"
-            }`}
-          >
-            {template.includes("{text}") ? (
-              <span>
-                {template.replace("{text}", "your custom text")}
-                <span className="ml-1 text-yellow-400">*</span>
-              </span>
-            ) : (
-              template
-            )}
-          </button>
-        ))}
-      </div>
+    <div className="space-y-2">
+      <h2 className="text-lg font-semibold">Prompt Templates</h2>
+      <ScrollArea className="h-[220px] w-full rounded-md border">
+        <div className="p-2 space-y-2">
+          {templates.map((template, index) => (
+            <Card
+              key={index}
+              className="cursor-pointer hover:bg-muted transition"
+              onClick={() => handleClick(template.prompt)}
+            >
+              <CardContent className="p-4">
+                <p className="font-medium">{template.title}</p>
+                <p className="text-sm text-muted-foreground line-clamp-3">
+                  {template.prompt}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
