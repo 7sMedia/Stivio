@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface Props {
   userId: string;
-  accessToken: string;
+  accessToken: string | null; // ✅ now supports null
   folderPath: string;
 }
 
@@ -39,6 +39,22 @@ export default function DropboxAutomationSetup({ userId, accessToken, folderPath
       setStatus("error");
     }
   };
+
+  if (!accessToken) {
+    return (
+      <div className="rounded-lg border p-4 bg-muted/30">
+        <p className="text-sm text-muted-foreground mb-2">
+          Dropbox is not connected yet.
+        </p>
+        <a
+          href="/connect-dropbox"
+          className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm"
+        >
+          Connect Dropbox
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 mt-6">
