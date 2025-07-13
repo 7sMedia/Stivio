@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 
 interface DropboxFolderPickerProps {
-  userId: string;
   accessToken: string;
   onSelect: (path: string) => void;
+  selectedPath: string | null;
 }
 
 interface DropboxEntry {
@@ -16,16 +16,19 @@ interface DropboxEntry {
   ".tag": "folder" | "file";
 }
 
-export default function DropboxFolderPicker({ userId, accessToken, onSelect }: DropboxFolderPickerProps) {
+export default function DropboxFolderPicker({
+  accessToken,
+  onSelect,
+  selectedPath,
+}: DropboxFolderPickerProps) {
   const [folders, setFolders] = useState<DropboxEntry[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>("");
   const [pathHistory, setPathHistory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchFolder(currentPath);
-  }, [currentPath]);
+    fetchFolder(selectedPath || "");
+  }, [selectedPath]);
 
   const fetchFolder = async (path: string) => {
     setLoading(true);
@@ -60,14 +63,16 @@ export default function DropboxFolderPicker({ userId, accessToken, onSelect }: D
   };
 
   const handleClickFolder = (folder: DropboxEntry) => {
-    setPathHistory((prev) => [...prev, currentPath]);
-    setCurrentPath(folder.path_lower);
+    if (selectedPath) {
+      setPathHistory((prev) => [...prev, selectedPath]);
+    }
+    onSelect(folder.path_lower);
   };
 
   const handleGoUp = () => {
     const last = pathHistory[pathHistory.length - 1];
     setPathHistory((prev) => prev.slice(0, -1));
-    setCurrentPath(last || "");
+    onSelect(last || "");
   };
 
   const handleSelect = (folder: DropboxEntry) => {
@@ -78,7 +83,7 @@ export default function DropboxFolderPicker({ userId, accessToken, onSelect }: D
     <div className="p-4 border border-dashed border-zinc-600 rounded-md">
       <h4 className="text-sm text-muted-foreground mb-2">Dropbox Folder Picker</h4>
 
-      {currentPath && (
+      {selectedPath && (
         <button
           onClick={handleGoUp}
           className="mb-3 text-xs text-blue-400 hover:underline"
