@@ -6,9 +6,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
 
-// Define UploadedImage to match what ImageUpload expects
+// MUST match the actual ImageUpload type
 type UploadedImage = {
   url: string;
+  path: string;
+  thumbnail: string;
   name?: string;
 };
 
