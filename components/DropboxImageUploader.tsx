@@ -1,55 +1,70 @@
-// components/DropboxImageUploader.tsx
 "use client";
 
 import React, { useState } from "react";
+import { UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 
 interface Props {
   userId: string;
-  value: string;
-  onChange: (file: File) => void;
 }
 
-export default function DropboxImageUploader({ userId, value, onChange }: Props) {
-  const [dragging, setDragging] = useState(false);
+export default function DropboxImageUploader({ userId }: Props) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      onChange(file);
+      setSelectedFile(file);
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) {
-      onChange(file);
+  const handleUpload = async () => {
+    if (!selectedFile) return;
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+    formData.append("userId", userId);
+
+    try {
+      const res = await fetch("/api/dropbox/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      // Optional: reset after success
+      setSelectedFile(null);
+      alert("Upload successful!");
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed");
+    } finally {
+      setUploading(false);
     }
   };
 
   return (
-    <div
-      className={`border-dashed border-2 rounded-lg p-4 text-center ${dragging ? "bg-gray-800" : "bg-gray-900"}`}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragging(true);
-      }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={handleDrop}
-    >
-      <input
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-        id="dropbox-image-input"
-      />
-      <label htmlFor="dropbox-image-input">
-        <Button variant="secondary" className="cursor-pointer">Upload Image</Button>
-      </label>
-      <p className="mt-2 text-sm text-gray-400">or drag & drop an image here</p>
-    </div>
+    <Card className="p-4 space-y-4 bg-muted border border-gray-700">
+      <h2 className="text-lg font-semibold text-white flex items-center gap-2">
+        <UploadCloud className="w-5 h-5" />
+        Upload Image
+      </h2>
+      <Input type="file" accept="image/*" onChange={handleFileChange} />
+      <Button
+        onClick={handleUpload}
+        disabled={!selectedFile || uploading}
+        className="w-full"
+      >
+        {uploading ? "Uploading..." : "Upload to Dropbox"}
+      </Button>
+    </Card>
   );
 }
