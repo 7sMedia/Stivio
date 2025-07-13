@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ImageUpload, { UploadedImage } from "@/components/ImageUpload";
 import PromptTemplatePicker from "@/components/PromptTemplatePicker";
-import { usePromptInput } from "@/stores/promptInputStore"; // ✅ Zustand hook
+import { usePromptInput } from "@/stores/promptInputStore";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -14,7 +14,7 @@ const supabase = createClient(
 );
 
 export default function AIToolPage() {
-  const { prompt, setPrompt } = usePromptInput(); // ✅ Zustand managed state
+  const { prompt, setPrompt } = usePromptInput();
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
@@ -24,10 +24,8 @@ export default function AIToolPage() {
     setStatus("generating");
 
     const image = uploadedImages[selectedImageIdx];
-    // TODO: Send `image` and `prompt` to Seedance API
     console.log("Generating with:", { prompt, image });
 
-    // Simulate delay
     await new Promise((res) => setTimeout(res, 1500));
     setStatus("done");
   };
@@ -37,9 +35,11 @@ export default function AIToolPage() {
       <h1 className="text-2xl font-bold text-white">AI Video Generator</h1>
 
       <div className="space-y-4">
-        <PromptTemplatePicker /> {/* ✅ no props needed, uses Zustand */}
+        <PromptTemplatePicker onSelectTemplate={setPrompt} />
 
-        <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
+        <label className="text-sm font-medium text-white block mb-2">
+          Upload Image
+        </label>
         <ImageUpload
           uploadedImages={uploadedImages}
           setUploadedImages={setUploadedImages}
@@ -47,10 +47,12 @@ export default function AIToolPage() {
           setSelectedImageIdx={setSelectedImageIdx}
         />
 
-        <label className="text-sm font-medium text-white block mt-4">Prompt</label>
+        <label className="text-sm font-medium text-white block mt-4">
+          Prompt
+        </label>
         <Input
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)} // ✅ synced with Zustand
+          onChange={(e) => setPrompt(e.target.value)}
           className="w-full"
           placeholder="Describe your animation..."
         />
