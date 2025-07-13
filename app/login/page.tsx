@@ -23,24 +23,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-white">
-      <div className="max-w-md w-full space-y-6 p-6 border border-gray-700 rounded-xl bg-gray-900">
-        <h1 className="text-2xl font-bold text-center">Login to Beta7</h1>
+    <div className="min-h-screen flex items-center justify-center bg-background text-white px-4">
+      <div className="max-w-md w-full space-y-6 p-6 border border-zinc-700 rounded-2xl bg-[#1A1A1A] shadow-md">
+        <h1 className="text-3xl font-bold text-primary text-center">Piksion</h1>
+        <p className="text-sm text-zinc-400 text-center -mt-2">Login to your account</p>
         <input
           type="email"
           placeholder="you@example.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-4 py-2 bg-gray-800 border border-gray-700 rounded-md"
+          className="w-full px-4 py-2 bg-zinc-900 border border-zinc-700 rounded-md text-white placeholder-zinc-500"
         />
         <button
           onClick={handleLogin}
           disabled={loading || !email}
-          className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-md"
+          className="w-full px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-md font-medium"
         >
           {loading ? "Sending..." : "Send Magic Link"}
         </button>
-        {message && <p className="text-center text-sm text-gray-400">{message}</p>}
+        {message && (
+          <p className="text-center text-sm text-zinc-400">{message}</p>
+        )}
       </div>
     </div>
   );
