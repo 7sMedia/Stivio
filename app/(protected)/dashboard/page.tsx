@@ -1,5 +1,3 @@
-// ✅ File: app/(protected)/dashboard/page.tsx
-
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -9,6 +7,11 @@ import { UploadCloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
+import DropboxFolderPicker from "@/components/DropboxFolderPicker";
+import DropboxImageUploader from "@/components/DropboxImageUploader";
+import PromptTemplatePicker from "@/components/PromptTemplatePicker";
+import PromptInput from "@/components/PromptInput";
+import VideoGallery from "@/components/VideoGallery";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -16,26 +19,21 @@ export default function DashboardPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (error || !session) {
+    const fetchSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      const session = data?.session;
+      if (!session?.user) {
         router.push("/login");
-        return;
+      } else {
+        setUserId(session.user.id);
+        setLoading(false);
       }
-
-      setUserId(session.user.id);
-      setLoading(false);
     };
-
-    getUser();
+    fetchSession();
   }, [router]);
 
-  if (loading) {
-    return <div className="text-white">Loading...</div>;
+  if (loading || !userId) {
+    return <div className="text-center mt-20">Loading dashboard...</div>;
   }
 
   return (
@@ -43,10 +41,26 @@ export default function DashboardPage() {
       <Card className="p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Welcome to Beta7</h1>
-          <DropboxConnectButton />
+          <DropboxConnectButton userId={userId} />
         </div>
       </Card>
-      {/* Additional sections like folder picker, upload, prompt input, etc. */}
+
+      <Card className="p-6">
+        <DropboxFolderPicker userId={userId} />
+      </Card>
+
+      <Card className="p-6">
+        <DropboxImageUploader userId={userId} />
+      </Card>
+
+      <Card className="p-6">
+        <PromptTemplatePicker />
+        <PromptInput />
+      </Card>
+
+      <Card className="p-6">
+        <VideoGallery userId={userId} />
+      </Card>
     </div>
   );
 }
