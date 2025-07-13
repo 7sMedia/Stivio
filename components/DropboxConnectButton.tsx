@@ -1,23 +1,47 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/lib/supabaseClient";
 
-interface Props {
-  userId: string;
-}
+export default function DropboxConnectButton() {
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
-export default function DropboxConnectButton({ userId }: Props) {
-  const handleConnect = async () => {
-    if (!userId) return;
+  useEffect(() => {
+    const fetchSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error fetching session:", error.message);
+        setLoading(false);
+        return;
+      }
 
-    const res = await fetch(`/api/dropbox/oauth/start?user_id=${userId}`);
-    const { authUrl } = await res.json();
+      const uid = data?.session?.user?.id ?? null;
+      setUserId(uid);
+      setLoading(false);
+    };
 
-    window.location.href = authUrl;
+    fetchSession();
+  }, []);
+
+  const handleConnect = () => {
+    if (!userId) {
+      alert("Please sign in before connecting Dropbox.");
+      return;
+    }
+
+    const clientId = process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID!;
+    const redirectUri = encodeURIComponent(process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI!);
+    const dropboxAuthUrl = `https://www.dropbox.com/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&state=${userId}`;
+
+    window.location.href = dropboxAuthUrl;
   };
 
+  if (loading) return null;
+
   return (
-    <Button onClick={handleConnect} className="w-full bg-cyan-400 text-black hover:bg-cyan-500">
+    <Button onClick={handleConnect} disabled={!userId}>
       Connect Dropbox
     </Button>
   );
