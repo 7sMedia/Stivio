@@ -2,71 +2,78 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { Skeleton } from "@/components/ui/skeleton";
-import VideoCard from "@/components/VideoCard";
-
-interface VideoEntry {
-  id: string;
-  prompt: string;
-  filename: string;
-  dropbox_path: string;
-  video_url: string;
-  created_at: string;
-}
+import { Card, CardContent } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Loader2 } from "lucide-react";
 
 interface Props {
   userId: string;
 }
 
+interface VideoRecord {
+  id: string;
+  video_url: string;
+  created_at: string;
+}
+
 export default function VideoGallery({ userId }: Props) {
-  const [videos, setVideos] = useState<VideoEntry[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [videos, setVideos] = useState<VideoRecord[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const loadHistory = async () => {
-      try {
-        const res = await fetch(`/api/history?userId=${userId}`);
-        const json = await res.json();
-        if (res.ok) {
-          setVideos(json.data || []);
-        } else {
-          console.error("Failed to load history:", json.error);
-        }
-      } catch (err) {
-        console.error("Fetch error:", err);
-      } finally {
-        setLoading(false);
+    const fetchVideos = async () => {
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from("generated_videos")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (data) {
+        setVideos(data);
       }
+
+      setLoading(false);
     };
 
-    loadHistory();
+    fetchVideos();
   }, [userId]);
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} className="w-full h-32 rounded-lg" />
-        ))}
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
   }
 
   if (videos.length === 0) {
-    return <p className="text-white">No videos found yet.</p>;
+    return (
+      <div className="text-sm text-muted-foreground text-center">
+        No videos found. Upload an image and generate your first video!
+      </div>
+    );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {videos.map((video) => (
-        <VideoCard
-          key={video.id}
-          video_url={video.video_url}
-          filename={video.filename}
-          prompt={video.prompt}
-          created_at={video.created_at}
-        />
-      ))}
+    <div className="space-y-4">
+      <h2 className="text-lg font-semibold">Your Generated Videos</h2>
+      <ScrollArea className="h-[400px] w-full rounded-md border">
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {videos.map((video) => (
+            <Card key={video.id}>
+              <CardContent className="p-2">
+                <video
+                  controls
+                  src={video.video_url}
+                  className="w-full h-auto rounded"
+                />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
