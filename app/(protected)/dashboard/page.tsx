@@ -41,7 +41,7 @@ export default function DashboardPage() {
       <Card className="p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Welcome to Beta7</h1>
-          <DropboxConnectButton />
+          <DropboxConnectButton userId={userId ?? ""} />
         </div>
       </Card>
 
@@ -51,8 +51,8 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <DropboxFolderPicker />
-        <DropboxImageUploader />
+        <DropboxFolderPicker userId={userId ?? ""} value="images/input" onChange={() => {}} />
+        <DropboxImageUploader userId={userId ?? ""} />
       </div>
 
       {userId && <VideoGallery userId={userId} />}
