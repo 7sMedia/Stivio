@@ -51,11 +51,7 @@ export default function DashboardPage() {
             value={selectedFolder}
             onChange={setSelectedFolder}
           />
-          <DropboxImageUploader
-            userId={userId!}
-            value={selectedFolder}
-            onChange={setSelectedFolder}
-          />
+          <DropboxImageUploader userId={userId!} />
         </div>
       )}
 
