@@ -25,16 +25,17 @@ export default function Sidebar() {
   return (
     <aside className="hidden lg:block w-64 h-screen bg-background border-r border-zinc-800 text-white">
       <div className="flex flex-col h-full px-4 py-6">
-        {/* Top Brand Logo */}
+        {/* Logo and Brand */}
         <div className="flex items-center gap-3 mb-8">
-          <div className="bg-gradient-to-br from-pink-500 via-purple-600 to-blue-500 p-2 rounded-xl">
-            <svg width="24" height="24" fill="white" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          </div>
+          <img
+            src="/piksion-logo.png"
+            alt="Piksion"
+            className="h-8 w-auto rounded-md"
+          />
           <span className="text-2xl font-bold tracking-tight">Piksion</span>
         </div>
 
+        {/* Navigation */}
         <nav className="flex-1 space-y-2">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
@@ -53,6 +54,7 @@ export default function Sidebar() {
           })}
         </nav>
 
+        {/* Logout */}
         <div className="mt-auto">
           <Link
             href="/logout"
