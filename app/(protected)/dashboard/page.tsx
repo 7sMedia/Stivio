@@ -103,11 +103,10 @@ export default function DashboardPage() {
         </CardContent>
       </Card>
 
-      {/* ✅ Dropbox Setup (only render when userId is defined) */}
-      {userId && accessToken !== undefined && (
+      {/* ✅ Dropbox Setup (only render if userId exists) */}
+      {userId && (
         <DropboxAutomationSetup
           accessToken={accessToken}
-          isConnected={isConnected}
           userId={userId}
           onDisconnect={handleDisconnect}
           onPathChange={setSelectedPath}
