@@ -1,43 +1,26 @@
 "use client";
-import { Bell, Menu } from "lucide-react";
 
-interface TopBarProps {
-  user: { email: string };
-  onLogout: () => void;
-  onMenuToggle: () => void;
-}
+import { Search, UserCircle2 } from "lucide-react";
 
-export default function TopBar({
-  user,
-  onLogout,
-  onMenuToggle,
-}: TopBarProps) {
+export default function TopBar() {
   return (
-    <header className="sticky top-0 z-20 flex items-center bg-[#181a20] border-b border-[#23242d] h-16 px-4 sm:px-8">
-      {/* Hamburger on mobile */}
-      <button
-        className="p-2 text-[#b1b2c1] sm:hidden"
-        onClick={onMenuToggle}
-        aria-label="Open menu"
-      >
-        <Menu className="w-6 h-6" />
-      </button>
+    <header className="flex items-center justify-between px-6 py-4 bg-[#1a1a1a] border-b border-zinc-800 shadow-sm">
+      {/* Search bar */}
+      <div className="flex items-center space-x-2 bg-[#2a2a2a] px-3 py-2 rounded-lg w-full max-w-md">
+        <Search size={18} className="text-gray-400" />
+        <input
+          type="text"
+          placeholder="Search prompts, videos, or files..."
+          className="bg-transparent outline-none text-sm text-white placeholder-gray-500 w-full"
+        />
+      </div>
 
-      <div className="flex-1" />
-
-      <div className="flex items-center gap-4">
-        <button className="p-2 rounded hover:bg-[#23242d]">
-          <Bell className="w-5 h-5 text-[#b1b2c1]" />
+      {/* Right actions */}
+      <div className="flex items-center space-x-4">
+        <button className="bg-primary hover:opacity-90 transition text-white px-4 py-2 rounded-xl font-semibold text-sm shadow-md">
+          + Create
         </button>
-        <span className="text-[#b1b2c1] text-sm opacity-80">
-          {user.email}
-        </span>
-        <button
-          className="bg-[#22232a] px-3 py-1.5 rounded text-xs hover:bg-[#35364a] text-[#b1b2c1]"
-          onClick={onLogout}
-        >
-          Log Out
-        </button>
+        <UserCircle2 size={32} className="text-white hover:text-accent transition" />
       </div>
     </header>
   );
