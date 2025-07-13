@@ -3,46 +3,58 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import DropboxConnectButton from "@/components/DropboxConnectButton";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import DropboxImageUploader from "@/components/DropboxImageUploader";
 import PromptInput from "@/components/PromptInput";
-import GenerateButton from "@/components/GenerateButton";
 import PromptTemplatePicker from "@/components/PromptTemplatePicker";
-import { logout } from "@/lib/logout";
+import VideoGallery from "@/components/VideoGallery";
+import { callSeedanceAPI } from "../actions/seedance";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [userId, setUserId] = useState<string>("");
   const [selectedFolder, setSelectedFolder] = useState<string>("");
   const [prompt, setPrompt] = useState<string>("");
-  const router = useRouter();
 
   useEffect(() => {
-    const fetchUserId = async () => {
-      const {
-        data: { session },
-        error,
-      } = await supabase.auth.getSession();
-
-      if (error || !session) {
+    const fetchUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error || !data?.user) {
         router.push("/login");
         return;
       }
-
-      setUserId(session.user.id);
+      setUserId(data.user.id);
     };
 
-    fetchUserId();
+    fetchUser();
   }, [router]);
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedFolder || !prompt) return;
+    await callSeedanceAPI({ folderPath: selectedFolder, prompt });
+  };
+
+  if (!userId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-center text-lg">Loading...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6 px-6 py-10">
+    <div className="p-6 space-y-6">
       <Card className="p-6">
         <div className="flex justify-between items-center">
           <h1 className="text-xl font-bold">Welcome to Beta7</h1>
-          {userId && <DropboxConnectButton userId={userId} />}
+          <DropboxConnectButton userId={userId} />
         </div>
       </Card>
 
@@ -50,31 +62,28 @@ export default function DashboardPage() {
         <DropboxFolderPicker
           userId={userId}
           value={selectedFolder}
-          onChange={(val: string) => setSelectedFolder(val)}
+          onChange={setSelectedFolder}
         />
       </Card>
 
       <Card className="p-6">
-        <DropboxImageUploader folderPath={selectedFolder} />
-      </Card>
-
-      <Card className="p-6">
-        <PromptTemplatePicker onSelectTemplate={(val) => setPrompt(val)} />
-      </Card>
-
-      <Card className="p-6">
+        <PromptTemplatePicker onSelectTemplate={setPrompt} />
         <PromptInput value={prompt} onChange={setPrompt} />
       </Card>
 
       <Card className="p-6">
-        <GenerateButton folderPath={selectedFolder} prompt={prompt} />
+        <Button onClick={handleGenerate} className="w-full bg-green-500 hover:bg-green-600">
+          Generate Video
+        </Button>
       </Card>
 
       <Card className="p-6">
-        <Button variant="destructive" onClick={logout}>
+        <Button variant="destructive" onClick={handleLogout}>
           Logout
         </Button>
       </Card>
+
+      <VideoGallery userId={userId} />
     </div>
   );
 }
