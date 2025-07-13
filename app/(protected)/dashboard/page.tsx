@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
@@ -78,13 +78,13 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen dark bg-background text-white">
+    <div className="flex min-h-screen bg-background text-white">
       <Sidebar />
-      <main className="flex-1 p-6 space-y-6">
-        <Card>
-          <CardContent className="py-6 flex justify-between items-center">
+      <main className="flex-1 p-8 space-y-6">
+        <Card className="shadow-md rounded-2xl">
+          <CardContent className="py-6 px-6 flex justify-between items-center">
             <div>
-              <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+              <h2 className="text-2xl font-bold text-white">Welcome to Beta7</h2>
               {!loading && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
@@ -94,8 +94,8 @@ export default function DashboardPage() {
 
             {!loading && (
               isConnected ? (
-                <Button variant="destructive" onClick={handleDisconnect}>
-                  <XCircle className="mr-2 h-4 w-4" />
+                <Button variant="destructive" onClick={handleDisconnect} className="rounded-lg">
+                  <XCircle className="mr-2 h-5 w-5" strokeWidth={2} />
                   Disconnect Dropbox
                 </Button>
               ) : (
@@ -103,8 +103,8 @@ export default function DashboardPage() {
                   <a
                     href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
                   >
-                    <Button>
-                      <UploadCloud className="mr-2 h-4 w-4" />
+                    <Button className="bg-cyan-400 text-black hover:bg-cyan-500 rounded-lg">
+                      <UploadCloud className="mr-2 h-5 w-5" strokeWidth={2} />
                       Connect Dropbox
                     </Button>
                   </a>
@@ -115,8 +115,8 @@ export default function DashboardPage() {
         </Card>
 
         {isConnected && userId && accessToken && (
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
+          <Card className="shadow-md rounded-2xl p-4">
+            <h3 className="text-lg font-semibold mb-3">Step 2: Select Input Folder</h3>
             <DropboxFolderPicker
               userId={userId}
               value={selectedFolder}
