@@ -1,61 +1,66 @@
 "use client";
 
-import { useState } from "react";
-import PromptTemplatePicker from "./PromptTemplatePicker";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { useEffect, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import ImageUpload, { UploadedImage } from "@/components/ImageUpload";
+import PromptTemplatePicker from "@/components/PromptTemplatePicker";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default function AIToolPage() {
   const [prompt, setPrompt] = useState("");
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
+  const [status, setStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
+
+  const handleGenerate = async () => {
+    if (!prompt || selectedImageIdx === null) return;
+    setStatus("generating");
+
+    const image = uploadedImages[selectedImageIdx];
+    // TODO: Send `image` and `prompt` to Seedance API
+    console.log("Generating with:", { prompt, image });
+
+    // Simulate delay
+    await new Promise((res) => setTimeout(res, 1500));
+    setStatus("done");
+  };
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-3xl font-bold text-white">Create AI-Powered Videos</h1>
-      <p className="text-muted-foreground mb-4">
-        Choose a prompt template, customize it, and upload an image to generate stunning AI content.
-      </p>
+      <h1 className="text-2xl font-bold text-white">AI Video Generator</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Prompt Templates */}
-        <div className="space-y-4">
-          <PromptTemplatePicker
-            onSelectTemplate={(tpl) => {
-              setPrompt(tpl.prompt);
-              setSelectedTemplate(tpl.name);
-            }}
-          />
-        </div>
+      <div className="space-y-4">
+        <PromptTemplatePicker setPrompt={setPrompt} />
 
-        {/* Right: Prompt Input + Upload */}
-        <div className="space-y-4">
-          <label className="text-sm font-medium text-white">Prompt</label>
-          <Textarea
-            className="min-h-[120px] text-white"
-            placeholder="Describe what you want to generate..."
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
+        <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
+        <ImageUpload
+          uploadedImages={uploadedImages}
+          setUploadedImages={setUploadedImages}
+          selectedImageIdx={selectedImageIdx}
+          setSelectedImageIdx={setSelectedImageIdx}
+        />
 
-          <div>
-            <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
-            <ImageUpload
-              uploadedImages={uploadedImages}
-              setUploadedImages={setUploadedImages}
-              selectedImageIdx={selectedImageIdx}
-              setSelectedImageIdx={setSelectedImageIdx}
-            />
-          </div>
+        <label className="text-sm font-medium text-white block mt-4">Prompt</label>
+        <Input
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          className="w-full"
+          placeholder="Describe your animation..."
+        />
 
-          <Button className="w-full">
-            Generate Video
-          </Button>
-        </div>
+        <Button
+          onClick={handleGenerate}
+          disabled={status === "generating"}
+          className="mt-4"
+        >
+          {status === "generating" ? "Generating..." : "Generate Video"}
+        </Button>
       </div>
     </div>
   );
