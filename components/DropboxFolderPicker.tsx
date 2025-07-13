@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 interface DropboxFolderPickerProps {
   userId: string;
   accessToken: string;
-  onSelectPath: (path: string) => void;
+  onSelect: (path: string) => void;
 }
 
 interface DropboxEntry {
@@ -16,7 +16,7 @@ interface DropboxEntry {
   ".tag": "folder" | "file";
 }
 
-export default function DropboxFolderPicker({ userId, accessToken, onSelectPath }: DropboxFolderPickerProps) {
+export default function DropboxFolderPicker({ userId, accessToken, onSelect }: DropboxFolderPickerProps) {
   const [folders, setFolders] = useState<DropboxEntry[]>([]);
   const [currentPath, setCurrentPath] = useState<string>("");
   const [pathHistory, setPathHistory] = useState<string[]>([]);
@@ -71,7 +71,7 @@ export default function DropboxFolderPicker({ userId, accessToken, onSelectPath 
   };
 
   const handleSelect = (folder: DropboxEntry) => {
-    onSelectPath(folder.path_display);
+    onSelect(folder.path_display);
   };
 
   return (
