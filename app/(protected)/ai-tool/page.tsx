@@ -23,6 +23,7 @@ export default function AIToolPage() {
         <div className="space-y-4">
           <PromptTemplatePicker setPrompt={(tplPrompt) => {
             setPrompt(tplPrompt);
+            setSelectedTemplate(tplPrompt);
           }} />
         </div>
 
@@ -38,7 +39,7 @@ export default function AIToolPage() {
 
           <div>
             <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
-            <ImageUpload inputFolderPath="/testing" />
+            <ImageUpload />
           </div>
 
           <Button className="w-full">
