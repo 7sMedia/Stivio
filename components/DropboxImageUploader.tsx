@@ -1,52 +1,54 @@
-// ✅ File: components/DropboxImageUploader.tsx
-
 "use client";
 
 import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface DropboxImageUploaderProps {
-  accessToken: string;
+  userId: string;
 }
 
-const DropboxImageUploader: React.FC<DropboxImageUploaderProps> = ({ accessToken }) => {
-  const [status, setStatus] = useState("");
+export default function DropboxImageUploader({ userId }: DropboxImageUploaderProps) {
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "success" | "error">("idle");
+  const [imageUrl, setImageUrl] = useState("");
 
-  const handleUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
+  const handleUpload = async () => {
+    if (!imageUrl || !userId) return;
 
-    setStatus("Uploading...");
+    setUploadStatus("uploading");
 
-    const response = await fetch("https://content.dropboxapi.com/2/files/upload", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${accessToken}`,
-        "Dropbox-API-Arg": JSON.stringify({
-          path: `/beta7_uploads/${file.name}`,
-          mode: "add",
-          autorename: true,
-          mute: false
-        }),
-        "Content-Type": "application/octet-stream"
-      },
-      body: file
-    });
+    try {
+      const res = await fetch("/api/dropbox/upload-image", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, imageUrl }),
+      });
 
-    if (response.ok) {
-      setStatus("Upload successful!");
-    } else {
-      const errorText = await response.text();
-      console.error(errorText);
-      setStatus("Upload failed");
+      if (res.ok) {
+        setUploadStatus("success");
+      } else {
+        throw new Error("Upload failed");
+      }
+    } catch (err) {
+      console.error(err);
+      setUploadStatus("error");
     }
   };
 
   return (
-    <div>
-      <input type="file" accept="image/*" onChange={handleUpload} />
-      {status && <p className="mt-2 text-sm text-gray-600">{status}</p>}
+    <div className="space-y-3">
+      <label className="text-sm text-muted-foreground block">Image URL to Upload</label>
+      <Input
+        type="text"
+        value={imageUrl}
+        onChange={(e) => setImageUrl(e.target.value)}
+        placeholder="https://example.com/image.jpg"
+      />
+      <Button onClick={handleUpload} disabled={uploadStatus === "uploading"}>
+        {uploadStatus === "uploading" ? "Uploading..." : "Upload to Dropbox"}
+      </Button>
+      {uploadStatus === "success" && <p className="text-green-400 text-sm">✅ Uploaded</p>}
+      {uploadStatus === "error" && <p className="text-red-500 text-sm">❌ Upload failed</p>}
     </div>
   );
-};
-
-export default DropboxImageUploader;
+}
