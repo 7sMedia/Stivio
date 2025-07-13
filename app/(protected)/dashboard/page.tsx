@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -7,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { UploadCloud, XCircle } from "lucide-react";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
+import DropboxConnectButton from "@/components/DropboxConnectButton";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -80,7 +80,9 @@ export default function DashboardPage() {
       {/* Welcome Panel */}
       <div className="bg-[#1A1A1A] border border-zinc-700 rounded-2xl shadow-lg p-6 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-semibold text-white">Welcome to <span className="text-primary">Piksion</span></h1>
+          <h1 className="text-2xl font-semibold text-white">
+            Welcome to <span className="text-primary">Piksion</span>
+          </h1>
           {!loading && (
             <p className="text-sm text-zinc-400 mt-1">
               {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
@@ -95,14 +97,7 @@ export default function DashboardPage() {
             </Button>
           ) : (
             userId && (
-              <a
-                href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&token_access_type=offline`}
-              >
-                <Button variant="gradient">
-                  <UploadCloud className="w-4 h-4 mr-2" />
-                  Connect Dropbox
-                </Button>
-              </a>
+              <DropboxConnectButton />
             )
           )
         )}
