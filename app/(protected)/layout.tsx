@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import Sidebar from "@/components/sidebar";
-import TopBar from "@/components/TopBar"; // Ensure this exists
+import TopBar from "@/components/TopBar"; // Make sure TopBar.tsx is created
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -19,16 +19,16 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen bg-background text-white">
-      {/* Sidebar */}
+      {/* Sidebar (left) */}
       <Sidebar />
 
-      {/* Main content */}
+      {/* Main content with TopBar */}
       <div className="flex-1 flex flex-col">
-        {/* TopBar */}
+        {/* Top navigation bar */}
         <TopBar />
 
-        {/* Page Content */}
-        <main className="flex-1 p-6 bg-background overflow-y-auto">
+        {/* Page content */}
+        <main className="flex-1 p-6 overflow-y-auto bg-background">
           {children}
         </main>
       </div>
