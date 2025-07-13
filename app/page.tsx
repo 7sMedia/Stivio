@@ -16,13 +16,13 @@ import { supabase } from "@/lib/supabaseClient";
 
 function GradientBackground({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-background relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
+    <div className="min-h-screen w-full overflow-x-hidden flex flex-col items-center justify-center bg-gradient-to-br from-indigo-900 via-violet-900 to-black relative pt-[env(safe-area-inset-top,1.5rem)] pb-[env(safe-area-inset-bottom,1.5rem)]">
       <div className="absolute inset-0 pointer-events-none z-0">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 1.2, ease: "easeOut" }}
-          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-primary/30 blur-3xl"
+          className="absolute -top-48 left-1/2 -translate-x-1/2 w-[80vw] h-[60vh] rounded-full bg-indigo-400/30 blur-3xl"
         />
       </div>
       <div className="z-10 w-full flex-1 flex flex-col items-center justify-center">
@@ -100,14 +100,16 @@ export default function HomePage() {
           </div>
 
           <motion.h1
-            className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl"
+            className="text-4xl md:text-6xl font-bold mt-10 text-center leading-tight drop-shadow-xl text-white"
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
           >
-            Image In. <br />
-            Motion Out. <br />
-            Social Reach.
+            Image <span className="text-accent">In.</span>
+            <br />
+            Motion <span className="text-accent">Out.</span>
+            <br />
+            Social <span className="text-accent">Reach.</span>
           </motion.h1>
 
           <motion.div
