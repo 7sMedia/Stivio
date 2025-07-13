@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { UploadCloud, XCircle } from "lucide-react";
+import Sidebar from "@/components/sidebar";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 
 export default function DashboardPage() {
@@ -14,7 +15,7 @@ export default function DashboardPage() {
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState(true);
-  const [selectedFolder, setSelectedFolder] = useState("");
+  const [selectedFolder, setSelectedFolder] = useState("images/input");
 
   useEffect(() => {
     const fetchUserAndStatus = async () => {
@@ -35,7 +36,9 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (error) console.error("Error checking Dropbox connection:", error);
+      if (error) {
+        console.error("Error checking Dropbox connection:", error);
+      }
 
       if (data?.access_token) {
         setIsConnected(true);
@@ -75,50 +78,54 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 p-6 space-y-6 text-white">
-      <Card className="shadow-md rounded-2xl">
-        <CardContent className="py-6 flex justify-between items-center">
-          <div>
-            <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
-            {!loading && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
-              </p>
-            )}
-          </div>
+    <div className="flex min-h-screen dark bg-background text-white">
+      <Sidebar />
+      <main className="flex-1 p-6 space-y-6">
+        <Card>
+          <CardContent className="py-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+              {!loading && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
+                </p>
+              )}
+            </div>
 
-          {!loading &&
-            (isConnected ? (
-              <Button variant="destructive" onClick={handleDisconnect}>
-                <XCircle className="mr-2 h-4 w-4" strokeWidth={2} />
-                Disconnect Dropbox
-              </Button>
-            ) : (
-              userId && (
-                <a
-                  href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
-                >
-                  <Button className="bg-cyan-400 text-black hover:bg-cyan-500">
-                    <UploadCloud className="mr-2 h-4 w-4" strokeWidth={2} />
-                    Connect Dropbox
-                  </Button>
-                </a>
-              )
-            ))}
-        </CardContent>
-      </Card>
-
-      {/* Step 2: Folder Picker if connected */}
-      {isConnected && userId && accessToken && (
-        <Card className="shadow-md rounded-2xl p-6">
-          <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
-          <DropboxFolderPicker
-            userId={userId}
-            value={selectedFolder}
-            onChange={setSelectedFolder}
-          />
+            {!loading &&
+              (isConnected ? (
+                <Button variant="destructive" onClick={handleDisconnect}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Disconnect Dropbox
+                </Button>
+              ) : (
+                userId && (
+                  <a
+                    href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
+                  >
+                    <Button>
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Connect Dropbox
+                    </Button>
+                  </a>
+                )
+              ))}
+          </CardContent>
         </Card>
-      )}
-    </main>
+
+        {/* Step 2: Folder Picker if connected */}
+        {isConnected && userId && accessToken && (
+          <Card className="shadow-md rounded-2xl p-6">
+            <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
+            <DropboxFolderPicker
+              userId={userId}
+              accessToken={accessToken}
+              value={selectedFolder}
+              onChange={setSelectedFolder}
+            />
+          </Card>
+        )}
+      </main>
+    </div>
   );
 }
