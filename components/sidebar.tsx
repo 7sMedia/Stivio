@@ -17,6 +17,7 @@ const navItems = [
   { name: "Manual Mode", href: "/manual", icon: PenTool },
   { name: "History", href: "/history", icon: Clock },
   { name: "Settings", href: "/settings", icon: Settings },
+  { name: "AI Tool", href: "/ai-tool", icon: Sparkles }, // ✅ NEW LINK
 ];
 
 export default function Sidebar() {
