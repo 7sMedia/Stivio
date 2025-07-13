@@ -1,28 +1,36 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { generateVideoFromSeedance } from "./actions/seedance";
+import { callSeedanceAPI } from "./actions/seedance";
 import PromptTemplatePicker from "./PromptTemplatePicker";
-import ImageUpload, { UploadedImage } from "@/components/ImageUpload"; // ✅ use this
+import ImageUpload, { UploadedImage } from "@/components/ImageUpload";
 
 export default function VideoGenerator() {
+  const [prompt, setPrompt] = useState<string>("");
+  const [status, setStatus] = useState<string>("");
+  const [videoUrl, setVideoUrl] = useState<string>("");
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
-  const [prompt, setPrompt] = useState("");
-  const [videoUrl, setVideoUrl] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [inputText, setInputText] = useState("");
 
   const handleGenerate = async () => {
-    if (selectedImageIdx === null) return;
-    const image = uploadedImages[selectedImageIdx];
-    const finalPrompt = prompt.replace("{text}", inputText).replace("{image}", image.path);
-    setLoading(true);
-    const video = await generateVideoFromSeedance(finalPrompt);
-    setVideoUrl(video);
-    setLoading(false);
+    setStatus("Generating video...");
+
+    const selectedImage =
+      selectedImageIdx !== null ? uploadedImages[selectedImageIdx] : undefined;
+
+    const res = await callSeedanceAPI({
+      prompt,
+      image_url: selectedImage?.path,
+    });
+
+    if (res.status === "ok" && res.video_url) {
+      setVideoUrl(res.video_url);
+      setStatus("Video generated!");
+    } else {
+      setStatus(res.error || "Failed to generate video.");
+    }
   };
 
   const handleTemplatePrompt = (templatePrompt: string) => {
@@ -30,7 +38,19 @@ export default function VideoGenerator() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-3xl mx-auto space-y-6">
+      <h2 className="text-2xl font-bold">Manual Mode: Generate a Video</h2>
+
+      <PromptTemplatePicker setPrompt={handleTemplatePrompt} />
+
+      {prompt.includes("{text}") && (
+        <Input
+          placeholder="Enter your custom text to replace {text}"
+          className="mt-2"
+          onChange={(e) => setPrompt((p) => p.replace("{text}", e.target.value))}
+        />
+      )}
+
       <ImageUpload
         uploadedImages={uploadedImages}
         setUploadedImages={setUploadedImages}
@@ -38,23 +58,22 @@ export default function VideoGenerator() {
         setSelectedImageIdx={setSelectedImageIdx}
       />
 
-      <PromptTemplatePicker setPrompt={handleTemplatePrompt} />
+      <Input
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+        placeholder="Enter prompt for Seedance"
+      />
 
-      {prompt.includes("{text}") && (
-        <Input
-          type="text"
-          placeholder="Enter custom text"
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-        />
-      )}
+      <Button onClick={handleGenerate}>Generate Video</Button>
 
-      <Button onClick={handleGenerate} disabled={loading || selectedImageIdx === null}>
-        {loading ? "Generating..." : "Generate Video"}
-      </Button>
-
+      {status && <p className="text-sm text-muted-foreground">{status}</p>}
       {videoUrl && (
-        <video className="rounded mt-4" src={videoUrl} controls width="100%" />
+        <video
+          src={videoUrl}
+          controls
+          autoPlay
+          className="w-full rounded-lg shadow mt-4"
+        />
       )}
     </div>
   );
