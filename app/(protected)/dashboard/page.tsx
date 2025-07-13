@@ -35,16 +35,10 @@ export default function DashboardPage() {
         .eq("user_id", user.id)
         .maybeSingle();
 
-      if (error) {
-        console.error("Error checking Dropbox connection:", error);
-      }
-
+      if (error) console.error("Dropbox check error:", error);
       if (data?.access_token) {
         setIsConnected(true);
         setAccessToken(data.access_token);
-      } else {
-        setIsConnected(false);
-        setAccessToken(null);
       }
 
       setLoading(false);
@@ -55,7 +49,6 @@ export default function DashboardPage() {
 
   const handleDisconnect = async () => {
     if (!userId) return;
-
     try {
       const res = await fetch("/api/dropbox/disconnect", {
         method: "POST",
@@ -63,59 +56,55 @@ export default function DashboardPage() {
         body: JSON.stringify({ userId }),
       });
 
-      const result = await res.json();
-
       if (res.ok) {
         setIsConnected(false);
         setAccessToken(null);
       } else {
-        console.error("Failed to disconnect:", result.error);
+        const result = await res.json();
+        console.error("Disconnect error:", result.error);
       }
     } catch (err) {
-      console.error("Unexpected error during disconnect:", err);
+      console.error("Unexpected error:", err);
     }
   };
 
   return (
-    <div className="space-y-8">
-      {/* Welcome + Dropbox Connection */}
-      <Card>
-        <CardContent className="py-6 px-6 flex justify-between items-center">
-          <div>
-            <h2 className="text-2xl font-bold tracking-tight">Welcome to Piksion</h2>
-            {!loading && (
-              <p className="text-sm text-muted-foreground mt-1">
-                {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
-              </p>
-            )}
-          </div>
-
+    <div className="px-6 pb-12 space-y-10">
+      {/* Welcome Panel */}
+      <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl shadow-md p-6 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-semibold text-white">Welcome to <span className="text-primary">Piksion</span></h1>
           {!loading && (
-            isConnected ? (
-              <Button variant="destructive" onClick={handleDisconnect}>
-                <XCircle className="mr-2 h-4 w-4" />
-                Disconnect Dropbox
-              </Button>
-            ) : (
-              userId && (
-                <a
-                  href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&token_access_type=offline`}
-                >
-                  <Button>
-                    <UploadCloud className="mr-2 h-4 w-4" />
-                    Connect Dropbox
-                  </Button>
-                </a>
-              )
-            )
+            <p className="text-sm text-zinc-400 mt-1">
+              {isConnected ? "✅ Dropbox Connected" : "❌ Dropbox Not Connected"}
+            </p>
           )}
-        </CardContent>
-      </Card>
+        </div>
+        {!loading && (
+          isConnected ? (
+            <Button variant="destructive" onClick={handleDisconnect} className="rounded-xl">
+              <XCircle className="w-4 h-4 mr-2" />
+              Disconnect
+            </Button>
+          ) : (
+            userId && (
+              <a
+                href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&token_access_type=offline`}
+              >
+                <Button className="bg-gradient-to-r from-purple-600 to-blue-500 text-white px-5 py-2 rounded-xl shadow-md hover:opacity-90">
+                  <UploadCloud className="w-4 h-4 mr-2" />
+                  Connect Dropbox
+                </Button>
+              </a>
+            )
+          )
+        )}
+      </div>
 
       {/* Folder Picker */}
       {isConnected && (
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Choose a Dropbox Folder</h3>
+        <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6 space-y-4">
+          <h3 className="text-lg font-medium text-white">Choose a Dropbox Folder</h3>
           <DropboxFolderPicker
             accessToken={accessToken!}
             selectedPath={selectedPath}
@@ -124,34 +113,38 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Placeholder Panels */}
+      {/* Grid Panel Layout */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left Side (Prompt + Preview) */}
         <div className="col-span-1 xl:col-span-2 space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-lg font-semibold mb-2">Prompt Input</h4>
-              <p className="text-sm text-muted-foreground">Type or choose a prompt template to generate a video.</p>
-              {/* Your PromptInput component will go here */}
-            </CardContent>
-          </Card>
+          {/* Prompt Input Card */}
+          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+            <h4 className="text-lg font-semibold text-white mb-2">Prompt Input</h4>
+            <p className="text-sm text-zinc-400 mb-3">Type or select a prompt to generate a video.</p>
+            {/* TODO: Replace with actual PromptInput component */}
+            <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Prompt input field goes here ]</div>
+          </div>
 
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-lg font-semibold mb-2">Video Preview</h4>
-              <p className="text-sm text-muted-foreground">Your generated video preview will appear here.</p>
-              {/* Your VideoPreview component will go here */}
-            </CardContent>
-          </Card>
+          {/* Video Preview Card */}
+          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+            <h4 className="text-lg font-semibold text-white mb-2">Video Preview</h4>
+            <p className="text-sm text-zinc-400 mb-3">Once generated, your AI video will appear here.</p>
+            {/* TODO: Replace with actual VideoPreview component */}
+            <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Video player or image preview goes here ]</div>
+          </div>
         </div>
 
+        {/* Right Side (History) */}
         <div className="col-span-1 space-y-6">
-          <Card>
-            <CardContent className="p-6">
-              <h4 className="text-lg font-semibold mb-2">Job History</h4>
-              <p className="text-sm text-muted-foreground">Recent generated videos appear here.</p>
-              {/* Your VideoHistory or JobList component will go here */}
-            </CardContent>
-          </Card>
+          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+            <h4 className="text-lg font-semibold text-white mb-2">Job History</h4>
+            <p className="text-sm text-zinc-400 mb-3">Recently generated videos.</p>
+            {/* TODO: Replace with VideoHistory component */}
+            <div className="space-y-3">
+              <div className="bg-zinc-900 rounded-xl px-4 py-3 text-sm text-zinc-400">[ Generated video 1 ]</div>
+              <div className="bg-zinc-900 rounded-xl px-4 py-3 text-sm text-zinc-400">[ Generated video 2 ]</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
