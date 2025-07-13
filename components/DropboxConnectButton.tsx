@@ -6,7 +6,7 @@ interface Props {
   userId: string;
 }
 
-function DropboxConnectButton({ userId }: Props) {
+export default function DropboxConnectButton({ userId }: Props) {
   const handleConnect = async () => {
     if (!userId) return;
 
@@ -22,5 +22,3 @@ function DropboxConnectButton({ userId }: Props) {
     </Button>
   );
 }
-
-export default DropboxConnectButton;
