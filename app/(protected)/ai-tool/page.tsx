@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ImageUpload, { UploadedImage } from "@/components/ImageUpload";
 import PromptTemplatePicker from "@/components/PromptTemplatePicker";
+import { usePromptInput } from "@/stores/promptInputStore"; // ✅ Zustand hook
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,7 +14,7 @@ const supabase = createClient(
 );
 
 export default function AIToolPage() {
-  const [prompt, setPrompt] = useState("");
+  const { prompt, setPrompt } = usePromptInput(); // ✅ Zustand managed state
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
   const [status, setStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
@@ -36,7 +37,7 @@ export default function AIToolPage() {
       <h1 className="text-2xl font-bold text-white">AI Video Generator</h1>
 
       <div className="space-y-4">
-        <PromptTemplatePicker setPrompt={setPrompt} />
+        <PromptTemplatePicker /> {/* ✅ no props needed, uses Zustand */}
 
         <label className="text-sm font-medium text-white block mb-2">Upload Image</label>
         <ImageUpload
@@ -49,7 +50,7 @@ export default function AIToolPage() {
         <label className="text-sm font-medium text-white block mt-4">Prompt</label>
         <Input
           value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
+          onChange={(e) => setPrompt(e.target.value)} // ✅ synced with Zustand
           className="w-full"
           placeholder="Describe your animation..."
         />
