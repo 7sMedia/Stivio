@@ -6,10 +6,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import ImageUpload from "@/components/ImageUpload";
 
+// Define UploadedImage to match what ImageUpload expects
+type UploadedImage = {
+  url: string;
+  name?: string;
+};
+
 export default function AIToolPage() {
   const [prompt, setPrompt] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
 
   return (
