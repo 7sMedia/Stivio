@@ -3,61 +3,56 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+
 import DropboxConnectButton from "@/components/DropboxConnectButton";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
 import DropboxImageUploader from "@/components/DropboxImageUploader";
 import PromptTemplatePicker from "@/components/PromptTemplatePicker";
 import PromptInput from "@/components/PromptInput";
-import VideoGallery from "@/components/VideoGallery";
+import VideoGallery from "@/components/UserGeneratedVideos";
 
 export default function DashboardPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [selectedFolder, setSelectedFolder] = useState<string>("");
+  const [prompt, setPrompt] = useState("");
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
+    const getSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (data?.session?.user?.id) {
+        setUserId(data.session.user.id);
+      } else {
         router.push("/login");
-        return;
       }
-      setUserId(user.id);
-
-      const res = await fetch(`/api/dropbox/token?user_id=${user.id}`);
-      const json = await res.json();
-      if (json.token) {
-        setToken(json.token);
-      }
+      setLoading(false);
     };
-
-    fetchUser();
+    getSession();
   }, [router]);
+
+  if (loading) {
+    return <div className="p-6">Loading...</div>;
+  }
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Welcome to Beta7</h1>
-        {userId && <DropboxConnectButton userId={userId} />}
-      </div>
-
-      {token && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <DropboxFolderPicker
-            userId={userId!}
-            value={selectedFolder}
-            onChange={setSelectedFolder}
-          />
-          <DropboxImageUploader userId={userId!} />
+      <Card className="p-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-xl font-bold">Welcome to Beta7</h1>
+          <DropboxConnectButton />
         </div>
-      )}
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <PromptTemplatePicker />
-        <PromptInput />
+        <PromptTemplatePicker onSelectTemplate={setPrompt} />
+        <PromptInput value={prompt} onChange={setPrompt} />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <DropboxFolderPicker />
+        <DropboxImageUploader />
       </div>
 
       {userId && <VideoGallery userId={userId} />}
