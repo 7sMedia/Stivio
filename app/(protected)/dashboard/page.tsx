@@ -117,14 +117,14 @@ export default function DashboardPage() {
         {/* Left Side (Prompt + Preview) */}
         <div className="col-span-1 xl:col-span-2 space-y-6">
           {/* Prompt Input Card */}
-          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+          <div className="bg-[#1a1a1a] border border-zinc-700 rounded-2xl shadow-lg p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Prompt Input</h4>
             <p className="text-sm text-zinc-400 mb-3">Type or select a prompt to generate a video.</p>
             <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Prompt input field goes here ]</div>
           </div>
 
           {/* Video Preview Card */}
-          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+          <div className="bg-[#1a1a1a] border border-zinc-700 rounded-2xl shadow-lg p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Video Preview</h4>
             <p className="text-sm text-zinc-400 mb-3">Once generated, your AI video will appear here.</p>
             <div className="bg-zinc-900 rounded-xl p-4 text-zinc-500 text-sm">[ Video player or image preview goes here ]</div>
@@ -133,7 +133,7 @@ export default function DashboardPage() {
 
         {/* Right Side (History) */}
         <div className="col-span-1 space-y-6">
-          <div className="bg-[#1A1A1A] border border-zinc-800 rounded-2xl p-6">
+         <div className="bg-[#1a1a1a] border border-zinc-700 rounded-2xl shadow-lg p-6">
             <h4 className="text-lg font-semibold text-white mb-2">Job History</h4>
             <p className="text-sm text-zinc-400 mb-3">Recently generated videos.</p>
             <div className="space-y-3">
