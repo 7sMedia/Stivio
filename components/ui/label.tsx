@@ -1,14 +1,20 @@
-"use client";
+// Path: components/ui/label.tsx
 
 import * as React from "react";
-import { Label as RadixLabel } from "@radix-ui/react-label";
 import { cn } from "@/lib/utils";
 
-export interface LabelProps extends React.ComponentPropsWithoutRef<typeof RadixLabel> {}
+export interface LabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {}
 
-const Label = React.forwardRef<React.ElementRef<typeof RadixLabel>, LabelProps>(
+const Label = React.forwardRef<HTMLLabelElement, LabelProps>(
   ({ className, ...props }, ref) => (
-    <RadixLabel ref={ref} className={cn("text-sm font-medium leading-none", className)} {...props} />
+    <label
+      ref={ref}
+      className={cn(
+        "text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70",
+        className
+      )}
+      {...props}
+    />
   )
 );
 Label.displayName = "Label";
