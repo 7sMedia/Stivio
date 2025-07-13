@@ -2,21 +2,15 @@
 
 import { useState } from "react";
 import PromptTemplatePicker from "./PromptTemplatePicker";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import ImageUpload from "@/components/ImageUpload";
-
-// MUST match the actual ImageUpload type
-type UploadedImage = {
-  url: string;
-  path: string;
-  thumbnail: string;
-  name?: string;
-};
+import ImageUpload, { UploadedImage } from "@/components/ImageUpload";
 
 export default function AIToolPage() {
   const [prompt, setPrompt] = useState("");
   const [selectedTemplate, setSelectedTemplate] = useState("");
+
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([]);
   const [selectedImageIdx, setSelectedImageIdx] = useState<number | null>(null);
 
@@ -30,10 +24,12 @@ export default function AIToolPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left: Prompt Templates */}
         <div className="space-y-4">
-          <PromptTemplatePicker setPrompt={(tplPrompt) => {
-            setPrompt(tplPrompt);
-            setSelectedTemplate(tplPrompt);
-          }} />
+          <PromptTemplatePicker
+            onSelectTemplate={(tpl) => {
+              setPrompt(tpl.prompt);
+              setSelectedTemplate(tpl.name);
+            }}
+          />
         </div>
 
         {/* Right: Prompt Input + Upload */}
