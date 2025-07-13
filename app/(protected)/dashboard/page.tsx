@@ -4,86 +4,128 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabaseClient";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import DropboxConnectButton from "@/components/DropboxConnectButton";
+import { Card, CardContent } from "@/components/ui/card";
+import { UploadCloud, XCircle } from "lucide-react";
+import Sidebar from "@/components/sidebar";
 import DropboxFolderPicker from "@/components/DropboxFolderPicker";
-import PromptInput from "@/components/PromptInput";
-import PromptTemplatePicker from "@/components/PromptTemplatePicker";
-import VideoGallery from "@/components/VideoGallery";
-import { callSeedanceAPI } from "../actions/seedance";
+import callSeedanceAPI from "@/app/(protected)/ai-tool/actions/seedance";
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string>("");
-  const [selectedFolder, setSelectedFolder] = useState<string>("");
-  const [prompt, setPrompt] = useState<string>("");
+  const [userId, setUserId] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [selectedFolder, setSelectedFolder] = useState("");
 
   useEffect(() => {
-    const fetchUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) {
-        router.push("/login");
+    const fetchUserAndStatus = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        router.push("/");
         return;
       }
-      setUserId(data.user.id);
+
+      setUserId(user.id);
+
+      const { data, error } = await supabase
+        .from("dropbox_tokens")
+        .select("access_token")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking Dropbox connection:", error);
+      }
+
+      if (data?.access_token) {
+        setIsConnected(true);
+        setAccessToken(data.access_token);
+      } else {
+        setIsConnected(false);
+        setAccessToken(null);
+      }
+
+      setLoading(false);
     };
 
-    fetchUser();
+    fetchUserAndStatus();
   }, [router]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.push("/login");
-  };
+  const handleDisconnect = async () => {
+    if (!userId) return;
 
-  const handleGenerate = async () => {
-    if (!selectedFolder || !prompt) return;
-    await callSeedanceAPI({ folderPath: selectedFolder, prompt });
-  };
+    try {
+      const res = await fetch("/api/dropbox/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
 
-  if (!userId) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-center text-lg">Loading...</p>
-      </div>
-    );
-  }
+      const result = await res.json();
+
+      if (res.ok) {
+        setIsConnected(false);
+        setAccessToken(null);
+      } else {
+        console.error("Failed to disconnect:", result.error);
+      }
+    } catch (err) {
+      console.error("Unexpected error during disconnect:", err);
+    }
+  };
 
   return (
-    <div className="p-6 space-y-6">
-      <Card className="p-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-xl font-bold">Welcome to Beta7</h1>
-          <DropboxConnectButton userId={userId} />
-        </div>
-      </Card>
+    <div className="flex min-h-screen dark bg-background text-white">
+      <Sidebar />
+      <main className="flex-1 p-6 space-y-6">
+        <Card>
+          <CardContent className="py-6 flex justify-between items-center">
+            <div>
+              <h2 className="text-xl font-semibold">Welcome to Beta7</h2>
+              {!loading && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isConnected ? "✅ Dropbox Connected" : "❌ Not Connected"}
+                </p>
+              )}
+            </div>
 
-      <Card className="p-6">
-        <DropboxFolderPicker
-          userId={userId}
-          value={selectedFolder}
-          onChange={setSelectedFolder}
-        />
-      </Card>
+            {!loading && (
+              isConnected ? (
+                <Button variant="destructive" onClick={handleDisconnect}>
+                  <XCircle className="mr-2 h-4 w-4" />
+                  Disconnect Dropbox
+                </Button>
+              ) : (
+                userId && (
+                  <a
+                    href={`https://www.dropbox.com/oauth2/authorize?client_id=${process.env.NEXT_PUBLIC_DROPBOX_CLIENT_ID}&redirect_uri=${process.env.NEXT_PUBLIC_DROPBOX_REDIRECT_URI}&response_type=code&state=${userId}&force_reapprove=true`}
+                  >
+                    <Button>
+                      <UploadCloud className="mr-2 h-4 w-4" />
+                      Connect Dropbox
+                    </Button>
+                  </a>
+                )
+              )
+            )}
+          </CardContent>
+        </Card>
 
-      <Card className="p-6">
-        <PromptTemplatePicker onSelectTemplate={setPrompt} />
-        <PromptInput value={prompt} onChange={setPrompt} />
-      </Card>
-
-      <Card className="p-6">
-        <Button onClick={handleGenerate} className="w-full bg-green-500 hover:bg-green-600">
-          Generate Video
-        </Button>
-      </Card>
-
-      <Card className="p-6">
-        <Button variant="destructive" onClick={handleLogout}>
-          Logout
-        </Button>
-      </Card>
-
-      <VideoGallery userId={userId} />
+        {isConnected && userId && accessToken && (
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Step 2: Select Input Folder</h3>
+            <DropboxFolderPicker
+              userId={userId}
+              value={selectedFolder}
+              onChange={setSelectedFolder}
+            />
+          </div>
+        )}
+      </main>
     </div>
   );
 }
