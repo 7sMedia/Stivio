@@ -110,7 +110,7 @@ export default function HomePage() {
               Motion Out.
             </span>
             <br />
-            Social Reach.
+            More Social Reach...
           </motion.h1>
 
           <motion.div
